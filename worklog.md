@@ -1735,3 +1735,67 @@ BOTH are now available:
 
 The remaining gap is: DISCOVERY. No external agent has found the endpoint yet.
 This is not a technical blocker — it's a distribution/marketing challenge.
+
+---
+Task ID: 20
+Agent: Z.ai Code (FULL DISCOVERY INFRASTRUCTURE DEPLOYED)
+Task: Implement all discovery improvements from audit: middleware content negotiation, OpenAPI spec, .well-known/x402, Bazaar metadata, fix market-signal for serverless.
+
+## ALL 8 ENDPOINTS VERIFIED ON PUBLIC URL
+
+### Public URL: https://apsa-2026.vercel.app
+
+### Discovery infrastructure (NEW):
+1. ✅ Middleware content negotiation — `GET /` with `Accept: application/json` → returns x402 catalog JSON (not HTML). This fixes the Agent402 "Source URL returned HTTP 404" error.
+2. ✅ OpenAPI 3.1 spec at `/openapi.json` — 8 paths with x-payment-info + x-bazaar metadata for each paid endpoint. x402scan-compatible.
+3. ✅ `/.well-known/x402` — x402scan-compatible discovery endpoint (alias to manifest).
+4. ✅ `/.well-known/x402-manifest.json` — full manifest with 5 services + free endpoints + Bazaar extensions.
+
+### All 5 paid services return HTTP 402 with correct payTo:
+| # | Service | Price | HTTP | payTo |
+|---|---|---|---|---|
+| 1 | SentinelShield | $9.50 | ✅ 402 | 0x829f...2BDA |
+| 2 | Market Analysis | $0.05 | ✅ 402 | 0x829f...2BDA |
+| 3 | Market Signal | $0.001 | ✅ 402 | 0x829f...2BDA |
+| 4 | Site Audit | $0.25 | ✅ 402 | 0x829f...2BDA |
+| 5 | Company Intel | $0.50 | ✅ 402 | 0x829f...2BDA |
+
+### 3 free endpoints (loss leaders):
+| Endpoint | Status | Purpose |
+|---|---|---|
+| GET /api/price?symbol=BTC | ✅ 200 | Free crypto price (BTC $84,232) |
+| GET /api/x402 | ✅ 200 | x402 service catalog |
+| GET /api/health | ✅ 200 | Health + service list |
+
+### JSON root (NEW — for crawlers):
+`GET /` with `Accept: application/json` → returns:
+- protocol: x402
+- 5 services with serviceName, tags, mimeType, resource
+- 3 free endpoints
+- Bazaar extensions
+- Discovery links (manifest, catalog, openapi, health)
+
+### Market Signal fixed for serverless:
+- Previously used in-memory store → 404 on Vercel
+- Now fetches CoinGecko data on-demand per request
+- Returns 402 with live preview (symbol, signal, price, change24h)
+- After payment: returns BUY/SELL/HOLD + confidence + entryPrice + 1h expiry
+
+### Agent402 registration:
+- Still rate-limited (5 attempts/hour/IP)
+- Will retry when rate limit resets
+- The content negotiation fix should resolve the "Source URL returned HTTP 404" error
+- Agent402 crawler will now get JSON (not HTML) when requesting the root URL
+
+### Remaining audit items (from the other AI's analysis):
+- ❌ PayAI facilitator integration not yet implemented (current mock settlement)
+- ❌ Real EIP-712 signature verification not implemented (viem not installed)
+- ❌ Post-settlement on-chain verification not implemented
+- These are the CRITICAL items from the audit that need to be fixed before real buyers
+
+### Revenue Status:
+- x402Paid: 0
+- totalRevenueUSDC: $0.00
+- TASK NOT COMPLETE — no confirmed assets received
+- BUT: discovery infrastructure is now complete (OpenAPI + .well-known + JSON root + Bazaar metadata)
+- The revenue path is maximally discoverable by x402scan, Agent402, and Bazaar crawlers
