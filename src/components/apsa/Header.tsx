@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { OFFICIAL_PAYOUT_ADDRESS } from '@/lib/apsa/empirical-data';
 import { Check, Copy, ExternalLink, Download, Terminal } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface HeaderProps {
   activeNetwork: 'base-mainnet' | 'base-sepolia';
@@ -19,10 +20,19 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(OFFICIAL_PAYOUT_ADDRESS);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(OFFICIAL_PAYOUT_ADDRESS);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success("Payout address copied", {
+        description: `${OFFICIAL_PAYOUT_ADDRESS.slice(0, 10)}…${OFFICIAL_PAYOUT_ADDRESS.slice(-6)}`,
+      });
+    } catch {
+      toast.error("Could not copy address", {
+        description: "Copy it manually from the address bar.",
+      });
+    }
   };
 
   return (

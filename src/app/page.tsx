@@ -17,6 +17,11 @@ import { CommandPalette, type CommandAction } from "@/components/apsa/command-pa
 import { HelpDrawer } from "@/components/apsa/help-drawer";
 import { GuidedTour } from "@/components/apsa/guided-tour";
 import { FadeIn } from "@/components/apsa/fade-in";
+import {
+  ActivityFeedProvider,
+  useActivityFeed,
+} from "@/components/apsa/activity-feed-provider";
+import { ActivityFeed } from "@/components/apsa/activity-feed";
 import { ApsaDataProvider, useApsaData } from "@/components/apsa/apsa-data-provider";
 import { TAB_HELPS } from "@/lib/apsa/tab-helps";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -44,6 +49,7 @@ import {
   Command as CommandIcon,
   Download,
   HelpCircle,
+  Bell,
 } from "lucide-react";
 
 type ActiveTab =
@@ -146,13 +152,16 @@ const TABS: TabDef[] = [
 export default function Home() {
   return (
     <ApsaDataProvider>
-      <Dashboard />
+      <ActivityFeedProvider>
+        <Dashboard />
+      </ActivityFeedProvider>
     </ApsaDataProvider>
   );
 }
 
 function Dashboard() {
   const { suite, wallet } = useApsaData();
+  const { logEvent, unreadCount } = useActivityFeed();
   const [activeNetwork, setActiveNetwork] = useState<Network>("base-mainnet");
   const [activeTab, setActiveTab] = useLocalStorage<ActiveTab>(
     "apsa:activeTab",
@@ -161,6 +170,7 @@ function Dashboard() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [feedOpen, setFeedOpen] = useState(false);
 
   // Pull live data from the shared context (single source of truth — no
   // duplicate fetches). The provider primes the cache on mount and debounces
@@ -195,13 +205,14 @@ function Dashboard() {
         const tab = TABS[n - 1];
         if (tab) {
           setActiveTab(tab.id);
+          logEvent("tab-change", `Switched to ${tab.shortLabel}`, `Keyboard shortcut ${n}`, "slate");
           window.scrollTo({ top: 360, behavior: "smooth" });
         }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [setActiveTab]);
+  }, [setActiveTab, logEvent]);
 
   const handleExportReport = useCallback(() => {
     setActiveTab("verdict");
@@ -249,6 +260,7 @@ function Dashboard() {
         run: () => {
           setActiveTab("mission");
           window.scrollTo({ top: 360, behavior: "smooth" });
+          logEvent("suite-run", "Re-running 12-test suite", "Protocol verification on Base Mainnet", "emerald");
           toast.info("Re-running 12-test suite…", {
             description: "Executing protocol verification on Base Mainnet.",
           });
@@ -263,6 +275,7 @@ function Dashboard() {
         run: () => {
           setActiveTab("testnet");
           window.scrollTo({ top: 360, behavior: "smooth" });
+          logEvent("x402-simulation", "Opening x402 testnet workbench", undefined, "violet");
           toast.info("Opening x402 testnet workbench…");
         },
       },
@@ -274,6 +287,7 @@ function Dashboard() {
         keywords: ["tour", "guide", "onboarding", "help", "learn"],
         run: () => {
           setTourOpen(true);
+          logEvent("tour-start", "Guided tour started", "Use ← → to navigate, Esc to exit.", "amber");
           toast.info("Starting guided tour…", {
             description: "Use ← → to navigate, Esc to exit.",
           });
@@ -288,6 +302,7 @@ function Dashboard() {
         run: () => {
           setActiveTab("scanner");
           window.scrollTo({ top: 360, behavior: "smooth" });
+          logEvent("wallet-scan", "Scanning receive-only wallet", "Live Base Mainnet RPC query", "emerald");
         },
       },
       {
@@ -297,6 +312,7 @@ function Dashboard() {
         group: "Actions",
         keywords: ["zip", "archive", "bundle", "download"],
         run: () => {
+          logEvent("suite-run", "Bundle download initiated", "APSA-2026 .zip archive (158 KB)", "amber");
           window.open("/api/download/bundle.zip", "_blank");
         },
       },
@@ -307,14 +323,10 @@ function Dashboard() {
         group: "Actions",
         keywords: ["network", "sepolia", "mainnet"],
         run: () => {
-          setActiveNetwork((n) =>
-            n === "base-mainnet" ? "base-sepolia" : "base-mainnet",
-          );
-          toast.success(
-            `Switched to ${
-              activeNetwork === "base-mainnet" ? "Base Sepolia" : "Base Mainnet"
-            }`,
-          );
+          const next = activeNetwork === "base-mainnet" ? "base-sepolia" : "base-mainnet";
+          setActiveNetwork(next);
+          logEvent("network-toggle", `Network switched to ${next === "base-mainnet" ? "Base Mainnet" : "Base Sepolia"}`, undefined, "slate");
+          toast.success(`Switched to ${next === "base-mainnet" ? "Base Mainnet" : "Base Sepolia"}`);
         },
       },
       {
@@ -348,7 +360,7 @@ function Dashboard() {
     ],
     // activeNetwork + setActiveTab are deps so the toggle-network action
     // label resolves correctly and tab navigation works.
-    [activeNetwork, setActiveTab, setTourOpen],
+    [activeNetwork, setActiveTab, setTourOpen, logEvent],
   );
 
   return (
@@ -396,6 +408,18 @@ function Dashboard() {
                 </button>
               );
             })}
+            <button
+              onClick={() => setFeedOpen(true)}
+              title="Activity feed (recent protocol events)"
+              className="relative px-2.5 py-2 rounded-lg text-slate-400 hover:text-emerald-300 hover:bg-slate-800/60 flex items-center gap-1.5 transition-colors flex-shrink-0"
+            >
+              <Bell className="w-3.5 h-3.5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[14px] h-3.5 px-1 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
             <button
               onClick={() => setHelpOpen(true)}
               title="What am I looking at? (Press ?)"
@@ -447,6 +471,19 @@ function Dashboard() {
 
         {/* Quick-action floating buttons (desktop only, subtle) */}
         <div className="hidden lg:flex fixed bottom-6 right-6 z-30 flex-col gap-2">
+          <button
+            onClick={() => setFeedOpen(true)}
+            className="group relative w-11 h-11 rounded-full bg-slate-900 border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800 text-slate-300 hover:text-emerald-300 flex items-center justify-center shadow-lg shadow-black/40 transition-all"
+            title="Activity feed"
+            aria-label="Open activity feed"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
           <button
             onClick={() => setHelpOpen(true)}
             className="group w-11 h-11 rounded-full bg-slate-900 border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800 text-slate-300 hover:text-emerald-300 flex items-center justify-center shadow-lg shadow-black/40 transition-all"
@@ -553,6 +590,8 @@ function Dashboard() {
           window.scrollTo({ top: 360, behavior: "smooth" });
         }}
       />
+
+      <ActivityFeed open={feedOpen} onOpenChange={setFeedOpen} />
     </div>
   );
 }

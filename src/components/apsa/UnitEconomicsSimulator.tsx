@@ -10,6 +10,7 @@ import { RevenueBreakdownChart } from './revenue-breakdown-chart';
 import { RevenueSensitivityChart } from './revenue-sensitivity-chart';
 import { SubSectionNav, type SubSection } from './sub-section-nav';
 import { ShareScenarioButton } from './share-scenario-button';
+import { ExportJsonButton } from './export-json-button';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { readUrlHash, writeUrlHash } from '@/hooks/use-url-hash-state';
 import { toast } from 'sonner';
@@ -209,6 +210,23 @@ export const UnitEconomicsSimulator: React.FC = () => {
                 varCost: variableCostPerOrder.toFixed(3),
                 fixed: fixedMonthlyCost.toFixed(2),
               }}
+            />
+            <ExportJsonButton
+              value={{
+                scenario: selectedPreset,
+                ticketPrice,
+                ordersPerDay,
+                variableCostPerOrder,
+                fixedMonthlyCost,
+                derived: {
+                  grossDaily: grossDaily,
+                  netDaily,
+                  netMonthly,
+                  netMarginPct: Number(netMarginPct.toFixed(2)),
+                },
+                exportedAt: new Date().toISOString(),
+              }}
+              filename={`apsa-scenario-${selectedPreset.toLowerCase()}-${Date.now().toString().slice(-6)}`}
             />
           </div>
         </div>

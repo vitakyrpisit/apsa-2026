@@ -4,6 +4,7 @@ import React from 'react';
 import { DollarSign, ShieldAlert, TrendingUp, Cpu, Activity } from 'lucide-react';
 import type { OnChainWalletStatus } from '@/lib/apsa/base-rpc';
 import { AnimatedNumber } from './animated-number';
+import { FadeIn } from './fade-in';
 
 interface MetricCardsProps {
   walletStatus: OnChainWalletStatus | null;
@@ -257,7 +258,9 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ walletStatus, onOpenLi
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-6">
       {cards.map((c, i) => (
-        <MetricCard key={i} card={c} />
+        <FadeIn key={i} delay={i * 0.06} duration={0.4} y={14}>
+          <MetricCard card={c} />
+        </FadeIn>
       ))}
     </div>
   );

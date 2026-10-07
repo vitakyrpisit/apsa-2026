@@ -889,3 +889,117 @@ Stage Summary:
   with framer-motion entrance animations on tab switch). All 12 protocol
   tests still pass. Lint clean. No errors. VLM confirms the toggle, Share
   button, and correct palette with no blue/indigo.
+
+---
+Task ID: 10
+Agent: Z.ai Code (webDevReview cron round 6)
+Task: Assess status, QA via agent-browser, implement round-6 features (Activity Feed slide-out panel with event tracking, Export scenario as JSON button, FadeIn on MetricCards staggered entrance, toast feedback on Header copy-address button).
+
+## Current Project Status (assessment)
+- Dev server healthy; `bun run lint` clean; all 12 tests pass; all 9 tabs render.
+- No errors, no regressions from round 5. Project is stable.
+- Round 5 recs prioritized: "Activity Feed component", "Export scenario as JSON",
+  "FadeIn to MetricCards for staggered first-load", "toast feedback on Header
+  copy-wallet-address" → all 4 implemented.
+
+## Completed Modifications
+
+### New components (3)
+1. `src/components/apsa/activity-feed-provider.tsx` (NEW) —
+   `ActivityFeedProvider` context + `useActivityFeed()` hook + `formatRelativeTime()`.
+   An in-memory ring buffer of recent protocol events (max 50, session-scoped).
+   Exposes `events`, `unreadCount`, `logEvent(type, title, detail?, tone?)`,
+   `markAllRead()`, `clear()`. 10 event types: suite-run, wallet-scan,
+   x402-simulation, tx-verify, network-toggle, tab-change, scenario-load,
+   scenario-reset, tour-start, tour-complete. Each event has a tone
+   (emerald/amber/rose/slate/violet) for color-coded rendering.
+2. `src/components/apsa/activity-feed.tsx` (NEW) — `ActivityFeed`: a right-side
+   slide-out panel (max-w-md, translate-x transition) showing the event log.
+   Features: Bell icon + unread-count badge, "Mark all read" + "Clear" action
+   bar, per-event icon (10 type-specific icons), tone-colored cards, relative
+   timestamps ("just now" / "Xs ago" / "Xm ago") that auto-refresh every 5s
+   while open, empty state, Esc to close.
+3. `src/components/apsa/export-json-button.tsx` (NEW) — `ExportJsonButton`:
+   downloads a JSON file containing the provided value. Uses Blob + temporary
+   anchor. Shows check state + sonner toast on success. Compact, self-contained.
+
+### Enhanced existing components (3)
+4. `page.tsx` — wrapped `Dashboard` in `<ActivityFeedProvider>`. Added
+   `feedOpen` state + the `<ActivityFeed>` panel. Added a Bell button (with
+   unread badge) to the tab bar AND the floating-button cluster. Wired
+   `logEvent()` into all command-palette actions: run-tests, run-simulation,
+   start-tour, scan-wallet, download-bundle, toggle-network. Also wired
+   `logEvent("tab-change", ...)` into the keyboard-shortcut handler (keys 1-9).
+5. `UnitEconomicsSimulator.tsx` — added the `<ExportJsonButton>` next to the
+   Share button in the simulator header. Exports a JSON object with the 5 raw
+   slider values + derived metrics (grossDaily, netDaily, netMonthly,
+   netMarginPct) + an exportedAt timestamp. Filename:
+   `apsa-scenario-{preset}-{timestamp}.json`.
+6. `MetricCards.tsx` — wrapped each of the 5 metric cards in `<FadeIn
+   delay={i * 0.06} duration={0.4} y={14}>` for a staggered entrance
+   animation on first load. Added the FadeIn import.
+7. `Header.tsx` — upgraded the copy-wallet-address handler from a sync
+   `navigator.clipboard.writeText` to an async try/catch with a sonner
+   success toast ("Payout address copied" + the truncated address) and an
+   error toast fallback. Added the `toast` import.
+
+## Verification Results
+- `bun run lint` → 0 errors, 0 warnings.
+- `curl -X POST /api/test-suite` → 12 tests, passed=True.
+- agent-browser: no console/runtime errors after a fresh reload.
+- All 9 keyboard shortcuts (1-9) jump to the correct tab.
+- Activity Feed: Bell button visible in tab bar + floating cluster. Clicking
+  it opens the slide-out panel. Pressing 1-9 logs "Switched to {tab}" events
+  with relative timestamps ("just now", "Xs ago"). "Mark all read" resets
+  the unread badge. "Clear" empties the feed.
+- Export JSON button: present in the Economics simulator header (labeled
+  "JSON"). Clicking it downloads a `.json` file with the scenario + derived
+  metrics + timestamp.
+- MetricCards: staggered FadeIn entrance (5 cards × 0.06s stagger = 0.3s
+  total, verified via console — no animation errors).
+- Header copy: clicking the copy button shows a sonner toast "Payout address
+  copied" with the truncated address.
+- Mobile (375×812): 4 charts render; footer sticky.
+- VLM (z-ai vision) confirms: "Bell icon button visible"; "JSON export button
+  in the simulator header"; "5 metric cards well-aligned with sparklines";
+  "no rendering issues"; "strictly dark-themed with neon greens and pinks,
+  no blue or indigo hues".
+
+## Bugs found & fixed
+- `activity-feed-provider.tsx` first version had messy aliased imports
+  (`useCallback as _useCallback`, `useContext as _useContext`) to avoid
+  "clashing with function declarations" — a non-issue. Cleaned up to a single
+  clean import block.
+- `page.tsx` toggle-network action had a stray `);` after the toast call
+  (leftover from the old multi-line toast.success). Fixed the syntax.
+- `page.tsx` `useMemo` deps updated to include `logEvent` (from
+  `useActivityFeed`) so the command-palette actions capture the latest
+  logEvent closure.
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+- The Activity Feed is session-scoped (in-memory). Could persist to
+  localStorage for cross-session continuity, but that risks stale noise.
+- The `logEvent` calls are currently in page.tsx's command-palette actions
+  and keyboard handler. Could also wire logging into RealRevenueHarness
+  (suite rerun button → logEvent), TestnetWorkbench (simulation → logEvent),
+  and LiveOnChainTracker (wallet refresh → logEvent) for more granular
+  coverage. These components would need access to the `logEvent` function
+  via props or a separate context consumer.
+- The Bell button unread badge uses a rose color which is on-palette but
+  could be made more prominent with a subtle pulse animation.
+- The Export JSON button exports a flat object; could add a "re-import"
+  feature (drag-drop a JSON file to restore a scenario).
+- The FadeIn on MetricCards fires on every page load, not just the first.
+  Could gate it to first-load-only via a session flag if the re-animation
+  becomes tiresome.
+- Could add a "Filter by type" dropdown in the Activity Feed to show only
+  certain event types (e.g. only suite-run + wallet-scan).
+
+Stage Summary:
+- Round 6 complete: 3 new components (ActivityFeedProvider context +
+  ActivityFeed slide-out panel + ExportJsonButton), 4 existing components
+  enhanced (page.tsx with full event logging + feed wiring; Economics tab
+  with JSON export; MetricCards with staggered FadeIn; Header with toast
+  feedback on copy). All 12 protocol tests still pass. Lint clean. No
+  errors. VLM confirms the Bell button, JSON export button, metric card
+  sparklines, and correct dark palette with no blue/indigo.
