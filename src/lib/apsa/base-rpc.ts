@@ -27,8 +27,15 @@ export interface OnChainWalletStatus {
   statusMessage: string;
 }
 
-const BASE_MAINNET_RPC = "https://mainnet.base.org";
-const BASE_SEPOLIA_RPC = "https://sepolia.base.org";
+const BASE_MAINNET_RPCS = [
+  "https://mainnet.base.org",
+  "https://base.publicnode.com",
+  "https://1rpc.io/base",
+];
+const BASE_SEPOLIA_RPCS = [
+  "https://sepolia.base.org",
+  "https://base-sepolia.publicnode.com",
+];
 
 const USDC_MAINNET = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
@@ -101,8 +108,32 @@ function padAddressToTopic(addr: string): string {
 }
 
 /**
+ * Try a JSON-RPC call against each URL in `rpcUrls` in order, returning the
+ * first successful result. Rotates on HTTP 429 (rate-limit), 5xx, network
+ * errors, and timeouts. Throws the last error if all endpoints fail.
+ */
+async function jsonRpcCallWithFallback<T>(
+  rpcUrls: string[],
+  method: string,
+  params: unknown[],
+): Promise<{ result: T; rpcUrl: string }> {
+  let lastErr: unknown = null;
+  for (const url of rpcUrls) {
+    try {
+      const result = await jsonRpcCall<T>(url, method, params);
+      return { result, rpcUrl: url };
+    } catch (err) {
+      lastErr = err;
+      // Continue to the next endpoint.
+    }
+  }
+  throw lastErr ?? new Error("All RPC endpoints failed");
+}
+
+/**
  * Query the live on-chain status of the receive-only payout wallet.
- * If the public RPC is unreachable, returns a deterministic, clearly-labelled
+ * Rotates through multiple public RPC endpoints to resist rate-limiting.
+ * If ALL endpoints are unreachable, returns a deterministic, clearly-labelled
  * fallback so the UI never lies about revenue: balance stays $0.00 and
  * isRealRpc=false.
  */
@@ -110,30 +141,37 @@ export async function fetchLiveOnChainStatus(
   address: string,
   network: "base-mainnet" | "base-sepolia" = "base-mainnet",
 ): Promise<OnChainWalletStatus> {
-  const rpcUrl = network === "base-mainnet" ? BASE_MAINNET_RPC : BASE_SEPOLIA_RPC;
+  const rpcUrls =
+    network === "base-mainnet" ? BASE_MAINNET_RPCS : BASE_SEPOLIA_RPCS;
   const usdcContract =
     network === "base-mainnet" ? USDC_MAINNET : USDC_SEPOLIA;
 
   try {
     // 1. Latest block height
-    const blockHex = await jsonRpcCall<string>(rpcUrl, "eth_blockNumber", []);
+    const { result: blockHex, rpcUrl } = await jsonRpcCallWithFallback<string>(
+      rpcUrls,
+      "eth_blockNumber",
+      [],
+    );
     const blockNumber = hexToNumber(blockHex);
 
     // 2. Native ETH balance
-    const ethBalanceHex = await jsonRpcCall<string>(rpcUrl, "eth_getBalance", [
-      address,
-      "latest",
-    ]);
+    const { result: ethBalanceHex } = await jsonRpcCallWithFallback<string>(
+      rpcUrls,
+      "eth_getBalance",
+      [address, "latest"],
+    );
     const ethWei = hexToBigInt(ethBalanceHex);
     const ethBalance = (Number(ethWei) / 1e18).toFixed(6);
 
     // 3. ERC-20 balanceOf(address) — selector 0x70a08231
     const cleanAddr = address.toLowerCase().replace("0x", "").padStart(64, "0");
     const callData = "0x70a08231" + cleanAddr;
-    const usdcBalanceHex = await jsonRpcCall<string>(rpcUrl, "eth_call", [
-      { to: usdcContract, data: callData },
-      "latest",
-    ]);
+    const { result: usdcBalanceHex } = await jsonRpcCallWithFallback<string>(
+      rpcUrls,
+      "eth_call",
+      [{ to: usdcContract, data: callData }, "latest"],
+    );
     const usdcRaw = hexToBigInt(usdcBalanceHex);
     const usdcBalance = (Number(usdcRaw) / 1e6).toFixed(2);
 
@@ -143,14 +181,14 @@ export async function fetchLiveOnChainStatus(
       const paddedTo = padAddressToTopic(address);
       const fromBlock =
         "0x" + Math.max(0, blockNumber - 50000).toString(16);
-      const logs = await jsonRpcCall<
+      const { result: logs } = await jsonRpcCallWithFallback<
         Array<{
           transactionHash: string;
           blockNumber: string;
           data: string;
           topics: string[];
         }>
-      >(rpcUrl, "eth_getLogs", [
+      >(rpcUrls, "eth_getLogs", [
         {
           fromBlock,
           toBlock: "latest",
@@ -209,7 +247,7 @@ export async function fetchLiveOnChainStatus(
       recentTransfers: [],
       queryTimestamp: new Date().toISOString(),
       isRealRpc: false,
-      rpcUrl,
+      rpcUrl: rpcUrls.join(", "),
       statusMessage: `RPC fallback active (${message}). Address verified as empty receive-only payout account.`,
     };
   }
@@ -243,12 +281,13 @@ export async function verifyTransactionHash(
   network: "base-mainnet" | "base-sepolia" = "base-mainnet",
   payoutAddress: string,
 ): Promise<TxVerificationResult> {
-  const rpcUrl = network === "base-mainnet" ? BASE_MAINNET_RPC : BASE_SEPOLIA_RPC;
+  const rpcUrls =
+    network === "base-mainnet" ? BASE_MAINNET_RPCS : BASE_SEPOLIA_RPCS;
   const usdcContract =
     network === "base-mainnet" ? USDC_MAINNET : USDC_SEPOLIA;
 
   try {
-    const receipt = await jsonRpcCall<{
+    const { result: receipt } = await jsonRpcCallWithFallback<{
       transactionHash: string;
       blockNumber: string | null;
       status: string | null;
@@ -260,7 +299,7 @@ export async function verifyTransactionHash(
         data: string;
         topics: string[];
       }>;
-    } | null>(rpcUrl, "eth_getTransactionReceipt", [txHash]);
+    } | null>(rpcUrls, "eth_getTransactionReceipt", [txHash]);
 
     if (!receipt) {
       return {

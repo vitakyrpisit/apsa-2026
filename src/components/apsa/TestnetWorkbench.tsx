@@ -6,6 +6,8 @@ import type { X402SimulationResult, X402ServiceType, X402Network } from '@/lib/a
 import { OFFICIAL_PAYOUT_ADDRESS, INITIAL_PAYMENT_LOGS } from '@/lib/apsa/empirical-data';
 import type { LivePaymentEvent } from '@/lib/apsa/types';
 import { Play, CheckCircle2, Terminal, Layers, Copy, Check } from 'lucide-react';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { toast } from 'sonner';
 
 interface TestnetWorkbenchProps {
   network: 'base-sepolia' | 'base-mainnet';
@@ -13,9 +15,9 @@ interface TestnetWorkbenchProps {
 }
 
 export const TestnetWorkbench: React.FC<TestnetWorkbenchProps> = ({ network, onPaymentRecorded }) => {
-  const [selectedService, setSelectedService] = useState<'sentinel-shield' | 'veri-vendor'>('sentinel-shield');
-  const [targetInput, setTargetInput] = useState<string>('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
-  const [buyerAddress, setBuyerAddress] = useState<string>('0x4918e918b82c918388419b19e18a8b19e88102a1');
+  const [selectedService, setSelectedService] = useLocalStorage<'sentinel-shield' | 'veri-vendor'>('apsa:testnet:service', 'sentinel-shield');
+  const [targetInput, setTargetInput] = useLocalStorage<string>('apsa:testnet:target', '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
+  const [buyerAddress, setBuyerAddress] = useLocalStorage<string>('apsa:testnet:buyer', '0x4918e918b82c918388419b19e18a8b19e88102a1');
   const [simulating, setSimulating] = useState<boolean>(false);
   const [simulationResult, setSimulationResult] = useState<X402SimulationResult | null>(null);
   const [activeTab, setActiveTab] = useState<'console' | 'payloads' | 'economics' | 'repeat_tracker'>('console');
@@ -57,8 +59,14 @@ export const TestnetWorkbench: React.FC<TestnetWorkbenchProps> = ({ network, onP
       if (onPaymentRecorded) {
         onPaymentRecorded(newPayment);
       }
+      toast.success('x402 protocol cycle completed', {
+        description: `${result.serviceName} · $${result.amountPaidUSDC.toFixed(2)} USDC simulated · 7 steps logged`,
+      });
     } catch (e) {
       console.error('Simulation error:', e);
+      toast.error('x402 simulation failed', {
+        description: e instanceof Error ? e.message : 'Unknown error',
+      });
     } finally {
       setSimulating(false);
     }

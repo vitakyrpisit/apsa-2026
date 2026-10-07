@@ -14,6 +14,8 @@ import { ExecutiveVerdictReport } from "@/components/apsa/ExecutiveVerdictReport
 import { RealRevenueHarness } from "@/components/apsa/RealRevenueHarness";
 import { LiveTicker } from "@/components/apsa/live-ticker";
 import { CommandPalette, type CommandAction } from "@/components/apsa/command-palette";
+import { HelpDrawer } from "@/components/apsa/help-drawer";
+import { TAB_HELPS } from "@/lib/apsa/tab-helps";
 import type { OnChainWalletStatus } from "@/lib/apsa/base-rpc";
 import {
   EVM_PAYOUT_ADDRESS,
@@ -37,6 +39,7 @@ import {
   Zap,
   Command as CommandIcon,
   Download,
+  HelpCircle,
 } from "lucide-react";
 
 type ActiveTab =
@@ -145,6 +148,41 @@ export default function Home() {
   const [testSuitePassed, setTestSuitePassed] = useState<boolean | null>(null);
   const [lastTestRunAt, setLastTestRunAt] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  // Keyboard shortcuts: 1-9 jump to tabs, ? opens help, Cmd/Ctrl+K opens palette.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      const isTyping =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        (target?.isContentEditable ?? false);
+      // Allow Cmd/Ctrl+K even while typing.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") return;
+      if (isTyping) return;
+
+      // ? (Shift+/) toggles help
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setHelpOpen((o) => !o);
+        return;
+      }
+      // 1-9 jump to tabs (1 = first tab = mission, 2 = verdict, ...)
+      const n = parseInt(e.key, 10);
+      if (!isNaN(n) && n >= 1 && n <= TABS.length) {
+        const tab = TABS[n - 1];
+        if (tab) {
+          setActiveTab(tab.id);
+          window.scrollTo({ top: 360, behavior: "smooth" });
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const handleExportReport = useCallback(() => {
     setActiveTab("verdict");
@@ -360,9 +398,19 @@ export default function Home() {
               );
             })}
             <button
+              onClick={() => setHelpOpen(true)}
+              title="What am I looking at? (Press ?)"
+              className="px-2.5 py-2 rounded-lg text-slate-400 hover:text-emerald-300 hover:bg-slate-800/60 flex items-center gap-1.5 transition-colors flex-shrink-0"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <kbd className="hidden sm:inline text-[10px] text-slate-500 font-mono">
+                ?
+              </kbd>
+            </button>
+            <button
               onClick={() => setPaletteOpen(true)}
               title="Open command palette (Cmd+K)"
-              className="ml-auto px-2.5 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center gap-1.5 transition-colors flex-shrink-0"
+              className="px-2.5 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center gap-1.5 transition-colors flex-shrink-0"
             >
               <CommandIcon className="w-3.5 h-3.5" />
               <kbd className="hidden sm:inline text-[10px] text-slate-500 font-mono">
@@ -399,6 +447,14 @@ export default function Home() {
 
         {/* Quick-action floating buttons (desktop only, subtle) */}
         <div className="hidden lg:flex fixed bottom-6 right-6 z-30 flex-col gap-2">
+          <button
+            onClick={() => setHelpOpen(true)}
+            className="group w-11 h-11 rounded-full bg-slate-900 border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800 text-slate-300 hover:text-emerald-300 flex items-center justify-center shadow-lg shadow-black/40 transition-all"
+            title="What am I looking at? (?)"
+            aria-label="Open help drawer"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
           <button
             onClick={() => setPaletteOpen(true)}
             className="group w-11 h-11 rounded-full bg-slate-900 border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800 text-slate-300 hover:text-emerald-300 flex items-center justify-center shadow-lg shadow-black/40 transition-all"
@@ -474,6 +530,17 @@ export default function Home() {
         actions={commandActions}
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
+      />
+
+      <HelpDrawer
+        open={helpOpen}
+        onOpenChange={setHelpOpen}
+        helps={TAB_HELPS}
+        activeTabId={activeTab}
+        onNavigate={(id) => {
+          setActiveTab(id as ActiveTab);
+          window.scrollTo({ top: 360, behavior: "smooth" });
+        }}
       />
     </div>
   );

@@ -3,15 +3,20 @@
 import React, { useState } from 'react';
 import { ECONOMIC_SCENARIOS } from '@/lib/apsa/empirical-data';
 import type { EconomicScenario } from '@/lib/apsa/types';
-import { Calculator, Sliders, ShieldCheck } from 'lucide-react';
+import { Calculator, Sliders, ShieldCheck, RotateCcw } from 'lucide-react';
 import { RevenueProjectionChart } from './revenue-projection-chart';
+import { RevenueTimelineChart } from './revenue-timeline-chart';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { toast } from 'sonner';
 
 export const UnitEconomicsSimulator: React.FC = () => {
-  const [selectedPreset, setSelectedPreset] = useState<'CONSERVATIVE' | 'BASE' | 'STRONG'>('BASE');
-  const [ticketPrice, setTicketPrice] = useState<number>(8.25);
-  const [ordersPerDay, setOrdersPerDay] = useState<number>(10);
-  const [variableCostPerOrder, setVariableCostPerOrder] = useState<number>(0.125); // LLM + RPC + compute + facilitator
-  const [fixedMonthlyCost, setFixedMonthlyCost] = useState<number>(10.00); // Serverless base + domain
+  const [selectedPreset, setSelectedPreset] = useLocalStorage<'CONSERVATIVE' | 'BASE' | 'STRONG'>('apsa:econ:preset', 'BASE');
+  const [ticketPrice, setTicketPrice] = useLocalStorage<number>('apsa:econ:ticketPrice', 8.25);
+  const [ordersPerDay, setOrdersPerDay] = useLocalStorage<number>('apsa:econ:ordersPerDay', 10);
+  const [variableCostPerOrder, setVariableCostPerOrder] = useLocalStorage<number>('apsa:econ:variableCost', 0.125);
+  const [fixedMonthlyCost, setFixedMonthlyCost] = useLocalStorage<number>('apsa:econ:fixedMonthly', 10.00);
+  // ephemeral UI state (not persisted)
+  const [resetTick, setResetTick] = useState(0);
 
   // Calculated metrics
   const grossDaily = ticketPrice * ordersPerDay;
@@ -39,6 +44,18 @@ export const UnitEconomicsSimulator: React.FC = () => {
       setVariableCostPerOrder(0.125);
       setFixedMonthlyCost(15.00);
     }
+  };
+
+  const handleReset = () => {
+    setSelectedPreset('BASE');
+    setTicketPrice(8.25);
+    setOrdersPerDay(10);
+    setVariableCostPerOrder(0.125);
+    setFixedMonthlyCost(10.00);
+    setResetTick((t) => t + 1);
+    toast.success('Economics reset to Base scenario defaults', {
+      description: 'Saved slider values cleared from localStorage.',
+    });
   };
 
   return (
@@ -105,9 +122,24 @@ export const UnitEconomicsSimulator: React.FC = () => {
               Dynamic Variable &amp; Fixed Economics Simulator
             </h3>
           </div>
-          <span className="text-xs text-slate-400 font-mono">
-            Interactive Parametric Modeling
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-emerald-400/80 font-mono flex items-center gap-1" title="Slider values are saved in your browser">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 apsa-live-dot" />
+              auto-saved
+            </span>
+            <span className="text-xs text-slate-400 font-mono hidden sm:inline">
+              Interactive Parametric Modeling
+            </span>
+            <button
+              onClick={handleReset}
+              key={resetTick}
+              className="px-2.5 py-1 text-xs font-mono rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 flex items-center gap-1.5 transition-colors"
+              title="Reset to Base scenario defaults"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset
+            </button>
+          </div>
         </div>
 
         {/* Sliders Grid */}
@@ -217,6 +249,9 @@ export const UnitEconomicsSimulator: React.FC = () => {
         variableCostPerOrder={variableCostPerOrder}
         fixedMonthlyCost={fixedMonthlyCost}
       />
+
+      {/* REVENUE TIMELINE CHART (cumulative forward-looking projection) */}
+      <RevenueTimelineChart netDailyUSD={netDaily} />
 
       {/* SECTION 17: OUTCOME VS TECHNOLOGY VERIFICATION MATRIX */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">

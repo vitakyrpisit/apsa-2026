@@ -154,3 +154,42 @@
   color: #34d399;
   animation: apsa-caret 1s steps(1) infinite;
 }
+
+/* Shimmer sweep for loading placeholders */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* Sonner toast dark-theme override */
+[data-sonner-toaster] {
+  --normal-bg: oklch(0.21 0.014 255) !important;
+  --normal-text: oklch(0.93 0.01 200) !important;
+  --normal-border: oklch(0.30 0.015 255 / 60%) !important;
+  --border-radius: 0.625rem !important;
+  font-family: var(--font-mono);
+}
+[data-sonner-toaster] [data-title] {
+  color: oklch(0.95 0.02 155) !important;
+  font-weight: 600;
+  font-size: 13px;
+}
+[data-sonner-toaster] [data-description] {
+  color: oklch(0.68 0.02 240) !important;
+  font-size: 11px;
+}
+[data-sonner-toaster] [data-type="success"] {
+  --normal-border: oklch(0.45 0.12 155 / 60%) !important;
+}
+[data-sonner-toaster] [data-type="error"] {
+  --normal-border: oklch(0.45 0.18 16 / 60%) !important;
+}
+[data-sonner-toaster] [data-type="info"] {
+  --normal-border: oklch(0.45 0.12 75 / 60%) !important;
+}
+
+/* Smooth focus ring for keyboard nav */
+*:focus-visible {
+  outline: 2px solid oklch(0.72 0.17 155);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
