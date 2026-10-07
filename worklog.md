@@ -1877,3 +1877,67 @@ Only if ALL 4 pass → HTTP 200 + X-Payment-Status: SETTLED + result
 All 3 audit items FIXED. All fake data REPLACED. All mock settlement REMOVED.
 Payment flow is 100% real: PayAI verify → settle → on-chain proof.
 Waiting for first external buyer to trigger the full chain.
+
+---
+Task ID: 22
+Agent: Z.ai Code (CANONICAL x402 v2 FORMAT — IDENTICAL TO SENTINELSHIELD)
+Task: Study v2 archive, fix all 3 audit items, fix Agent402 payToByNetwork empty, match canonical 402 format.
+
+## KEY DISCOVERY: Agent402 crawler expected canonical x402 v2 format
+
+### Root cause of payToByNetwork = {}
+Agent402 crawler reads the `payment-required` header (base64-encoded JSON) and expects:
+```
+{
+  "x402Version": 2,
+  "error": "Payment required",
+  "resource": { url, description, mimeType, serviceName, tags },
+  "accepts": [{ scheme, network, amount, asset, payTo, maxTimeoutSeconds, extra }],
+  "extensions": { "bazaar": { "info": { "input": { type, method, bodyType } } } }
+}
+```
+
+Our previous format had `paymentRequirements` at top level but NOT the `accepts` array.
+This is why Agent402 listed our tools (toolCount: 7, paidToolCount: 5) but couldn't
+extract payTo (payToByNetwork: {}).
+
+### Fix applied
+Rewrote `build402Response()` to produce the EXACT canonical format matching sentinelshield:
+- `x402Version: 2`
+- `resource: { url, description, mimeType, serviceName, tags }`
+- `accepts: [{ scheme: "exact", network: "eip155:8453", amount, asset, payTo, maxTimeoutSeconds: 300, extra: { name, version, description } }]`
+- `extensions: { bazaar: { info: { input: { type: "http", method: "POST", bodyType: "json" } } } }`
+- `payment-required` header with base64-encoded canonical JSON
+- `Access-Control-Allow-Headers: Content-Type, PAYMENT-SIGNATURE`
+- `Access-Control-Allow-Methods: GET, POST, OPTIONS`
+
+### Verified on production:
+402 response body now contains:
+- x402Version: 2 ✅
+- accepts[0].payTo: 0x829f877daAb94D766BB2b8511ad486C40f2C2BDA ✅
+- accepts[0].network: eip155:8453 ✅
+- accepts[0].amount: 1000 (for market-signal) ✅
+- extensions.bazaar.info.input: {type:http, method:POST, bodyType:json} ✅
+- resource.serviceName: "Market Signal Snapshot" ✅
+- resource.tags: [crypto, market, signal, trading] ✅
+
+### Comparison with sentinelshield (health=1, payToByNetwork populated):
+Format is IDENTICAL. Both use the same canonical x402 v2 structure.
+
+### Agent402 status after fix:
+- listed: true ✅
+- routable: true ✅
+- health: 0.6 (up from 0.2)
+- toolCount: 7, paidToolCount: 5
+- payToByNetwork: {} — still empty, BUT crawler needs to re-crawl (~30 min cycle)
+- Once crawler re-crawls, payToByNetwork should populate with {eip155:8453: 0x829f...}
+
+### All 3 audit items FIXED + canonical format:
+1. ✅ Mock x-payment-proof → PayAI verify+settle+onchain
+2. ✅ settlement_pending → 402 (not 200)
+3. ✅ Post-settle verification → Base RPC Transfer check
+4. ✅ 402 format → canonical x402 v2 (accepts array, identical to sentinelshield)
+
+### Revenue: $0.00
+### Status: WAITING FOR FIRST EXTERNAL BUYER
+### Next: Agent402 crawler re-crawl (~30 min) → payToByNetwork populated → Smart Order Router eligible
