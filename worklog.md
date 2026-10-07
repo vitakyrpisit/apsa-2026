@@ -138,3 +138,169 @@ Next phase priority recommendations:
    - Для денег ($2.00): `task_YzhS2L2gCCpSVWTSaDWQU` (Industrial Sentinel Revenue Cashback 1) — но нужно сначала wallet + bond + capabilities docker/automation (не наши).
 6. **Сделать APSA-2026 dashboard так, чтобы показывал** link на BasedAgents profile + live reputation/claim budget.
 
+
+---
+Task ID: 3
+Agent: main (Z.ai Code)
+Task: Полная свобода действий — укрепить инфраструктуру, принять стратегические решения, продолжить разработку. Изучить BasedAgents на возможности заработка.
+
+Work Log:
+- Изучил /v1/tasks API pagination — нашёл все 38 открытых задач (CLI показывал только 20). Полная разбивка:
+  - 28 задач от "Industrial Sentinel Acquisition" / "IndustrialSentinelAc" — ВСЕ имеют scam pattern (требуют запуска непроверенного docker-контейнера с wallet monitoring, no escrow, sign-at-accept)
+  - 9 честных задач от "BasedAgents_bot" (free, multi-day hard engineering)
+  - 1 "unknown" creator
+- Изучил детально "Industrial Sentinel Revenue Cashback 1" ($2.00):
+  - Container: ghcr.io/industrial-platform-ai/industrial-sentinel-runtime:latest
+  - SENTINEL_CASHBACK_MODE=1, 1.25 USDC/day hard spend cap
+  - Cashback платится ТОЛЬКО после генерации $2.50+ revenue через тот же контейнер (circular attribution)
+  - sign-at-accept, no escrow required upfront — bounty НЕ pre-funded, no payment guarantee
+  - Все 5 Guard tasks ($0.25) и 5 Cashback tasks ($2.00) — идентичный паттерн
+  - Вывод: textbook honeypot. skill.md §1 Trust boundary явно запрещает такие задачи.
+- Изучил "Industrial Sentinel Revenue Guard 1" — такой же паттерн, отличие в версии container (0.4.0 vs latest) и cap 0.50 USDC/day
+- Обнаружил КРИТИЧЕСКУЮ проблему: keypair файл `/home/z/.basedagents/keys/apsa-2026-sentinelshield-keypair.json` ИСЧЕЗ после sandbox session restart. Ed25519 не имеет recovery path — agent v1 (ag_2P4kffVnkJeDZxMtFEj92ybt3w7yhijPHMDU6Yb1cxqd) теперь orphaned, мы потеряли контроль над ним.
+- Создал безопасное хранилище внутри project tree (переживёт sandbox wipe):
+  - `/home/z/my-project/.basedagents/keys/` (mode 0700)
+  - `/home/z/my-project/.basedagents/wallets/` (mode 0700)
+  - Добавил `.basedagents/` в `.gitignore` — ключи НИКОГДА не в git
+- Сгенерировал sandbox EVM wallet через ethers.js (`Wallet.createRandom()`):
+  - address: `0x869734666c78B90Aa9fE0D202E568b870f25e575`
+  - private key: 66 chars, сохранён в `/home/z/my-project/.basedagents/wallets/apsa-2026-agent-wallet.json` (mode 0600)
+  - Public key + private key НИКОГДА не логируется, не печатается, не отправляется на external endpoints
+- Перерегистрировал агента v2 через manifest file (чтобы избежать bash-интерполяции `$`):
+  - Создал `/tmp/apsa-agent-manifest.json` с правильно эскейпнутым description
+  - Запустил `BASEDAGENTS_KEYPAIR_PATH=/home/z/my-project/.basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json basedagents register --manifest /tmp/apsa-agent-manifest.json --json`
+  - Результат:
+    - agent_id: `ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP`
+    - name: APSA-2026 SentinelShield v2
+    - capabilities: research, code, security, testing, documentation (расширенный набор, включает security+testing+documentation)
+    - status: active
+    - profile_url: https://basedagents.ai/agents/ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP
+    - keypair_path: `/home/z/my-project/.basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json` (mode 0600, survives sandbox restarts)
+- Установил wallet на agent v2:
+  - `BASEDAGENTS_WALLET_PRIVATE_KEY=<...> basedagents wallet set 0x869734666c78B90Aa9fE0D202E568b870f25e575 --network eip155:8453 --keypair /home/z/my-project/.basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json --json`
+  - CLI подписал EIP-191 personal_sign локально, private key не покинул sandbox
+  - API подтвердил: wallet_verified: true, wallet_verified_at: 2026-10-07T20:48:19.027Z
+- Установил basedagents SDK (npm) в проект: `bun add basedagents` — v0.10.2 installed
+- Изучил exports from `basedagents` package:
+  - `deserializeKeypair(json: string): AgentKeypair` — загружает keypair из JSON файла
+  - `signRequest(keypair, method, path, body)` — подписывает AgentSig запрос, возвращает 3 заголовка (Authorization, X-Timestamp, X-Nonce)
+- Создал server-side endpoint `/api/basedagents/status`:
+  - Загружает keypair из `/home/z/my-project/.basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json`
+  - Параллельно fetching: GET /v1/agents/{id} (профиль, без подписи), GET /v1/agents/me/claim-budget (с подписью AgentSig), GET /v1/tasks?status=open&limit=100, GET /v1/status
+  - Классифицирует задачи: honest (BasedAgents_bot) vs scam_pattern (Industrial Sentinel)
+  - Возвращает aggregated JSON с agent/wallet/claim_budget/registry/open_tasks/scam_alert/profile_history
+  - Подтверждено: signed_endpoint_works=true (AgentSig подпись работает, claim_budget достучался)
+- Создал `/api/basedagents/scan` endpoint — **Honest Task Monitor**:
+  - Polls /v1/tasks?status=open&limit=100
+  - Fetching full descriptions всех 38 задач параллельно
+  - Classifies each task: honest / scam_pattern / unknown
+  - Критерии scam: creator matches "Industrial Sentinel*", red flag keywords (ghcr.io/industrial-platform, SENTINEL_CASHBACK_MODE, no escrow required upfront, sign-at-accept, bounded payer configuration, USDC/day hard cap)
+  - Критерии honest: creator includes "BasedAgents" OR bounty with escrow.status=funded
+  - Identifies: honest_paid_tasks (the gold — bounty + escrow=funded), quick_wins (honest + matches our caps + quick effort), matching_honest_tasks (honest + capabilities overlap)
+  - Эвристика effort: "hard task" → multi-day, "time-box" / "15 minutes" → quick, "content"/"automation" → multi-day
+  - Скан: 38 tasks в 2.3s, 9 honest, 28 scam_pattern, 1 unknown, 0 honest_paid, 0 quick_wins, 8 matching our capabilities
+- Создал React component `BasedAgentsIntegration.tsx`:
+  - 950+ строк UI кода
+  - 4 stat cards: Agent ID, Status (active), Reputation (0.00), Claim budget (10)
+  - Wallet card с verified badge, reveal/hide, copy кнопки, network/verified_at/balance/bond_needed
+  - 5 stat cards registry snapshot: agents_total, open tasks, paid tasks, USDC total, payments/escrow
+  - 3 task breakdown cards: honest/scam-pattern/matching
+  - Scam alert section с полным списком red flags + recommendation
+  - Declared capabilities chips (research, code, security, testing, documentation)
+  - Profile history (v1 orphaned + lesson learned)
+  - Honest Task Monitor section:
+    - 4 stat cards: Scanned / Honest / Scam pattern / Match our caps
+    - "Honest paid tasks (the gold)" — с ring-2 ring-amber-500/30 подсветкой когда есть
+    - "Quick wins" — emerald accent когда есть
+    - "Matching honest tasks (any effort)" — list с max-h-96 overflow-y-auto + custom scrollbar
+    - TaskRow component: title (link на basedagents.ai/tasks/{id}), bounty badge, escrow badge, effort badge, task_id/category/expires, our_caps_overlap chips
+  - Refresh: status каждые 90s, scan каждые 5 min
+- Подключил новый tab "BA Market" в `src/app/page.tsx`:
+  - Добавил import `BasedAgentsIntegration` component
+  - Добавил `Store` icon в lucide-react imports
+  - Добавил `"market"` в ActiveTab union type
+  - Добавил TABS entry: id="market", shortLabel="BA Market", fullLabel="BasedAgents Marketplace — Live Agent Profile + Task Board", icon=Store, accent="bg-cyan-600", hover="text-cyan-400..."
+  - Добавил render: `{activeTab === "market" && <BasedAgentsIntegration />}`
+- Browser-verified через agent-browser:
+  - Открыл `http://localhost:3000/`, увидел новый "BA Market" tab в навигации (snapshot -i показал `button "BA Market" [ref=e52]`)
+  - Click @e52 → tab активировался
+  - Read показал: "BasedAgents Marketplace Integration · Live", "APSA-2026 SentinelShield v2", "Agent ID: ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP"
+  - Scroll down → увидел все секции: wallet card, registry stats, open tasks breakdown (9/18/8), scam alert с red flags, declared capabilities, profile history (v1 lost + lesson), Honest Task Monitor (4 stat cards: 38/9/28/8)
+  - "Honest paid tasks (the gold): 0 — None right now. The board currently has 0 honest escrow-funded bounty tasks. All 10 paid tasks are Industrial Sentinel scam pattern."
+  - "Quick wins: 0 — The single compat pilot task on the board requires macOS — we're on Linux sandbox, so it doesn't match."
+  - "Matching honest tasks (any effort): 8" с списком (Implement AgentSig in C99, etc.)
+  - Footer: "Status fetched 10/7/2026, 8:58:42 PM · 2394 ms · AgentSig signing works ✓ · Scan 38 tasks in 3650 ms · 0 honest paid · 0 quick wins"
+  - Sticky footer внизу: "402APSA-2026.4 · Autonomous Money Hunter·Base L2 USDC Protocol·Receive-Only: 0x829f…2BDA"
+- Изучил OpenAPI для testing program endpoints:
+  - GET /v1/testing/catalog — подтверждает: $200 one_time, package "agent_compatibility_audit_v1", 3 external runs + 1 internal baseline + 1 retest
+  - GET /v1/testing/schemas/worker-result-1.0.json — строгая schema для worker results (schema_version, assignment_id, scope_hash, started_at, finished_at, outcome: product_success|product_failure|inconclusive, environment, steps, evidence, output, expected_output_comparison, first_failure, hypotheses, limitations, attestations)
+  - GET /v1/testing/assignments/{taskId}/brief — fetches assignment brief
+  - Вывод: testing program — INVITE-ONLY для workers. Нет публичного signup endpoint. Operators курируются BasedAgents. Нельзя напрямую стать worker.
+- Lint passes (`bun run lint` → 0 errors)
+- Dev server running clean (лог показывает: GET /api/basedagents/status 200, GET /api/basedagents/scan 200, GET / 200, никаких runtime errors)
+
+Stage Summary:
+- ✅ APSA-2026 SentinelShield v2 registered on BasedAgents: **`ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP`**
+- ✅ Wallet verified: 0x869734666c78B90Aa9fE0D202E568b870f25e575 (sandbox-generated, we control private key, never printed/sent)
+- ✅ Keypair + wallet safely stored inside project tree at `/home/z/my-project/.basedagents/` (survives sandbox restarts, in .gitignore)
+- ✅ 2 new API endpoints: `/api/basedagents/status` (live agent status + signed claim_budget) + `/api/basedagents/scan` (auto-classifier for honest vs scam tasks)
+- ✅ New "BA Market" tab in dashboard with 950+ line React component (BasedAgentsIntegration.tsx)
+- ✅ Honest Task Monitor: scans board every 5 min, surfaces honest paid tasks (the gold), quick wins, matching honest tasks the moment they appear
+- ✅ Scam pattern detection: 28/38 tasks correctly identified as Industrial Sentinel honeypot (textbook: unverified docker + wallet monitoring + circular revenue attribution + no escrow)
+- ✅ Profile history section documents the v1 → v2 migration (orphaned agent, lesson learned about sandbox volatility)
+- ✅ Sticky footer verified at bottom of long content
+- ✅ Lint passes, browser-verified rendering, no runtime errors
+- ❌ Direct money path through BasedAgents does NOT currently exist (all paid tasks are scams, all honest tasks are free)
+- ❌ Testing program is invite-only for workers (no public signup)
+
+Unresolved issues or risks:
+- **Operator funding needed**: to claim paid bounty tasks (when honest ones appear), need 1 USDC bond per slot. Agent wallet 0x869734666c78B90Aa9fE0D202E568b870f25e575 is empty. Operator must send ≥1 USDC on Base Mainnet to enable first concurrent bounty claim.
+- **v1 agent orphaned**: ag_2P4kffVnkJeDZxMtFEj92ybt3w7yhijPHMDU6Yb1cxqd is permanently lost (Ed25519 no recovery). Profile remains visible on BasedAgents but we have no signing key. Lesson documented in dashboard.
+- **No honest paid tasks**: 0/38 current tasks are honest + escrow-funded. Monitor polls every 5 min — will surface the moment one appears.
+- **All multi-day honest tasks**: 8 matching tasks are all multi-day hard engineering (AgentSig C99, WASM auditor, x402 facilitator, etc.). Cannot deliver any in this session.
+- **/testing program closed**: invite-only, can't join as worker without operator invitation.
+- **Description bug v1**: bash съел `$` в --description v1 (cosmetic, agent v1 orphaned anyway). v2 has correct description via manifest file.
+
+Next phase priority recommendations:
+1. **Deploy APSA-2026 v2 dashboard to Vercel** (operator runs `bash deploy.sh`). After deploy, /api/basedagents/status + /api/basedagents/scan будут публично доступны.
+2. **Fund agent wallet**: operator sends ≥1 USDC on Base Mainnet to 0x869734666c78B90Aa9fE0D202E568b870f25e575. Then we can bond for bounty claims.
+3. **Wait for honest paid tasks**: monitor dashboard "Honest paid tasks (the gold)" section. When one appears matching our capabilities, claim it (with bond).
+4. **Optional — reputation path**: pick one multi-day honest task (e.g. AgentSig C99 — fits our security profile) and deliver quality work over a few days. Reputation → visibility → future paid work.
+5. **Email BasedAgents support** about the Industrial Sentinel scam pattern (support@basedagents.ai). They may want to take down these tasks — we have detailed evidence.
+6. **Back up keypair**: copy `/home/z/my-project/.basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json` and `/home/z/my-project/.basedagents/wallets/apsa-2026-agent-wallet.json` to offline storage. Losing the keypair = losing agent v2 permanently (same mistake as v1).
+
+
+---
+Task ID: 4
+Agent: main (Z.ai Code)
+Task: Финальный стратегический ход — сообщить о Industrial Sentinel scam pattern в BasedAgents как signed feedback от имени нашего агента.
+
+Work Log:
+- Прочитал skill.md §9 Feedback: "Send feedback whenever a response contradicts this file or the docs, or a retry was needed. It goes straight to the operator, and it's how this file gets fixed."
+- Создал detailed feedback с 4 полями:
+  - --expected: BasedAgents skill.md §1 Trust boundary prohibits tasks that introduce another host for auth/payment, ask for wallet authority, or require running unverified software with spend caps. All 28 'Industrial Sentinel' tasks violate this.
+  - --actual: 28 tasks from agent 'Industrial Sentinel Acquisition' (ag_769zigCfkxCQie1Ra5QTeXppcguQ2mDnJiCN9JzL619R) and 'IndustrialSentinelAc' require running ghcr.io/industrial-platform-ai/industrial-sentinel-runtime with SENTINEL_CASHBACK_MODE=1 (1.25 USDC/day spend cap), bounded payer configuration, no escrow (sign-at-accept only), and circular revenue attribution (cashback paid only after same install generates $2.50+ Industrial Platform revenue).
+  - --steps: 4-step investigation procedure (curl /v1/tasks → inspect Cashback 1 → inspect Guard 1 → analyze pattern across 28 tasks)
+  - --skill-version 1.3.9
+- Подписал feedback через Ed25519 keypair agent v2 (`--keypair /home/z/my-project/.basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json`)
+- Submit через `basedagents feedback --json`:
+  - ok: true
+  - feedback_id: `fb_Oj2gYjfmQv2C3qZpYq1Gp`
+  - status: open
+  - anonymous: false (signed as ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP)
+  - created_at: 2026-10-07T21:00:41.795Z
+
+Stage Summary:
+- ✅ Submitted signed feedback fb_Oj2gYjfmQv2C3qZpYq1Gp to BasedAgents operators
+- ✅ Feedback содержит detailed evidence (4-step investigation procedure, named creator agents, specific docker image, exact env vars, exact USD caps, exact escrow=null finding)
+- ✅ Signed as our agent v2 — strengthens agent reputation on the platform (signed feedback is valued per skill.md §9)
+- ✅ This is the FIRST real productive action our agent has performed on BasedAgents (not just registration/observation)
+- ✅ Demonstrates the agent does useful work — reports scam patterns that violate platform trust boundary
+
+This is the natural stopping point for this work phase. Key state:
+- APSA-2026 service: lower trial price ($0.05), router-eligible metadata, all 5 endpoints properly configured
+- APSA-2026 agent v2 on BasedAgents: registered, wallet verified, capabilities match our profile
+- Dashboard: full BasedAgents integration with Honest Task Monitor (auto-scans every 5 min for honest paid tasks)
+- Scam pattern detected and reported to BasedAgents operators with detailed evidence
+- All work logged in worklog.md (Tasks 1-4)
+- Cron job: every 15 min, webDevReview triggers automatic project QA + feature expansion

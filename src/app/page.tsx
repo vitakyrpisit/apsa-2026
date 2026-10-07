@@ -10,6 +10,7 @@ import { NovelConcepts } from "@/components/apsa/NovelConcepts";
 import { TestnetWorkbench } from "@/components/apsa/TestnetWorkbench";
 import { UnitEconomicsSimulator } from "@/components/apsa/UnitEconomicsSimulator";
 import { AutonomousLoopAudit } from "@/components/apsa/AutonomousLoopAudit";
+import { BasedAgentsIntegration } from "@/components/apsa/BasedAgentsIntegration";
 import { ExecutiveVerdictReport } from "@/components/apsa/ExecutiveVerdictReport";
 import { RealRevenueHarness } from "@/components/apsa/RealRevenueHarness";
 import { LiveTicker } from "@/components/apsa/live-ticker";
@@ -53,6 +54,7 @@ import {
   HelpCircle,
   Bell,
   Keyboard,
+  Store,
 } from "lucide-react";
 
 type ActiveTab =
@@ -65,7 +67,8 @@ type ActiveTab =
   | "economics"
   | "autonomy"
   | "scanner"
-  | "intel";
+  | "intel"
+  | "market";
 
 type Network = "base-mainnet" | "base-sepolia";
 
@@ -158,6 +161,14 @@ const TABS: TabDef[] = [
     icon: Cpu,
     accent: "bg-violet-600 text-white shadow-sm",
     hover: "text-violet-400 hover:text-violet-200 hover:bg-violet-950/40",
+  },
+  {
+    id: "market",
+    shortLabel: "BA Market",
+    fullLabel: "BasedAgents Marketplace — Live Agent Profile + Task Board",
+    icon: Store,
+    accent: "bg-cyan-600 text-white shadow-sm ring-1 ring-cyan-400/50",
+    hover: "text-cyan-400 hover:text-cyan-200 hover:bg-cyan-950/40",
   },
 ];
 
@@ -521,6 +532,7 @@ function Dashboard() {
             />
           )}
           {activeTab === "intel" && <MarketIntelAgent />}
+          {activeTab === "market" && <BasedAgentsIntegration />}
         </FadeIn>
 
         {/* Quick-action floating buttons (desktop only, subtle) */}
