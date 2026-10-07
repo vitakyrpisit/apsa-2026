@@ -37,32 +37,35 @@ export function build402Response(service: X402ServiceConfig, preview: Record<str
     service.description,
   );
 
+  const paymentRequirements = {
+    ...reqs,
+    amount: service.amountAtomic,
+    amountUSD: service.priceUSDC,
+    chainId: 8453,
+    x402Version: 2,
+    scheme: "exact",
+    network: "eip155:8453",
+    asset: BASE_USDC_MAINNET_ADDRESS,
+    payTo: EVM_PAYOUT_ADDRESS,
+    resource: service.resource,
+    description: service.description,
+    maxTimeoutSeconds: 3600,
+    extensions: {
+      bazaar: {
+        serviceName: service.serviceName,
+        tags: service.tags,
+        mimeType: service.mimeType,
+      },
+    },
+  };
+
   return NextResponse.json(
     {
       error: "Payment Required",
       status: "UNPAID",
       message: `Payment of $${service.priceUSDC} USDC required on Base Mainnet to invoke ${service.serviceName}.`,
-      requirements: {
-        ...reqs,
-        amount: service.amountAtomic,
-        amountUSD: service.priceUSDC,
-        chainId: 8453,
-        x402Version: 2,
-        scheme: "exact",
-        network: "eip155:8453",
-        asset: BASE_USDC_MAINNET_ADDRESS,
-        payTo: EVM_PAYOUT_ADDRESS,
-        resource: service.resource,
-        description: service.description,
-        maxTimeoutSeconds: 3600,
-        extensions: {
-          bazaar: {
-            serviceName: service.serviceName,
-            tags: service.tags,
-            mimeType: service.mimeType,
-          },
-        },
-      },
+      paymentRequirements,
+      requirements: paymentRequirements,
       preview,
     },
     {
@@ -70,8 +73,8 @@ export function build402Response(service: X402ServiceConfig, preview: Record<str
       headers: {
         "Content-Type": "application/json",
         "x402-version": "2.0",
-        "PAYMENT-REQUIRED": Buffer.from(JSON.stringify(reqs)).toString("base64"),
-        "payment-required": Buffer.from(JSON.stringify(reqs)).toString("base64"),
+        "PAYMENT-REQUIRED": Buffer.from(JSON.stringify(paymentRequirements)).toString("base64"),
+        "payment-required": Buffer.from(JSON.stringify(paymentRequirements)).toString("base64"),
         "WWW-Authenticate": `x402 token="USDC", network="base", amount="${service.amountAtomic}", recipient="${EVM_PAYOUT_ADDRESS}"`,
       },
     },
