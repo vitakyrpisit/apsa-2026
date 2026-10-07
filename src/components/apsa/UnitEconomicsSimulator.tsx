@@ -11,6 +11,7 @@ import { RevenueSensitivityChart } from './revenue-sensitivity-chart';
 import { SubSectionNav, type SubSection } from './sub-section-nav';
 import { ShareScenarioButton } from './share-scenario-button';
 import { ExportJsonButton } from './export-json-button';
+import { ImportJsonButton } from './import-json-button';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { readUrlHash, writeUrlHash } from '@/hooks/use-url-hash-state';
 import { toast } from 'sonner';
@@ -227,6 +228,20 @@ export const UnitEconomicsSimulator: React.FC = () => {
                 exportedAt: new Date().toISOString(),
               }}
               filename={`apsa-scenario-${selectedPreset.toLowerCase()}-${Date.now().toString().slice(-6)}`}
+            />
+            <ImportJsonButton
+              expectedKeys={["ticketPrice", "ordersPerDay", "variableCostPerOrder", "fixedMonthlyCost", "scenario", "preset"]}
+              onImport={(data) => {
+                if (data.preset === "CONSERVATIVE" || data.preset === "BASE" || data.preset === "STRONG") {
+                  setSelectedPreset(data.preset);
+                } else if (data.scenario === "CONSERVATIVE" || data.scenario === "BASE" || data.scenario === "STRONG") {
+                  setSelectedPreset(data.scenario);
+                }
+                if (typeof data.ticketPrice === "number") setTicketPrice(data.ticketPrice);
+                if (typeof data.ordersPerDay === "number") setOrdersPerDay(data.ordersPerDay);
+                if (typeof data.variableCostPerOrder === "number") setVariableCostPerOrder(data.variableCostPerOrder);
+                if (typeof data.fixedMonthlyCost === "number") setFixedMonthlyCost(data.fixedMonthlyCost);
+              }}
             />
           </div>
         </div>

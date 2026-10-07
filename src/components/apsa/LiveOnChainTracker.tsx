@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { OnChainWalletStatus } from '@/lib/apsa/base-rpc';
 import { OFFICIAL_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS, BASE_USDC_SEPOLIA_ADDRESS } from '@/lib/apsa/empirical-data';
 import { RefreshCw, ExternalLink, CheckCircle2, AlertCircle, ShieldCheck, Zap } from 'lucide-react';
@@ -16,6 +16,9 @@ export const LiveOnChainTracker: React.FC<LiveOnChainTrackerProps> = ({ network,
   const [loading, setLoading] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<string>('');
   const { logEvent } = useActivityFeed();
+  // Track the previous balance so we can detect deltas (avoiding ref-during-
+  // render: this is read + written only inside the async refreshStatus).
+  const prevBalanceRef = useRef<string | null>(null);
 
   const refreshStatus = async () => {
     setLoading(true);
@@ -27,10 +30,16 @@ export const LiveOnChainTracker: React.FC<LiveOnChainTrackerProps> = ({ network,
       if (onStatusUpdated) {
         onStatusUpdated(data);
       }
-      // Log a wallet-scan event only when the balance changes or transfers are found,
-      // to avoid flooding the feed with identical 30s-poll entries.
+      // Detect balance changes and new transfers — log only on deltas to
+      // avoid flooding the feed with identical 30s-poll entries.
+      const prevBalance = prevBalanceRef.current;
+      prevBalanceRef.current = data.usdcBalance;
+      const balanceChanged = prevBalance !== null && prevBalance !== data.usdcBalance;
       if (data.recentTransfers.length > 0) {
         logEvent('wallet-scan', `${data.recentTransfers.length} inbound transfer${data.recentTransfers.length === 1 ? '' : 's'} detected`, `${data.usdcBalance} USDC balance · block #${data.blockNumber.toLocaleString()}`, 'emerald');
+      } else if (balanceChanged) {
+        const delta = parseFloat(data.usdcBalance) - parseFloat(prevBalance);
+        logEvent('wallet-scan', `Balance ${delta >= 0 ? 'increased' : 'decreased'}`, `${prevBalance} → ${data.usdcBalance} USDC (${delta >= 0 ? '+' : ''}${delta.toFixed(2)})`, delta >= 0 ? 'emerald' : 'amber');
       }
     } catch {
       // Transient fetch failures (e.g. during tab switches / reloads) are

@@ -199,6 +199,22 @@ function Dashboard() {
         setHelpOpen((o) => !o);
         return;
       }
+      // b toggles the Activity Feed
+      if (e.key === "b" || e.key === "B") {
+        e.preventDefault();
+        setFeedOpen((o) => !o);
+        return;
+      }
+      // g starts the Guided Tour
+      if (e.key === "g" || e.key === "G") {
+        e.preventDefault();
+        setTourOpen(true);
+        logEvent("tour-start", "Guided tour started", "Keyboard shortcut g", "amber");
+        toast.info("Starting guided tour…", {
+          description: "Use ← → to navigate, Esc to exit.",
+        });
+        return;
+      }
       // 1-9 jump to tabs (1 = first tab = mission, 2 = verdict, ...)
       const n = parseInt(e.key, 10);
       if (!isNaN(n) && n >= 1 && n <= TABS.length) {
@@ -212,7 +228,7 @@ function Dashboard() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [setActiveTab, logEvent]);
+  }, [setActiveTab, logEvent, setFeedOpen, setTourOpen]);
 
   const handleExportReport = useCallback(() => {
     setActiveTab("verdict");

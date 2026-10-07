@@ -1188,3 +1188,98 @@ Stage Summary:
   All 12 protocol tests still pass. Lint clean. No errors. VLM confirms
   the count badges, entry readability, and correct dark palette with no
   blue/indigo.
+
+---
+Task ID: 13
+Agent: Z.ai Code (webDevReview cron round 9)
+Task: Assess status, QA via agent-browser, implement round-9 features (JSON re-import via drag-drop, wallet balance delta detection, keyboard shortcuts 'b' and 'g').
+
+## Current Project Status (assessment)
+- Dev server healthy; `bun run lint` clean; all 12 tests pass; all 9 tabs render.
+- No errors, no regressions from round 8. Project is stable.
+- Round 8 recs prioritized: "JSON re-import via drag-drop" and "wallet balance
+  delta detection" → both implemented. Added 2 new keyboard shortcuts.
+
+## Completed Modifications
+
+### New component
+1. `src/components/apsa/import-json-button.tsx` (NEW) — `ImportJsonButton`:
+   imports a scenario from a JSON file via click-to-browse OR drag-and-drop.
+   Features:
+   - Hidden `<input type=file>` for the click path; drag-drop handlers for
+     the drop path.
+   - Validates the file is `.json` / `application/json`.
+   - Parses the JSON, checks for at least one `expectedKeys` match.
+   - Success: calls `onImport(parsed)` + a sonner toast with the count of
+     restored values.
+   - Errors: distinct toasts for invalid file type, parse failure, and
+     missing expected keys.
+   - Visual: the button expands + glows emerald when a file is dragged
+     over it ("Drop here").
+
+### Enhanced existing components
+2. `UnitEconomicsSimulator.tsx` — wired the `<ImportJsonButton>` next to the
+   Export button in the simulator header. The `onImport` callback restores
+   the 5 slider values (ticketPrice, ordersPerDay, variableCostPerOrder,
+   fixedMonthlyCost) + the preset, accepting both `preset` and `scenario`
+   key names for compatibility with the exported JSON format.
+3. `LiveOnChainTracker.tsx` — added wallet balance delta detection via a
+   `prevBalanceRef` (read/written only inside the async `refreshStatus`,
+   never during render). On each poll, if the balance changed but no new
+   transfers were found, logs a "Balance increased/decreased" event with
+   the delta (emerald for increase, amber for decrease). This gives the
+   operator real-time visibility into balance movements without flooding
+   the feed with identical 30s-poll entries.
+4. `page.tsx` — added 2 keyboard shortcuts:
+   - `b` toggles the Activity Feed (complements `?` for Help and `⌘K` for
+     Command Palette).
+   - `g` starts the Guided Tour (with an info toast + a tour-start activity
+     event logged).
+   Both are suppressed while typing in inputs/selects/textareas. Updated
+   the keyboard handler's `useEffect` deps to include `setFeedOpen` and
+   `setTourOpen`.
+
+## Verification Results
+- `bun run lint` → 0 errors, 0 warnings.
+- `curl -X POST /api/test-suite` → 12 tests, passed=True.
+- agent-browser: no console/runtime errors after a fresh reload.
+- All 9 keyboard shortcuts (1-9) jump to the correct tab.
+- `b` key: toggles the Activity Feed panel open/closed. Verified.
+- `g` key: starts the Guided Tour (Step 1 of 9, Prev disabled, Next visible).
+  Verified.
+- Import button: present in the Economics simulator header next to the JSON
+  export button. Clicking opens a file picker; dragging a `.json` file over
+  the button makes it glow emerald and show "Drop here".
+- All 9 tabs render correctly.
+- Mobile (375×812): footer sticky; layout holds.
+- VLM (z-ai vision) confirms: "Import button clearly visible in the
+  simulator header"; "Reset, Share, JSON, and Import buttons grouped
+  together"; "no rendering issues"; "strictly dark-themed with neon green,
+  pink/magenta, orange, yellow accents — no blue or indigo".
+
+## Bugs found & fixed
+- No bugs encountered this round. All changes were additive (new component +
+  2 enhanced components + 2 keyboard shortcuts).
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+- The Import button validates expected keys but doesn't range-check the
+  values (e.g. ticketPrice must be 1-25). Could add validation + clamp to
+  the slider ranges.
+- The `prevBalanceRef` in LiveOnChainTracker resets to null on component
+  remount (tab switch), so the first poll after returning to the Scanner
+  tab won't detect a delta. Could persist the last-known balance to
+  localStorage for cross-mount delta detection.
+- Could add a "Clear filter" (x) button inside the dropdown area for a
+  one-click reset to "All types".
+- Could add an empty-state illustration for the "no events match filter"
+  case (currently just text).
+- Could add a keyboard-shortcuts help overlay (press `?` twice or `h` for
+  a full cheat-sheet of all shortcuts: 1-9, b, g, ?, ⌘K, Esc, arrows).
+
+Stage Summary:
+- Round 9 complete: 1 new component (ImportJsonButton with drag-drop),
+  2 existing components enhanced (Economics tab with JSON re-import;
+  LiveOnChainTracker with balance delta detection), and 2 new keyboard
+  shortcuts (`b` for Activity Feed, `g` for Guided Tour). All 12 protocol
+  tests still pass. Lint clean. No errors. VLM confirms the Import button,
+  button grouping, and correct dark palette with no blue/indigo.
