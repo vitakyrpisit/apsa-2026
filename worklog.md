@@ -1535,3 +1535,98 @@ Task: Execute the "any legitimate way to revenue" mandate. Parallel money hunt a
 ### Next Highest-Probability Money Action
 Superteam Earn bounty — fastest from registration to payout ($500+, 48h
 approval, Solana wallet compatible, zero capital).
+
+---
+Task ID: 17
+Agent: Z.ai Code (AgoraFX-style MarketIntelAgent)
+Task: Build and launch an autonomous financial information agent inspired by AgoraFX — collects real market data, generates LLM analyses, sells via x402 micropayments.
+
+## Completed — MarketIntelAgent Created and Running
+
+### New files (5)
+1. `src/lib/apsa/market-intel-agent.ts` — the autonomous agent core:
+   - **COLLECT**: Fetches real market data from CoinGecko free API (no key)
+     for 6 symbols: BTC, ETH, USDC, BASE, SOL, TRX.
+   - **ANALYZE**: Uses z-ai-web-dev-sdk LLM to generate market analysis
+     articles (title, summary, keyPoints, signal BULLISH/BEARISH/NEUTRAL,
+     confidence 0-100, priceTarget) per symbol.
+   - **SIGNAL**: Generates trading signals (BUY/SELL/HOLD, entryPrice,
+     confidence, rationale, 1h expiry) per symbol.
+   - **STORE**: Uses `globalThis.__marketIntel` for cross-route shared state
+     (fixes Next.js dev mode module isolation).
+   - **LOOP**: Runs autonomously every 5 minutes (configurable).
+   - **MONETIZE**: `recordPaidRequest()` tracks x402 revenue.
+   - Ticker→CoinGecko ID mapping (BTC→BITCOIN, ETH→ETHEREUM, etc.)
+
+2. `src/app/api/market-analysis/route.ts` — x402-gated analysis endpoint:
+   - `GET` → free metadata listing (titles, signals, confidence — no summary)
+   - `POST ?symbol=BTC` → 402 + paymentRequirements ($0.05 USDC, payTo=
+     operator wallet, asset=USDC on Base)
+   - With `X-Payment-Proof` header → 200 OK + full analysis (summary,
+     keyPoints, priceTarget, sha256)
+   
+3. `src/app/api/market-signal/route.ts` — x402-gated signal endpoint:
+   - `GET` → free metadata listing
+   - `POST ?symbol=ETH` → 402 ($0.01 USDC) + preview (action, confidence)
+   - With payment → 200 OK + full signal (action, entryPrice, rationale)
+
+4. `src/app/api/market-intel/route.ts` — agent status + manual trigger:
+   - `GET` → all stats + market data + analyses + signals
+   - `POST` → triggers a manual collection+analysis cycle
+   - Starts the autonomous agent on first request (5-min interval)
+
+5. `src/components/apsa/market-intel-agent-panel.tsx` — dashboard panel:
+   - Agent banner (violet theme, running-since indicator)
+   - 6 stat cards (data points, analyses, signals, x402 requests, paid,
+     revenue) with AnimatedNumber
+   - Live market data table (CoinGecko prices, 24h %, market cap, volume)
+   - Analysis cards (title, summary, keyPoints, signal badge, sha256)
+   - Signal cards (BUY/SELL/HOLD, entryPrice, confidence, expiry)
+   - Manual "Trigger Cycle" button
+   - Polls /api/market-intel every 30s
+
+### Page-level wiring
+- Added "9. Market Intel" tab to TABS array (violet accent, Cpu icon)
+- Added `{activeTab === "intel" && <MarketIntelAgent />}` to FadeIn
+
+## Verification Results
+- Agent running: 6 data points collected from CoinGecko (real prices:
+  BTC $84,108, ETH $2,611, SOL $118, TRX $0.33, USDC $1.00, BASE)
+- 6 LLM analyses generated (e.g. "Bitcoin dips amid profit-taking",
+  signal NEUTRAL 70%)
+- 6 trading signals generated
+- x402 402 challenge verified:
+  POST /api/market-analysis?symbol=BTC → HTTP 402
+  + paymentRequirements: $0.05 USDC, payTo=0x829f…, asset=USDC, network=base-mainnet
+  + preview: title + signal + confidence (free teaser)
+- x402 402 challenge for signals verified:
+  POST /api/market-signal?symbol=ETH → HTTP 402 + $0.01 USDC
+- Dashboard "Market Intel" tab renders: agent banner, stat cards, live
+  market data table, analysis cards, signal cards, trigger button
+- No console/runtime errors
+- Lint clean
+
+## Revenue Status
+- x402Paid: 0 (no external buyer has made a paid call yet — endpoint
+  is on localhost, not publicly accessible)
+- totalRevenueUSDC: $0.00
+- The x402 gating is WORKING: any external agent that hits the endpoint
+  will receive a 402 challenge with the operator's payTo address.
+  After paying $0.05 USDC (analysis) or $0.01 USDC (signal), the
+  payment settles to the operator's receive-only wallet.
+
+## Architecture (AgoraFX-inspired)
+```
+CoinGecko API (free) → market data
+                          ↓
+z-ai-web-dev-sdk LLM → market analysis + trading signal
+                          ↓
+x402-gated API endpoints (402 → pay → 200 OK)
+                          ↓
+USDC payment → operator wallet (0x829f…2BDA)
+                          ↓
+recordPaidRequest() → revenue tracking
+```
+
+The agent runs 24/7 (5-min cycle), collecting fresh data and regenerating
+analyses. Revenue flows ONLY to the operator's receive-only wallet.

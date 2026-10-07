@@ -23,6 +23,7 @@ import {
 } from "@/components/apsa/activity-feed-provider";
 import { ActivityFeed } from "@/components/apsa/activity-feed";
 import { KeyboardShortcutsOverlay } from "@/components/apsa/keyboard-shortcuts-overlay";
+import { MarketIntelAgent } from "@/components/apsa/market-intel-agent-panel";
 import { ApsaDataProvider, useApsaData } from "@/components/apsa/apsa-data-provider";
 import { TAB_HELPS } from "@/lib/apsa/tab-helps";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -63,7 +64,8 @@ type ActiveTab =
   | "testnet"
   | "economics"
   | "autonomy"
-  | "scanner";
+  | "scanner"
+  | "intel";
 
 type Network = "base-mainnet" | "base-sepolia";
 
@@ -148,6 +150,14 @@ const TABS: TabDef[] = [
     icon: Activity,
     accent: "bg-emerald-600 text-white shadow-sm",
     hover: "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50",
+  },
+  {
+    id: "intel",
+    shortLabel: "9. Market Intel",
+    fullLabel: "9. MarketIntelAgent — Autonomous Revenue Engine",
+    icon: Cpu,
+    accent: "bg-violet-600 text-white shadow-sm",
+    hover: "text-violet-400 hover:text-violet-200 hover:bg-violet-950/40",
   },
 ];
 
@@ -510,6 +520,7 @@ function Dashboard() {
               onStatusUpdated={handleStatusUpdated}
             />
           )}
+          {activeTab === "intel" && <MarketIntelAgent />}
         </FadeIn>
 
         {/* Quick-action floating buttons (desktop only, subtle) */}
