@@ -415,7 +415,7 @@ function Dashboard() {
             >
               <Bell className="w-3.5 h-3.5" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14px] h-3.5 px-1 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center">
+                <span className="absolute top-1 right-1 min-w-[14px] h-3.5 px-1 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center apsa-badge-pulse">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -479,7 +479,7 @@ function Dashboard() {
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center">
+              <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center apsa-badge-pulse">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}

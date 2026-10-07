@@ -193,3 +193,12 @@
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Pulse animation for unread badges */
+@keyframes apsa-badge-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+.apsa-badge-pulse {
+  animation: apsa-badge-pulse 1.5s ease-in-out infinite;
+}

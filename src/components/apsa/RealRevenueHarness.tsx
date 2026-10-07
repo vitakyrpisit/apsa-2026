@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import type { TxVerificationResult } from '@/lib/apsa/base-rpc';
 import { EVM_PAYOUT_ADDRESS as PRODUCTION_PAY_TO } from '@/lib/apsa/wallet-registry';
 import { useApsaData } from './apsa-data-provider';
+import { useActivityFeed } from './activity-feed-provider';
 import { Shimmer } from './shimmer';
 import { toast } from 'sonner';
 import {
@@ -20,6 +21,7 @@ type VerifyResultPayload = TxVerificationResult | { status: string; message: str
 
 export const RealRevenueHarness: React.FC = () => {
   const { suite, wallet } = useApsaData();
+  const { logEvent } = useActivityFeed();
 
   // Derive display values from the shared context (single source of truth).
   const testResults = suite.results;
@@ -35,6 +37,7 @@ export const RealRevenueHarness: React.FC = () => {
 
   const executeTestSuite = () => {
     suite.rerun();
+    logEvent('suite-run', 'Re-running 12-test suite', 'Protocol verification on Base Mainnet', 'emerald');
     toast.info('Re-running 12-test suite…', {
       description: 'Executing protocol verification on Base Mainnet.',
     });
@@ -42,6 +45,7 @@ export const RealRevenueHarness: React.FC = () => {
 
   const refreshLiveBalance = () => {
     wallet.refresh();
+    logEvent('wallet-scan', 'Refreshing wallet balance', 'Live Base Mainnet RPC query', 'emerald');
   };
 
   const handleVerifyTx = async () => {
@@ -53,6 +57,7 @@ export const RealRevenueHarness: React.FC = () => {
     }
     setVerifyLoading(true);
     setVerifyResult(null);
+    logEvent('tx-verify', 'Verifying transaction', `${verifyHash.slice(0, 10)}…${verifyHash.slice(-6)}`, 'slate');
     try {
       const res = await fetch('/api/verify/tx', {
         method: 'POST',
@@ -62,13 +67,19 @@ export const RealRevenueHarness: React.FC = () => {
       const data: VerifyResultPayload = await res.json();
       setVerifyResult(data);
       if ('isExternalRevenue' in data && data.isExternalRevenue) {
+        logEvent('tx-verify', 'External revenue confirmed!', `USDC transfer detected from ${('from' in data && data.from) ? data.from.slice(0, 8) + '…' : 'unknown'}`, 'emerald');
         toast.success('External revenue confirmed!', {
           description: `USDC transfer to payout wallet detected on Base Mainnet.`,
         });
+      } else if ('status' in data && data.status === 'confirmed') {
+        logEvent('tx-verify', 'Transaction verified — no revenue', 'Confirmed on-chain but no USDC transfer to payout wallet', 'amber');
+      } else {
+        logEvent('tx-verify', 'Transaction not found', data && 'message' in data ? data.message : 'Pending or dropped', 'rose');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Verification failed';
       setVerifyResult({ error: message });
+      logEvent('tx-verify', 'Verification failed', message, 'rose');
       toast.error('Verification failed', { description: message });
     } finally {
       setVerifyLoading(false);

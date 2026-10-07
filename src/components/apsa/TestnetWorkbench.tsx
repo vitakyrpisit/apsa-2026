@@ -7,6 +7,7 @@ import { OFFICIAL_PAYOUT_ADDRESS, INITIAL_PAYMENT_LOGS } from '@/lib/apsa/empiri
 import type { LivePaymentEvent } from '@/lib/apsa/types';
 import { Play, CheckCircle2, Terminal, Layers, Copy, Check } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useActivityFeed } from './activity-feed-provider';
 import { toast } from 'sonner';
 
 interface TestnetWorkbenchProps {
@@ -22,12 +23,14 @@ export const TestnetWorkbench: React.FC<TestnetWorkbenchProps> = ({ network, onP
   const [simulationResult, setSimulationResult] = useState<X402SimulationResult | null>(null);
   const [activeTab, setActiveTab] = useState<'console' | 'payloads' | 'economics' | 'repeat_tracker'>('console');
   const [copied, setCopied] = useState<boolean>(false);
+  const { logEvent } = useActivityFeed();
 
   // Repeat tracker state (Section 12: goal of 5 payments & 3+ independent wallets)
   const [payments, setPayments] = useState<LivePaymentEvent[]>(INITIAL_PAYMENT_LOGS);
 
   const handleRunSimulation = async () => {
     setSimulating(true);
+    logEvent('x402-simulation', 'Starting x402 protocol cycle', `${selectedService === 'sentinel-shield' ? 'SentinelShield' : 'VeriVendor'} on ${network}`, 'violet');
     try {
       const result = await runX402ProtocolSimulation(
         selectedService as X402ServiceType,
@@ -59,6 +62,7 @@ export const TestnetWorkbench: React.FC<TestnetWorkbenchProps> = ({ network, onP
       if (onPaymentRecorded) {
         onPaymentRecorded(newPayment);
       }
+      logEvent('x402-simulation', 'x402 protocol cycle completed', `${result.serviceName} · $${result.amountPaidUSDC.toFixed(2)} USDC simulated`, 'emerald');
       toast.success('x402 protocol cycle completed', {
         description: `${result.serviceName} · $${result.amountPaidUSDC.toFixed(2)} USDC simulated · 7 steps logged`,
       });

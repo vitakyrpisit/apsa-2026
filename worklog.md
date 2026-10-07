@@ -1003,3 +1003,109 @@ Stage Summary:
   feedback on copy). All 12 protocol tests still pass. Lint clean. No
   errors. VLM confirms the Bell button, JSON export button, metric card
   sparklines, and correct dark palette with no blue/indigo.
+
+---
+Task ID: 11
+Agent: Z.ai Code (webDevReview cron round 7)
+Task: Assess status, QA via agent-browser, implement round-7 features (granular logEvent wiring into RealRevenueHarness/TestnetWorkbench/LiveOnChainTracker, filter-by-type dropdown in Activity Feed, pulse animation on unread badges).
+
+## Current Project Status (assessment)
+- Dev server healthy; `bun run lint` clean; all 12 tests pass; all 9 tabs render.
+- No errors, no regressions from round 6. Project is stable.
+- Round 6 recs prioritized: "wire logEvent into RealRevenueHarness,
+  TestnetWorkbench, LiveOnChainTracker for granular activity coverage" and
+  "filter-by-type dropdown in Activity Feed" → both implemented.
+
+## Completed Modifications
+
+### Enhanced existing components (3 — granular event logging)
+1. `RealRevenueHarness.tsx` — added `useActivityFeed` + `logEvent` calls:
+   - `executeTestSuite()` → `logEvent('suite-run', 'Re-running 12-test suite', ...)`
+   - `refreshLiveBalance()` → `logEvent('wallet-scan', 'Refreshing wallet balance', ...)`
+   - `handleVerifyTx()` → 4 logEvent calls covering all outcomes:
+     * `logEvent('tx-verify', 'Verifying transaction', hash, 'slate')` on start
+     * `logEvent('tx-verify', 'External revenue confirmed!', ..., 'emerald')` on success
+     * `logEvent('tx-verify', 'Transaction verified — no revenue', ..., 'amber')` on confirmed-no-revenue
+     * `logEvent('tx-verify', 'Transaction not found', ..., 'rose')` on not-found
+     * `logEvent('tx-verify', 'Verification failed', message, 'rose')` on error
+2. `TestnetWorkbench.tsx` — added `useActivityFeed` + `logEvent` calls:
+   - `logEvent('x402-simulation', 'Starting x402 protocol cycle', service+network, 'violet')` on start
+   - `logEvent('x402-simulation', 'x402 protocol cycle completed', service+amount, 'emerald')` on success
+3. `LiveOnChainTracker.tsx` — added `useActivityFeed` + conditional `logEvent`:
+   - Only logs when `data.recentTransfers.length > 0` to avoid flooding the
+     feed with identical 30s-poll entries. Logs `"N inbound transfers
+     detected"` with balance + block info, tone emerald.
+
+### Enhanced Activity Feed (filter + pulse badge)
+4. `activity-feed.tsx` — added a filter-by-type dropdown:
+   - `useState<ActivityEventType | 'all'>('all')` state.
+   - Computed `filteredEvents` = filter === 'all' ? events : events.filter(...).
+   - A `<select>` in the action bar with 8 options: All types (N), Suite runs,
+     Wallet scans, x402 simulations, Tx verifications, Tab switches, Network
+     toggles, Tour events.
+   - Updated the event list rendering to use `filteredEvents` instead of
+     `events`. Updated the empty state to show "No events match this filter"
+     when events exist but the filter excludes them all, with a hint about
+     total event count.
+   - Updated the footer count to show `filteredEvents.length/events.length`
+     when a filter is active.
+5. `activity-feed.tsx` — applied the `apsa-badge-pulse` class to the unread
+   badge in the panel header.
+6. `page.tsx` — applied the `apsa-badge-pulse` class to both Bell button
+   unread badges (tab bar + floating cluster).
+
+### Styling polish (globals.css)
+7. Added `@keyframes apsa-badge-pulse` (scale 1→1.15→1, opacity 1→0.85→1,
+   1.5s ease-in-out infinite) and the `.apsa-badge-pulse` utility class.
+   Applied to all unread-count badges so they subtly pulse to draw attention.
+
+## Verification Results
+- `bun run lint` → 0 errors, 0 warnings.
+- `curl -X POST /api/test-suite` → 12 tests, passed=True.
+- agent-browser: no console/runtime errors after a fresh reload.
+- All 9 keyboard shortcuts (1-9) jump to the correct tab.
+- Granular event logging verified:
+  * Pressing tab keys → "Switched to {tab}" events (slate tone)
+  * Mission tab "Re-run Suite" button → "Re-running 12-test suite" event (emerald tone)
+  * Testnet tab "Trigger Full x402 Protocol Cycle" → "Starting x402 protocol cycle" (violet) + "x402 protocol cycle completed" (emerald) events
+  * Mission tab tx verify → "Verifying transaction" (slate) + outcome-specific event
+- Activity Feed filter dropdown: present with 8 options; "All types (N)"
+  shows total count. Selecting "x402 simulations" filters the list to only
+  simulation events. Footer count updates to show filtered/total ratio.
+- Pulse animation: unread badge on Bell buttons pulses with the
+  apsa-badge-pulse keyframe.
+- Empty state: when filter excludes all events, shows "No events match
+  this filter" with a hint about total event count.
+- Mobile (375×812): footer sticky; layout holds.
+- VLM (z-ai vision) confirms: "filter dropdown set to 'x402 simulations'";
+  "event entries with icons, titles, timestamps like '56s ago'";
+  "green for success, purple for informational"; "no visible visual
+  glitches or layout issues".
+
+## Bugs found & fixed
+- No bugs encountered this round. All changes were additive (new logEvent
+  calls + filter state + CSS animation).
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+- The LiveOnChainTracker logs wallet-scan events only when transfers are
+  found. Could also log on balance change (delta detection) for more
+  granular monitoring.
+- The filter dropdown could persist its selection to localStorage so the
+  operator's preferred filter survives a reload.
+- Could add a "Clear filter" button next to the dropdown for quick reset.
+- The pulse animation on the unread badge could be disabled after a few
+  seconds (to avoid being distracting) while keeping the badge visible.
+- Could add event-count-per-type badges in the filter dropdown options
+  (e.g. "Suite runs (3)") so the operator sees the distribution at a glance.
+- Could add JSON re-import via drag-drop (round 6 rec, still pending).
+- Could gate MetricCards FadeIn to first-load-only via a session flag
+  (round 6 rec, still pending).
+
+Stage Summary:
+- Round 7 complete: 3 existing components enhanced with granular logEvent
+  calls (RealRevenueHarness: 6 event paths; TestnetWorkbench: 2 event
+  paths; LiveOnChainTracker: conditional transfer-detection event), the
+  Activity Feed gained a filter-by-type dropdown with 8 options + smart
+  empty state + dynamic footer count, and all unread badges gained a
+  pulse animation. All 12 protocol tests still pass. Lint clean. No
+  errors. VLM confirms the filter, event entries, and tone colors.

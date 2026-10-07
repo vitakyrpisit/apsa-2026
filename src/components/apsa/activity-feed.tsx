@@ -67,6 +67,10 @@ const TONE_BG: Record<ActivityEvent["tone"], string> = {
 export function ActivityFeed({ open, onOpenChange }: ActivityFeedProps) {
   const { events, unreadCount, markAllRead, clear } = useActivityFeed();
   const [, setTick] = useState(0);
+  const [filter, setFilter] = useState<ActivityEventType | "all">("all");
+
+  const filteredEvents =
+    filter === "all" ? events : events.filter((e) => e.type === filter);
 
   // Re-render every 5s so the relative timestamps ("Xs ago") stay fresh
   // while the panel is open.
@@ -111,7 +115,7 @@ export function ActivityFeed({ open, onOpenChange }: ActivityFeedProps) {
             <div className="relative">
               <Bell className="w-4 h-4 text-emerald-400" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-1 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-1 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center apsa-badge-pulse">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -152,25 +156,41 @@ export function ActivityFeed({ open, onOpenChange }: ActivityFeedProps) {
             <Trash2 className="w-3 h-3" />
             Clear
           </button>
-          <span className="ml-auto text-[10px] font-mono text-slate-500">
-            {events.length} event{events.length === 1 ? "" : "s"}
-          </span>
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as ActivityEventType | "all")}
+            className="ml-auto px-2 py-1 text-[11px] font-mono rounded-md bg-slate-950 border border-slate-800 text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
+            aria-label="Filter events by type"
+          >
+            <option value="all">All types ({events.length})</option>
+            <option value="suite-run">Suite runs</option>
+            <option value="wallet-scan">Wallet scans</option>
+            <option value="x402-simulation">x402 simulations</option>
+            <option value="tx-verify">Tx verifications</option>
+            <option value="tab-change">Tab switches</option>
+            <option value="network-toggle">Network toggles</option>
+            <option value="tour-start">Tour events</option>
+          </select>
         </div>
 
         {/* Event list */}
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5">
-          {events.length === 0 ? (
+          {filteredEvents.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center gap-3 text-slate-500">
               <ActivityIcon className="w-8 h-8 opacity-40" />
               <div>
-                <div className="text-sm font-mono text-slate-400">No activity yet</div>
+                <div className="text-sm font-mono text-slate-400">
+                  {events.length === 0 ? "No activity yet" : "No events match this filter"}
+                </div>
                 <div className="text-[11px] text-slate-600 mt-1">
-                  Protocol events (test runs, scans, simulations) will appear here.
+                  {events.length === 0
+                    ? "Protocol events (test runs, scans, simulations) will appear here."
+                    : `Try a different filter — ${events.length} total event${events.length === 1 ? "" : "s"} in the feed.`}
                 </div>
               </div>
             </div>
           ) : (
-            events.map((evt) => {
+            filteredEvents.map((evt) => {
               const Icon = EVENT_ICONS[evt.type] ?? ActivityIcon;
               return (
                 <div
@@ -208,7 +228,12 @@ export function ActivityFeed({ open, onOpenChange }: ActivityFeedProps) {
           <span>
             Press <kbd className="px-1 py-0.5 rounded border border-slate-700 bg-slate-950">Esc</kbd> to close
           </span>
-          <span>Session-scoped · max 50 events</span>
+          <span>
+            {filter === "all"
+              ? `${filteredEvents.length} event${filteredEvents.length === 1 ? "" : "s"}`
+              : `${filteredEvents.length}/${events.length} event${filteredEvents.length === 1 ? "" : "s"}`}
+            {" · "}session-scoped · max 50
+          </span>
         </div>
       </aside>
     </>
