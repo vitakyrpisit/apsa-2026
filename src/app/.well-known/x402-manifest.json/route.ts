@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { generateV2PaymentRequirements } from "@/lib/apsa/x402-core";
 import {
   EVM_PAYOUT_ADDRESS,
   BASE_USDC_MAINNET_ADDRESS,
@@ -11,15 +10,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * GET /.well-known/x402-manifest.json
- * Machine-readable discovery document for autonomous buyer agents.
- * Now includes BOTH services:
- * - SentinelShield (smart contract audit, $9.50)
- * - MarketIntelAgent (market analysis $0.05, trading signals $0.01)
- */
 export async function GET() {
-  const reqs = generateV2PaymentRequirements("/api/x402/sentinelshield");
   const manifest = {
     x402Version: "2.0",
     protocol: PROTOCOL_VERSION,
@@ -27,81 +18,64 @@ export async function GET() {
       {
         serviceId: "sentinel-shield",
         name: "SentinelShield — Smart Contract Risk Triage",
-        description: "SARIF vulnerability matrix + exploit remediation for Base smart contracts",
-        network: "base-mainnet",
-        token: "USDC",
-        tokenAddress: BASE_USDC_MAINNET_ADDRESS,
-        chainId: BASE_MAINNET_CHAIN_ID,
-        priceAtomic: "9500000",
-        priceUSDC: SENTINEL_PRICE_USDC,
+        priceUSDC: 9.5, priceAtomic: "9500000",
         payoutAddress: EVM_PAYOUT_ADDRESS,
-        payoutAddressMode: "receive-only",
-        tags: ["security", "smart-contract-audit", "risk-triage", "sarif"],
-        endpoints: {
-          paid: "POST /api/x402/sentinelshield",
-          free: "GET /api/x402/sentinelshield",
-        },
+        network: "base-mainnet", token: "USDC",
+        tokenAddress: BASE_USDC_MAINNET_ADDRESS,
+        endpoints: { paid: "POST /api/x402/sentinelshield", free: "GET /api/x402/sentinelshield" },
+        tags: ["security", "audit", "sarif"],
       },
       {
         serviceId: "market-analysis",
         name: "MarketIntelAgent — LLM Market Analysis",
-        description: "AI-generated market analysis for BTC, ETH, SOL, TRX, USDC, BASE with directional signal + confidence",
-        network: "base-mainnet",
-        token: "USDC",
-        tokenAddress: BASE_USDC_MAINNET_ADDRESS,
-        chainId: BASE_MAINNET_CHAIN_ID,
-        priceAtomic: "50000",
-        priceUSDC: 0.05,
+        priceUSDC: 0.05, priceAtomic: "50000",
         payoutAddress: EVM_PAYOUT_ADDRESS,
-        payoutAddressMode: "receive-only",
-        tags: ["market-data", "analysis", "trading", "crypto", "llm"],
-        endpoints: {
-          paid: "POST /api/market-analysis?symbol={SYMBOL}",
-          free: "GET /api/market-analysis",
-        },
+        network: "base-mainnet", token: "USDC",
+        tokenAddress: BASE_USDC_MAINNET_ADDRESS,
+        endpoints: { paid: "POST /api/market-analysis?symbol={SYMBOL}", free: "GET /api/market-analysis" },
+        tags: ["market", "analysis", "trading", "llm"],
         symbols: ["BTC", "ETH", "USDC", "BASE", "SOL", "TRX"],
       },
       {
         serviceId: "market-signal",
         name: "MarketIntelAgent — Trading Signals",
-        description: "BUY/SELL/HOLD trading signals with entryPrice, confidence, rationale, 1h expiry",
-        network: "base-mainnet",
-        token: "USDC",
-        tokenAddress: BASE_USDC_MAINNET_ADDRESS,
-        chainId: BASE_MAINNET_CHAIN_ID,
-        priceAtomic: "10000",
-        priceUSDC: 0.01,
+        priceUSDC: 0.01, priceAtomic: "10000",
         payoutAddress: EVM_PAYOUT_ADDRESS,
-        payoutAddressMode: "receive-only",
-        tags: ["trading", "signal", "crypto", "market"],
-        endpoints: {
-          paid: "POST /api/market-signal?symbol={SYMBOL}",
-          free: "GET /api/market-signal",
-        },
+        network: "base-mainnet", token: "USDC",
+        tokenAddress: BASE_USDC_MAINNET_ADDRESS,
+        endpoints: { paid: "POST /api/market-signal?symbol={SYMBOL}", free: "GET /api/market-signal" },
+        tags: ["trading", "signal"],
         symbols: ["BTC", "ETH", "USDC", "BASE", "SOL", "TRX"],
       },
+      {
+        serviceId: "site-audit",
+        name: "Site Audit — Security, Performance, SEO",
+        priceUSDC: 0.25, priceAtomic: "250000",
+        payoutAddress: EVM_PAYOUT_ADDRESS,
+        network: "base-mainnet", token: "USDC",
+        tokenAddress: BASE_USDC_MAINNET_ADDRESS,
+        endpoints: { paid: "POST /api/site-audit?url={URL}", free: "GET /api/site-audit" },
+        tags: ["security", "audit", "seo", "performance"],
+      },
+      {
+        serviceId: "company-intel",
+        name: "Company Intelligence — B2B Research",
+        priceUSDC: 0.50, priceAtomic: "500000",
+        payoutAddress: EVM_PAYOUT_ADDRESS,
+        network: "base-mainnet", token: "USDC",
+        tokenAddress: BASE_USDC_MAINNET_ADDRESS,
+        endpoints: { paid: "POST /api/company-intel?name={COMPANY}", free: "GET /api/company-intel" },
+        tags: ["business", "intelligence", "research", "b2b"],
+      },
     ],
-    discovery: {
-      protocols: ["x402", "mcp", "openapi-v3"],
-      manifest: "/.well-known/x402-manifest.json",
-      health: "/api/health",
-      agentStatus: "/api/market-intel",
-    },
     payoutAddress: EVM_PAYOUT_ADDRESS,
     payoutAddressMode: "receive-only",
-    paymentRequirements: reqs,
-    legal: {
-      operatorIntervention: "minimal",
-      kycRequired: false,
-      antiWashTrading: true,
+    discovery: {
+      manifest: "/.well-known/x402-manifest.json",
+      health: "/api/health",
     },
     generatedAt: new Date().toISOString(),
   };
 
-  return NextResponse.json(manifest, {
-    headers: {
-      "Cache-Control": "public, max-age=60",
-      "Content-Type": "application/json",
-    },
-  });
+  return NextResponse.json(manifest, { headers: { "Cache-Control": "public, max-age=60" } });
 }
