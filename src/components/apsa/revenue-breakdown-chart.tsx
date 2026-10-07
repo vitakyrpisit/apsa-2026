@@ -38,9 +38,10 @@ interface CostSlice {
  * the live slider values.
  *
  * Cost proportions are derived from the empirical benchmark for the
- * SentinelShield $9.50 outcome (data $0.02, LLM $0.08, compute $0.02,
+ * SentinelShield trial-tier $0.05 outcome (data $0.02, LLM $0.08, compute $0.02,
  * RPC $0.01, hosting $0.00, facilitator $0.01 per order) scaled to the
- * live ticket price so the relative shape is preserved.
+ * live ticket price so the relative shape is preserved. After first
+ * settlement history, graduates to $9.50 full tier.
  */
 export function RevenueBreakdownChart({
   ticketPrice,

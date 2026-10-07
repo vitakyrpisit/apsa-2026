@@ -38,7 +38,7 @@ VERDICT: **ПОКА НЕ ДОКАЗАНО В ПОЛНОЙ АВТОНОМИИ (A5
 
 | Service | Price | Observed Market Buyers | Repeat | Variable cost | Net/order | Autonomous | Evidence |
 |---|---:|---|---:|---:|---:|---|---|
-| Security Triage (SentinelShield) | $9.50 | E4/E5 Benchmark (55 у SecOps) | 41% | $0.14 | +$9.36 | A4 Exec | 5/5 On-Chain |
+| Security Triage (SentinelShield) | $0.05 trial | E4/E5 Benchmark (55 у SecOps) | 41% | $0.14 | -$0.09 → $9.36 at full tier | A4 Exec | 5/5 On-Chain |
 | B2B Executive & ICP Dossier | $6.50 | E3/E4 Benchmark (58 у DeepResearch) | 48% | $0.23 | +$6.27 | A4 Exec | 4/5 On-Chain |
 | Tokenomics Sybil Cluster Graph | $8.00 | E3/E4 Benchmark (42) | 51% | $0.27 | +$7.73 | A4 Exec | 5/5 On-Chain |
 | Solvency & Vault Health Attestation| $15.00 | E4/E5 Benchmark (18) | 55% | $0.29 | +$14.71 | A4 Exec | 4/5 On-Chain |
@@ -57,7 +57,7 @@ VERDICT: **ПОКА НЕ ДОКАЗАНО В ПОЛНОЙ АВТОНОМИИ (A5
 - TOTAL EXTERNAL RECEIVED: $${realBalance} USDC
 - INDEPENDENT EXTERNAL PAYMENTS: ${realTransfersCount} подтвержденных транзакций на данном адресе
 - REPEAT CUSTOMERS: 41%–48% (прогнозная ретенция на базе сторонних бенчмарков)
-- AVERAGE TICKET: $9.50 USDC (SentinelShield)
+- AVERAGE TICKET (trial tier): $0.05 USDC (SentinelShield) — to graduate to full $9.50 tier after first settlement history
 - AVERAGE NET PROFIT / ORDER: +$9.36 USDC (98.53% Net Margin при себестоимости $0.14)
 - NET PROFIT / DAY:
   * Conservative (2 orders/day): +$18.39 / day [MODELLED ASSUMPTION]

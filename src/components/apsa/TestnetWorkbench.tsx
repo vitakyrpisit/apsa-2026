@@ -144,7 +144,7 @@ export const TestnetWorkbench: React.FC<TestnetWorkbenchProps> = ({ network, onP
               onChange={(e) => setSelectedService(e.target.value as 'sentinel-shield' | 'veri-vendor')}
               className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
             >
-              <option value="sentinel-shield">SentinelShield: Security &amp; AST Threat Matrix ($9.50)</option>
+              <option value="sentinel-shield">SentinelShield: Security &amp; AST Threat Matrix ($0.05 · trial tier)</option>
               <option value="veri-vendor">VeriVendor: B2B API Reliability Dossier ($7.00)</option>
             </select>
           </div>

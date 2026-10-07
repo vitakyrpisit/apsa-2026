@@ -33,8 +33,12 @@ export const BASE_USDC_SEPOLIA_ADDRESS =
 export const BASE_X402_FACILITATOR_MAINNET =
   "0x4020000000000000000000000000000000000402";
 
-export const SENTINEL_PRICE_USDC = 9.5;
-export const SENTINEL_PRICE_ATOMIC = "9500000";
+// Trial-tier pricing for Agent402 router dispatch eligibility.
+// 9.5 USDC was above the router ceiling for unproven providers → routerDispatchEligible=false.
+// Lowered to 0.05 USDC (matches market-analysis, inside ceiling, unprovenTier-eligible).
+export const SENTINEL_PRICE_USDC = 0.05;
+export const SENTINEL_PRICE_ATOMIC = "50000"; // 0.05 USDC = 50,000 atomic units (6 decimals)
+export const SENTINEL_PREVIOUS_PRICE_USDC = 9.5; // kept for migration transparency
 export const BASE_MAINNET_CHAIN_ID = 8453;
 export const BASE_SEPOLIA_CHAIN_ID = 84532;
 

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { OFFICIAL_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS } from '@/lib/apsa/empirical-data';
+import { SENTINEL_PRICE_ATOMIC, SENTINEL_PRICE_USDC } from '@/lib/apsa/wallet-registry';
 import { Cpu, Globe, FileCode, Check, Copy } from 'lucide-react';
 
 export const AutonomousLoopAudit: React.FC = () => {
@@ -87,15 +88,20 @@ export const AutonomousLoopAudit: React.FC = () => {
     network: 'base-mainnet',
     token: 'USDC',
     tokenAddress: BASE_USDC_MAINNET_ADDRESS,
-    priceAtomic: '9500000',
-    priceUSDC: 9.50,
+    priceAtomic: SENTINEL_PRICE_ATOMIC,
+    priceUSDC: SENTINEL_PRICE_USDC,
+    pricingTier: 'trial',
+    routerDispatchEligible: true,
+    unprovenTier: true,
     payoutAddress: OFFICIAL_PAYOUT_ADDRESS,
     discovery: {
-      protocols: ['x402', 'mcp', 'openapi-v3'],
-      tags: ['security', 'smart-contract-audit', 'risk-triage', 'sarif', 'autonomous-defense'],
+      protocols: ['x402', 'mcp', 'openapi-v3', 'agent402-router'],
+      tags: ['security', 'smart-contract-audit', 'risk-triage', 'sarif', 'autonomous-defense', 'trial-tier', 'router-eligible'],
       endpoints: {
         analyze: 'https://ais-dev-6y4hk2njncas7j3cltz524-138212139447.europe-west3.run.app/api/v1/sentinel-shield/analyze',
-        schema: 'https://ais-dev-6y4hk2njncas7j3cltz524-138212139447.europe-west3.run.app/api/v1/sentinel-shield/schema'
+        schema: 'https://ais-dev-6y4hk2njncas7j3cltz524-138212139447.europe-west3.run.app/api/v1/sentinel-shield/schema',
+        health: 'https://apsa-2026.vercel.app/api/health',
+        agent402Router: 'https://apsa-2026.vercel.app/api/agent402/router',
       }
     }
   };

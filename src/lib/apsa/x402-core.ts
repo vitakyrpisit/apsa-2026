@@ -127,7 +127,7 @@ export function generateV2PaymentRequirements(
       chainId: BASE_MAINNET_CHAIN_ID,
       priceUSD: SENTINEL_PRICE_USDC,
       resource: resourceUri,
-      description: "SentinelShield Smart Contract Vulnerability Triage & SARIF Report",
+      description: "SentinelShield Smart Contract Vulnerability Triage & SARIF Report (trial tier)",
     },
   };
 }
@@ -325,7 +325,7 @@ export async function handlePaidSentinelRequest(
       headers: { "Content-Type": "application/json" },
       body: {
         error: "Insufficient Payment Amount",
-        reason: `Required ${SENTINEL_PRICE_ATOMIC} ($9.50 USDC), received ${auth.value}`,
+        reason: `Required ${SENTINEL_PRICE_ATOMIC} ($0.05 USDC trial tier), received ${auth.value}`,
       },
     };
   }
@@ -405,8 +405,8 @@ export async function handlePaidSentinelRequest(
         signatureValid: true,
         settledOnChain: false,
         payer: auth.from,
-        requiredUSDC: `${SENTINEL_PRICE_USDC} USDC`,
-        reason: "Payer wallet has 0 USDC on Base Mainnet; signature alone does not settle.",
+        requiredUSDC: `${SENTINEL_PRICE_USDC} USDC (trial tier)`,
+        reason: "Payer wallet has insufficient USDC on Base Mainnet; signature alone does not settle.",
         ourRevenueCounted: false,
       },
     };

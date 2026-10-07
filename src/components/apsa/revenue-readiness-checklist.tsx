@@ -18,6 +18,7 @@ import {
   EVM_PAYOUT_ADDRESS,
   BASE_USDC_MAINNET_ADDRESS,
   SENTINEL_PRICE_USDC,
+  SENTINEL_PRICE_ATOMIC,
   BASE_MAINNET_CHAIN_ID,
 } from "@/lib/apsa/wallet-registry";
 
@@ -41,7 +42,7 @@ const STEPS: ReadinessStep[] = [
     category: "technical",
     title: "Production price set",
     status: "done",
-    detail: `$${SENTINEL_PRICE_USDC.toFixed(2)} USDC (9500000 atomic) — consistent across /api/health, manifest, 402 challenge, and test suite.`,
+    detail: `$${SENTINEL_PRICE_USDC.toFixed(2)} USDC (${SENTINEL_PRICE_ATOMIC} atomic, trial tier) — consistent across /api/health, manifest, 402 challenge, and test suite. Previous: $9.50 USDC. Lowered to clear router ceiling for unproven providers and trigger unprovenTier=true.`,
   },
   {
     id: "payTo",

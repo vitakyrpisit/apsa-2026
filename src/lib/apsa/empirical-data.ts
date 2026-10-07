@@ -553,12 +553,12 @@ export const NOVEL_SERVICE_IDEAS: NovelServiceIdea[] = [
     name: 'SentinelShield: Autonomous Protocol Incident & Smart Contract Risk Triage',
     input: 'Contract address on Base / Ethereum or transaction hash of suspicious event',
     output: 'Deterministic exploit classification, affected liquidity pools, flash-loan vector trace, machine-readable SARIF & actionable mitigation payload',
-    priceUSDC: 9.50,
+    priceUSDC: 0.05, // trial tier (was 9.50, lowered to clear router ceiling)
     dataSources: 'Base RPC, verified contract bytecodes, open Etherscan/Sourcify ABI database, Slither & Aderyn AST static analysis',
     automation: '100% autonomous. On HTTP 402 payment, server fetches AST, runs differential rule analysis, synthesizes risk score, and signs machine receipt.',
     marginalCostUSD: 0.14,
-    expectedNetUSD: 9.36,
-    netMarginPct: 98.5,
+    expectedNetUSD: -0.09, // trial tier (negative: investment in settlement history). At full tier: $9.36
+    netMarginPct: -180, // trial tier — strategic loss. At full tier: 98.5
     whoPays: 'DeFi treasury defense bots, autonomous liquidity managers, automated insurance underwriters',
     whyAnAgentPays: 'Prevents depositing capital into compromised pools; automated risk mitigation without waiting for human security teams.',
     discoveryChannel: 'x402scan category "Security & Auditing", Agent402 registry, automated pinging on GitHub PRs and BaseScan verified contracts',
@@ -658,7 +658,7 @@ export const ECONOMIC_SCENARIOS: EconomicScenario[] = [
     netPerDayUSD: 18.39,         // $19.00 - $0.28 - $0.33
     netPerMonthUSD: 551.70,
     nature: 'MODELLED ASSUMPTION',
-    notes: 'Моделирование: 2 заказа/день при цене $9.50 и себестоимости $0.14. До первого внешнего заказа факт = $0.'
+    notes: 'Trial tier: 2 заказа/день при цене $0.05 (старая цена $9.50). Себестоимость $0.14 → убыток на этапе trial, но это ценз пробного тарифа для router. До первого внешнего заказа факт = $0.'
   },
   {
     name: 'BASE',
@@ -670,7 +670,7 @@ export const ECONOMIC_SCENARIOS: EconomicScenario[] = [
     netPerDayUSD: 93.27,         // $95.00 - $1.40 - $0.33
     netPerMonthUSD: 2798.10,
     nature: 'MODELLED ASSUMPTION',
-    notes: 'Моделирование: 10 заказов/день при $9.50. Точная арифметика ($95.00 - $1.40 - $0.33 = $93.27/день).'
+    notes: 'Trial tier: 10 заказов/день при $0.05 (trial). После набора settlement history и перехода на full tier $9.50 — точная арифметика ($95.00 - $1.40 - $0.33 = $93.27/день).'
   },
   {
     name: 'STRONG',

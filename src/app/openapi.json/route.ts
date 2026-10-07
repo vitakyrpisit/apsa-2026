@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS } from "@/lib/apsa/wallet-registry";
+import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS, SENTINEL_PRICE_USDC, SENTINEL_PRICE_ATOMIC } from "@/lib/apsa/wallet-registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,12 +16,17 @@ export async function GET() {
       network: "eip155:8453",
       token: "USDC",
       tokenAddress: BASE_USDC_MAINNET_ADDRESS,
+      routerDispatchEligible: true,
+      unprovenTier: true,
+      toolCount: 5,
+      pricingTier: "trial",
+      maxRouterCeilingUSDC: 0.05,
     },
     paths: {
       "/api/x402/sentinelshield": {
         post: {
-          "x-payment-info": { price: "$9.50 USDC", atomic: "9500000", scheme: "exact" },
-          "x-bazaar": { serviceName: "SentinelShield", tags: ["security","audit","sarif"], mimeType: "application/json" },
+          "x-payment-info": { price: `$${SENTINEL_PRICE_USDC} USDC`, atomic: SENTINEL_PRICE_ATOMIC, scheme: "exact", tier: "trial" },
+          "x-bazaar": { serviceName: "SentinelShield", tags: ["security","audit","sarif","trial-tier","router-eligible"], mimeType: "application/json" },
           responses: { "402": { description: "Payment Required" }, "200": { description: "SARIF report" } },
         },
       },

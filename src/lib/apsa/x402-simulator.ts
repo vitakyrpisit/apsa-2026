@@ -101,7 +101,7 @@ export async function runX402ProtocolSimulation(
   const chainId = network === "base-mainnet" ? 8453 : 84532;
   const tokenAddress =
     network === "base-mainnet" ? BASE_USDC_MAINNET_ADDRESS : BASE_USDC_SEPOLIA_ADDRESS;
-  const priceUSDC = serviceType === "sentinel-shield" ? 9.5 : 7.0;
+  const priceUSDC = serviceType === "sentinel-shield" ? SENTINEL_PRICE_USDC : 7.0;
   const amountAtomic = Math.round(priceUSDC * 1e6).toString();
   const nonce = "0x" + generateHex(64);
 

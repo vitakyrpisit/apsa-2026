@@ -43,7 +43,7 @@ export const NovelConcepts: React.FC = () => {
 
         <p className="text-xs text-slate-300 mb-6 leading-relaxed">
           Selected not because of historical volume hype, but based on the optimal convergence of:
-          <strong className="text-white"> External Demand (E3-E5) + High Ticket ($7.00–$9.50) + High Net Margin (&gt;98%) + Repeatability + Zero Start Capital + Full Machine Autonomy + Low Legal Risk</strong>.
+          <strong className="text-white"> External Demand (E3-E5) + Trial-Tier Pricing ($0.05 SentinelShield) + High Net Margin + Repeatability + Zero Start Capital + Full Machine Autonomy + Low Legal Risk</strong>.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

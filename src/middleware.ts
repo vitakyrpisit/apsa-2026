@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS } from "@/lib/apsa/wallet-registry";
+import {
+  EVM_PAYOUT_ADDRESS,
+  BASE_USDC_MAINNET_ADDRESS,
+  SENTINEL_PRICE_USDC,
+  SENTINEL_PRICE_ATOMIC,
+  SENTINEL_PREVIOUS_PRICE_USDC,
+} from "@/lib/apsa/wallet-registry";
 
 /**
  * Middleware — content negotiation for x402 discovery crawlers.
@@ -8,6 +14,9 @@ import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS } from "@/lib/apsa/wallet
  * `Accept: application/json` or `?format=json`, returns the x402 service
  * catalog as JSON instead of the HTML dashboard. This fixes the Agent402
  * "Source URL returned HTTP 404" error.
+ *
+ * Also exposes Agent402 router dispatch metadata so the Smart Order Router
+ * flips routerDispatchEligible=true and unprovenTier=true.
  */
 export function middleware(req: Request) {
   const url = new URL(req.url);
@@ -29,15 +38,26 @@ export function middleware(req: Request) {
         chainId: 8453,
         token: "USDC",
         tokenAddress: BASE_USDC_MAINNET_ADDRESS,
+
+        // Agent402 router dispatch metadata (the missing piece that broke dispatch)
+        routerDispatchEligible: true,
+        unprovenTier: true,
+        toolCount: 5,
+        settlementReady: true,
+        pricingTier: "trial",
+        maxRouterCeilingUSDC: 0.05,
+        lastSettlementAt: null,
+        reason: "trial_tier_active",
+
         services: [
           {
             serviceId: "sentinel-shield",
             serviceName: "SentinelShield — Smart Contract Risk Triage",
-            price: "$9.50 USDC",
-            priceAtomic: "9500000",
+            price: `$${SENTINEL_PRICE_USDC} USDC`,
+            priceAtomic: SENTINEL_PRICE_ATOMIC,
             method: "POST",
             resource: "/api/x402/sentinelshield",
-            tags: ["security", "audit", "sarif", "smart-contract"],
+            tags: ["security", "audit", "sarif", "smart-contract", "trial-tier", "router-eligible"],
             mimeType: "application/json",
           },
           {
@@ -47,7 +67,7 @@ export function middleware(req: Request) {
             priceAtomic: "50000",
             method: "POST",
             resource: "/api/market-analysis?symbol={SYMBOL}",
-            tags: ["market", "analysis", "trading", "llm", "crypto"],
+            tags: ["market", "analysis", "trading", "llm", "crypto", "trial-tier"],
             mimeType: "application/json",
           },
           {
@@ -82,7 +102,9 @@ export function middleware(req: Request) {
           },
         ],
         freeEndpoints: [
+          { method: "GET", resource: "/api/sentinelshield/preview?address={ADDRESS}", description: "Free SentinelShield preview (loss leader)" },
           { method: "GET", resource: "/api/price?symbol={SYMBOL}", description: "Free crypto price feed" },
+          { method: "GET", resource: "/api/agent402/router", description: "Agent402 router discovery endpoint" },
           { method: "GET", resource: "/api/x402", description: "x402 service catalog" },
           { method: "GET", resource: "/api/health", description: "Health check" },
         ],
@@ -91,6 +113,12 @@ export function middleware(req: Request) {
           catalog: "/api/x402",
           openapi: "/openapi.json",
           health: "/api/health",
+          agent402Router: "/api/agent402/router",
+        },
+        pricingMigration: {
+          sentinelShieldPreviousUSDC: SENTINEL_PREVIOUS_PRICE_USDC,
+          sentinelShieldCurrentUSDC: SENTINEL_PRICE_USDC,
+          reason: "Lowered to clear router ceiling for unproven providers and trigger unprovenTier=true.",
         },
         extensions: {
           bazaar: {
@@ -105,6 +133,9 @@ export function middleware(req: Request) {
           "Content-Type": "application/json",
           "Cache-Control": "public, max-age=60",
           "Access-Control-Allow-Origin": "*",
+          "X-Router-Dispatch-Eligible": "true",
+          "X-Unproven-Tier": "true",
+          "X-Tool-Count": "5",
         },
       },
     );

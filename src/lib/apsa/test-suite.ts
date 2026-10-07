@@ -88,7 +88,7 @@ export async function runAllTests(): Promise<{
     testNumber: 1,
     name: "Official v2 Static Configuration",
     expected:
-      "Base Mainnet (8453), USDC (0x833589…), payTo (0x829f…), $9.50, scheme exact",
+      "Base Mainnet (8453), USDC (0x833589…), payTo (0x829f…), $0.05 trial tier, scheme exact",
     received: `network=${reqs.network}, asset=${reqs.asset}, payTo=${reqs.payTo}, amount=${reqs.amount}`,
     status: t1Pass ? "PASS" : "FAIL",
     details: "Verified against official x402 v2 payment requirements schema.",
@@ -260,7 +260,7 @@ export async function runAllTests(): Promise<{
         authorization: {
           from: newPayer(),
           to: EVM_PAYOUT_ADDRESS,
-          value: "1000000", // $1.00 < $9.50
+          value: "10000", // $0.01 < $0.05 trial tier
           validAfter: 0,
           validBefore: now + 3600,
           nonce: newNonce(),
@@ -272,17 +272,17 @@ export async function runAllTests(): Promise<{
   const t8Pass =
     underpaidRes.statusCode === 400 &&
     ((underpaidRes.body as { reason?: string }).reason || "").includes(
-      "Required 9500000",
+      "Required 50000",
     );
   results.push({
     testNumber: 8,
     name: "Wrong / Insufficient Amount Rejection",
-    expected: "Rejected when amount < 9500000 ($9.50 USDC)",
+    expected: "Rejected when amount < 50000 ($0.05 USDC trial tier)",
     received: `HTTP ${underpaidRes.statusCode} (${
       (underpaidRes.body as { reason?: string }).reason
     })`,
     status: t8Pass ? "PASS" : "FAIL",
-    details: "Underpaid transactions ($1.00 < $9.50) are rejected prior to compute.",
+    details: "Underpaid transactions ($0.01 < $0.05 trial) are rejected prior to compute.",
   });
 
   // TEST 9 — Expired authorization

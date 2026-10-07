@@ -116,7 +116,7 @@ export const RealRevenueHarness: React.FC = () => {
               Production SentinelShield Revenue Engine (Base Mainnet)
             </h2>
             <p className="text-xs text-slate-300 mt-1 max-w-3xl">
-              Target: <strong>1 real external independent payment of $9.50 USDC</strong> to receive-only payout address <code className="text-emerald-300 font-mono">{PRODUCTION_PAY_TO}</code>. No mock signatures, no synthetic hashes, no self-funding.
+              Target: <strong>first real external independent payment of $0.05 USDC (trial tier)</strong> to receive-only payout address <code className="text-emerald-300 font-mono">{PRODUCTION_PAY_TO}</code>. No mock signatures, no synthetic hashes, no self-funding. Price lowered from $9.50 → $0.05 to clear router ceiling for unproven providers and trigger unprovenTier=true.
             </p>
           </div>
 
@@ -164,9 +164,9 @@ export const RealRevenueHarness: React.FC = () => {
 
           <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
             <span className="text-slate-400 text-[10px] uppercase block mb-1">SentinelShield Outcome Price</span>
-            <div className="text-sm font-bold text-emerald-400">$9.50 USDC</div>
+            <div className="text-sm font-bold text-emerald-400">$0.05 USDC <span className="text-[10px] text-amber-400 ml-1">trial tier</span></div>
             <div className="text-[10px] text-slate-500 mt-1">
-              Atomic: 9500000 units on contract 0x8335...2913
+              Atomic: 50000 units on contract 0x8335...2913 · prev $9.50
             </div>
           </div>
         </div>
@@ -318,7 +318,7 @@ export const RealRevenueHarness: React.FC = () => {
             <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-emerald-400 font-bold">POST /api/x402/sentinelshield</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300">x402 Protected ($9.50 USDC)</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300">x402 Protected ($0.05 USDC · trial)</span>
               </div>
               <p className="text-[11px] text-slate-400 font-sans mb-1.5">Unpaid request triggers HTTP 402 with Exact EVM EIP-712 payment requirements.</p>
               <pre className="p-2 rounded bg-slate-900 text-slate-300 text-[10px]">

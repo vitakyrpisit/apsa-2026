@@ -68,7 +68,7 @@ export const TAB_HELPS: TabHelp[] = [
     summary:
       "Interactive x402 protocol workbench. Trigger a full 7-step payment handshake: client request → 402 challenge → EIP-712 signature → facilitator verify → outcome production → settlement → 200 OK delivery.",
     bullets: [
-      "The 3 control fields — service (SentinelShield $9.50 or VeriVendor $7.00), target input (contract address), buyer wallet. Values are saved to your browser.",
+      "The 3 control fields — service (SentinelShield $0.05 trial tier or VeriVendor $7.00), target input (contract address), buyer wallet. Values are saved to your browser.",
       "The Trigger button — runs the full handshake and produces a 7-step console log + delivered SARIF outcome + per-order unit economics.",
       "The Repeat Demand tracker — counts simulated payments and unique buyer wallets toward the 5-payment / 3-independent-wallet goal. Testnet revenue is always $0.",
     ],

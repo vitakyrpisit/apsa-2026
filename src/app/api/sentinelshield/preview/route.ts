@@ -22,7 +22,7 @@ export async function GET(req: Request) {
       service: "SentinelShield Preview (FREE)",
       description: "Free smart contract risk preview. Returns risk count + severity.",
       usage: "GET /api/sentinelshield/preview?address=0x... or ?bytecode=0x...",
-      fullReportPrice: "$9.50 USDC on Base",
+      fullReportPrice: "$0.05 USDC on Base (trial tier)",
       fullReportEndpoint: "POST /api/x402/sentinelshield",
       manifest: "/.well-known/x402-manifest.json",
     });
@@ -60,20 +60,20 @@ export async function GET(req: Request) {
         proxy: full.findings.some(f => f.title.includes("proxy") || f.title.includes("EIP-1967") || f.title.includes("EIP-1167")),
       },
       fullReport: {
-        price: "$9.50 USDC",
+        price: "$0.05 USDC (trial tier)",
         endpoint: "POST /api/x402/sentinelshield",
         includes: ["SARIF 2.1.0", "exploit vectors", "mitigations", "CVSS scores"],
         paymentNetwork: "Base Mainnet (eip155:8453)",
         payTo: "0x829f877daAb94D766BB2b8511ad486C40f2C2BDA",
       },
       message: full.findings.length > 0
-        ? `${full.findings.length} finding(s) detected. Pay $9.50 USDC for full SARIF report.`
+        ? `${full.findings.length} finding(s) detected. Pay $0.05 USDC for full SARIF report.`
         : "No critical findings in bytecode analysis. Full report still recommended for source-level review.",
     });
   } catch (e) {
     return NextResponse.json({
       error: e instanceof Error ? e.message : "Analysis failed",
-      fullReportPrice: "$9.50 USDC",
+      fullReportPrice: "$0.05 USDC (trial tier)",
     }, { status: 502 });
   }
 }

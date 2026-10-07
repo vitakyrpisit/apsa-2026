@@ -411,7 +411,7 @@ export const UnitEconomicsSimulator: React.FC = () => {
                 <td className="py-2.5 px-3 font-semibold text-white">Smart Contract Security</td>
                 <td className="py-2.5 px-3 text-rose-300">"Raw Slither static analysis JSON dump"</td>
                 <td className="py-2.5 px-3 text-emerald-300">"Validated blocking risk gate &amp; exploit remediation patch"</td>
-                <td className="py-2.5 px-3 text-emerald-300">$0.001 vs $9.50 (9,500x)</td>
+                <td className="py-2.5 px-3 text-emerald-300">$0.001 vs $0.05 (50x · trial tier)</td>
               </tr>
               <tr>
                 <td className="py-2.5 px-3 font-semibold text-white">B2B Corporate Research</td>

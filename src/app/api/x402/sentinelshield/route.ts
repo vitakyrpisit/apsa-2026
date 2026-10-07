@@ -5,7 +5,7 @@ import {
   extractPaymentPayload,
 } from "@/lib/apsa/payai-facilitator";
 import { analyzeContractRisk, validateSentinelInput, SentinelInputError } from "@/lib/apsa/sentinel-shield";
-import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS, SENTINEL_PRICE_ATOMIC } from "@/lib/apsa/wallet-registry";
+import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS, SENTINEL_PRICE_USDC, SENTINEL_PRICE_ATOMIC } from "@/lib/apsa/wallet-registry";
 import { handleX402Payment, build402Response, build200Response, type X402ServiceConfig, X402Error } from "@/lib/apsa/x402-handler";
 
 export const runtime = "nodejs";
@@ -17,9 +17,9 @@ const SERVICE: X402ServiceConfig = {
   serviceName: "SentinelShield",
   description: "Smart contract security preflight — check if a contract is safe before your agent interacts with it",
   resource: "/api/x402/sentinelshield",
-  priceUSDC: 9.5,
+  priceUSDC: SENTINEL_PRICE_USDC, // 0.05 trial tier (was 9.5)
   amountAtomic: SENTINEL_PRICE_ATOMIC,
-  tags: ["security", "audit", "smart-contract", "risk", "preflight", "sarif", "base", "arbitrum", "polygon", "avalanche", "evm"],
+  tags: ["security", "audit", "smart-contract", "risk", "preflight", "sarif", "base", "arbitrum", "polygon", "avalanche", "evm", "trial-tier", "router-eligible"],
   mimeType: "application/json",
 };
 
