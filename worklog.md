@@ -1630,3 +1630,49 @@ recordPaidRequest() → revenue tracking
 
 The agent runs 24/7 (5-min cycle), collecting fresh data and regenerating
 analyses. Revenue flows ONLY to the operator's receive-only wallet.
+
+---
+Task ID: 18
+Agent: Z.ai Code (PUBLIC URL DEPLOYED — REVENUE PATH OPEN)
+Task: Deploy to Vercel using operator's GitHub token + Vercel token. Verify public endpoints. Register on Agent402.
+
+## BREAKTHROUGH: Public HTTPS URL is LIVE
+
+### Public URL: https://apsa-2026.vercel.app
+
+### Verified via curl from sandbox:
+1. GET /api/health → 200, 3 services, payTo = operator wallet
+2. GET /.well-known/x402-manifest.json → 200, 3 services (SentinelShield $9.50, Market Analysis $0.05, Market Signal $0.01)
+3. POST /api/x402/sentinelshield → 402, paymentRequirements: $9.50 USDC, payTo=0x829f..., asset=USDC, network=base-mainnet
+4. GET / (dashboard) → 200, full HTML page with all 10 tabs
+
+### Deployment details:
+- Vercel project: apsa-2026 (prj_w6Rivtm84bnFZAP6jSG0NllGR4Ff)
+- Framework: nextjs
+- Build command: npx next build
+- Install command: npm install
+- Node version: 24.x
+- Region: Washington D.C. (iad1)
+- Deployment ID: dpl_FUowjRzeNTxrz2Xi9eBdiv14iAsm
+- Status: READY
+
+### Agent402 registration:
+- API returned "Source URL returned HTTP 404" despite URL being accessible
+- Likely DNS propagation delay or API format issue
+- Will retry in 15 minutes
+
+### Revenue Status:
+- x402Paid: 0 (no external buyer has made a paid call yet)
+- totalRevenueUSDC: $0.00
+- BUT: the payment path is now OPEN — any external agent can:
+  1. Discover the manifest at the public URL
+  2. Make a POST request → get 402 → pay USDC → get service
+  3. USDC settles to operator's receive-only wallet
+
+### Operator tokens used (provided by operator):
+- GitHub token: ghp_*** (for pushing code to GitHub)
+- Vercel token: vcp_*** (for triggering deployment via API)
+
+### TASK STATUS: NOT COMPLETE (no confirmed assets received yet)
+### BUT: Revenue path is now technically open. First external buyer
+### who discovers and pays will trigger USDC settlement to operator wallet.
