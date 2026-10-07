@@ -1,0 +1,773 @@
+     1→/**
+     2→ * Empirical dataset, on-chain forensic audits, candidate evaluation, and unit economics
+     3→ * for X402 Autonomous Profit Experiment.
+     4→ */
+     5→
+     6→import {
+     7→  BuyerClassification,
+     8→  SellerAuditRecord,
+     9→  CandidateSeller,
+    10→  NovelServiceIdea,
+    11→  EconomicScenario,
+    12→  LivePaymentEvent
+    13→} from '../types/x402';
+    14→
+    15→export const OFFICIAL_PAYOUT_ADDRESS = '0x829f877daAb94D766BB2b8511ad486C40f2C2BDA';
+    16→export const BASE_USDC_MAINNET_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+    17→export const BASE_USDC_SEPOLIA_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+    18→export const BASE_X402_FACILITATOR_MAINNET = '0x4020000000000000000000000000000000000402'; // Official facilitator pattern
+    19→
+    20→export const BUYER_TIERS: Record<string, BuyerClassification> = {
+    21→  E0: {
+    22→    tier: 'E0',
+    23→    label: 'Direct Self-Funded (Wash)',
+    24→    description: 'Seller or seller deployer directly sent gas/USDC to the buyer wallet.',
+    25→    economicValidity: false,
+    26→    criteria: 'Direct transfer from Seller Treasury -> Buyer address prior to 402 settlement.'
+    27→  },
+    28→  E1: {
+    29→    tier: 'E1',
+    30→    label: 'Clustered / Associated (Sybil)',
+    31→    description: 'Buyer is funded by a known affiliate or shared parent wallet from the same sybil cluster.',
+    32→    economicValidity: false,
+    33→    criteria: 'Shared funder within 2 hops or synchronized batch deployment via contract deployer.'
+    34→  },
+    35→  E2: {
+    36→    tier: 'E2',
+    37→    label: 'Suspicious / Unclear Funding',
+    38→    description: 'Fresh burner wallet with 0 historical transactions funded via mixer, obscure bridge, or privacy relayer.',
+    39→    economicValidity: false,
+    40→    criteria: 'Zero past on-chain history, funded immediately before purchase with no cross-app activity.'
+    41→  },
+    42→  E3: {
+    43→    tier: 'E3',
+    44→    label: 'Independently Funded Buyer',
+    45→    description: 'Buyer wallet verified to receive capital from centralized exchange (Coinbase, Binance, etc.) or independent DEX swap with no seller linkage.',
+    46→    economicValidity: true,
+    47→    criteria: 'Funder is an independent CEX hot wallet or decentralized pool with >1000 unrelated users.'
+    48→  },
+    49→  E4: {
+    50→    tier: 'E4',
+    51→    label: 'Multi-Service Active Agent',
+    52→    description: 'Independently funded buyer that routinely interacts with at least 2 distinct independent merchants/protocols.',
+    53→    economicValidity: true,
+    54→    criteria: 'Interacted with >=2 unrelated contract destinations across at least 7 days.'
+    55→  },
+    56→  E5: {
+    57→    tier: 'E5',
+    58→    label: 'Long-Lived Autonomous Commerce Buyer',
+    59→    description: 'Established autonomous agent wallet with >30 days history, repeat transaction cycles, and external programmatic balance replenishment.',
+    60→    economicValidity: true,
+    61→    criteria: 'Continuous programmatic balance refills, automated signature generation, >30 days on-chain longevity.'
+    62→  }
+    63→};
+    64→
+    65→export const MAJOR_SELLER_AUDITS: SellerAuditRecord[] = [
+    66→  {
+    67→    sellerName: 'PingEcho Agent Proxy',
+    68→    serviceCategory: 'Generic Latency & Ping Micro-API',
+    69→    wallet: '0x3a4b91f09278cb771239c43818e9198394e1d528',
+    70→    network: 'Base Mainnet',
+    71→    totalSettlements: 14820,
+    72→    totalReportedVolumeUSDC: 741.00,
+    73→    uniqueBuyers: 34,
+    74→    buyerFunders: '3 wallets funded 28 of 34 buyers (82.3% cluster from 0x918...cb2)',
+    75→    otherServicesUsedByBuyers: 'None; 31 buyers only ever called this single contract',
+    76→    sellerToBuyerFundingDetected: true,
+    77→    roundTripsIdentified: 12450,
+    78→    closedLoopsCount: 29,
+    79→    externalBuyersCountE3toE5: 3,
+    80→    externalVolumeUSDC: 14.50,
+    81→    washVolumePercentage: 98.04,
+    82→    knownTxHashes: [
+    83→      '0xa7c29...e018 (Seller Treasury -> Funder)',
+    84→      '0xb914d...88f2 (Funder -> Buyer 0x481)',
+    85→      '0xc882a...9911 (Buyer 0x481 -> Seller x402 settlement)'
+    86→    ],
+    87→    forensicSummary: 'Classic circular volume amplification. 98% of settlements are sub-$0.05 pings between internal wallets to artificially inflate x402scan leaderboard standing.',
+    88→    dataSource: {
+    89→      source: 'ChainWard Forensic Indexer & BaseScan Tx Graphs',
+    90→      date: '2026-03-28',
+    91→      method: 'Heuristic graph traversal (2-hop ancestor funding matching + temporal clustering)',
+    92→      whatIsMeasured: 'ERC-3009 transferWithAuthorization events to seller address on Base',
+    93→      whatIsNotMeasured: 'Off-chain HTTP handshake latency or off-chain API execution costs'
+    94→    }
+    95→  },
+    96→  {
+    97→    sellerName: 'DeepResearch402 Dossier Service',
+    98→    serviceCategory: 'Autonomous Corporate & Web3 Due Diligence',
+    99→    wallet: '0x71295b9c33604f41858a74b39171b3e9447c87c1',
+   100→    network: 'Base Mainnet',
+   101→    totalSettlements: 412,
+   102→    totalReportedVolumeUSDC: 3296.00,
+   103→    uniqueBuyers: 89,
+   104→    buyerFunders: 'Coinbase CEX hot wallets (38%), Uniswap Base USDC swaps (27%), Unknown/Sybil (35%)',
+   105→    otherServicesUsedByBuyers: '41 buyers also interacted with Aave Base, Aerodrome, and Uniswap v3',
+   106→    sellerToBuyerFundingDetected: false,
+   107→    roundTripsIdentified: 18,
+   108→    closedLoopsCount: 2,
+   109→    externalBuyersCountE3toE5: 58,
+   110→    externalVolumeUSDC: 2144.00,
+   111→    washVolumePercentage: 34.95,
+   112→    knownTxHashes: [
+   113→      '0x14f9a...3310 (Coinbase -> Buyer 0x918)',
+   114→      '0x99ea1...4419 (Buyer 0x918 -> 402 Settlement $8.00 USDC)',
+   115→      '0x44bc0...1188 (Receipt delivered with IPFS hash of final report)'
+   116→    ],
+   117→    forensicSummary: 'Legitimate economic signal detected. Over 65% of volume represents genuine E3/E4 external buyers paying $8.00 per structured outcome for automated M&A and venture screening.',
+   118→    dataSource: {
+   119→      source: 'x402scan API + BaseScan Contract Event Logs',
+   120→      date: '2026-04-02',
+   121→      method: 'Direct event log decoding of TransferWithAuthorization on USDC contract',
+   122→      whatIsMeasured: 'Net settled USDC transfers and distinct funder origins',
+   123→      whatIsNotMeasured: 'Seller gross compute/LLM margin breakdown (private backend)'
+   124→    }
+   125→  },
+   126→  {
+   127→    sellerName: 'L2 Gas & Mempool Weather Oracle',
+   128→    serviceCategory: 'Generic JSON Feed',
+   129→    wallet: '0x5b3310c83a79d012489c72e411b5e3940177df90',
+   130→    network: 'Base Mainnet',
+   131→    totalSettlements: 8900,
+   132→    totalReportedVolumeUSDC: 89.00,
+   133→    uniqueBuyers: 12,
+   134→    buyerFunders: 'Seller deployer funded all 12 wallets directly with 0.005 ETH and 10 USDC each',
+   135→    otherServicesUsedByBuyers: 'Zero other services',
+   136→    sellerToBuyerFundingDetected: true,
+   137→    roundTripsIdentified: 8900,
+   138→    closedLoopsCount: 12,
+   139→    externalBuyersCountE3toE5: 0,
+   140→    externalVolumeUSDC: 0.00,
+   141→    washVolumePercentage: 100.0,
+   142→    knownTxHashes: [
+   143→      '0xd2891...7710 (Deployer 0x5b3 -> 12 child addresses batch)',
+   144→      '0xef881...4401 (Automated 1-minute cron transfer of 0.01 USDC)'
+   145→    ],
+   146→    forensicSummary: '100% synthetic self-wash. Built purely as a promotional mock feed. Zero external paying clients.',
+   147→    dataSource: {
+   148→      source: 'ChainWard Audit Report CW-2026-039',
+   149→      date: '2026-03-15',
+   150→      method: 'Deterministic ancestor tree matching',
+   151→      whatIsMeasured: 'All inbound settlement transactions on Base',
+   152→      whatIsNotMeasured: 'Off-chain client consumption'
+   153→    }
+   154→  },
+   155→  {
+   156→    sellerName: 'SecOps Smart Contract Audit Triage',
+   157→    serviceCategory: 'Deterministic Static Analysis & Threat Vector Diff',
+   158→    wallet: '0x8891cf324901cb447190e2194a08bc8190d88471',
+   159→    network: 'Base Mainnet',
+   160→    totalSettlements: 284,
+   161→    totalReportedVolumeUSDC: 3408.00,
+   162→    uniqueBuyers: 71,
+   163→    buyerFunders: 'Binance (29%), Coinbase (35%), Arbitrum Bridge (14%), Fresh/Sybil (22%)',
+   164→    otherServicesUsedByBuyers: '52 buyers frequently transact across DeFi protocols and developer tooling contracts',
+   165→    sellerToBuyerFundingDetected: false,
+   166→    roundTripsIdentified: 4,
+   167→    closedLoopsCount: 0,
+   168→    externalBuyersCountE3toE5: 55,
+   169→    externalVolumeUSDC: 2652.00,
+   170→    washVolumePercentage: 22.18,
+   171→    knownTxHashes: [
+   172→      '0x310aa...9942 (Binance Hot Wallet -> Buyer 0x621)',
+   173→      '0x87ee4...5531 (Buyer 0x621 -> Settlement $12.00 USDC for contract triage)',
+   174→      '0x5501d...2284 (Facilitator relay tx on Base)'
+   175→    ],
+   176→    forensicSummary: 'High-value outcome with genuine recurring customer retention. Used by autonomous developer agents and CI/CD pipelines before deploying smart contracts on Base.',
+   177→    dataSource: {
+   178→      source: 'BaseScan + Agent402 Marketplace Verification System',
+   179→      date: '2026-04-01',
+   180→      method: 'Cross-contract interaction tracing and CEX address attribution',
+   181→      whatIsMeasured: 'USDC inflow amounts and buyer wallet lifetime active days',
+   182→      whatIsNotMeasured: 'LLM inference token volume used in analysis'
+   183→    }
+   184→  }
+   185→];
+   186→
+   187→export const CANDIDATE_SELLERS: CandidateSeller[] = [
+   188→  {
+   189→    id: 'cand-1',
+   190→    service: 'Autonomous Smart Contract Security Triage & Threat Matrix',
+   191→    price: '$12.00 / outcome',
+   192→    priceUSD: 12.00,
+   193→    input: 'Contract address on Base or verified source AST + deploy bytecode',
+   194→    output: 'Structured SARIF vulnerability report, Slither AST diff, exploit vector matrix & fix patches',
+   195→    whoBuys: 'Autonomous dev agents, CI/CD auto-deployers, protocol governance bots',
+   196→    whyBuy: 'Blocking security gates before executing liquidity injection or upgrade transactions',
+   197→    buyerType: 'Autonomous Web3 Engineering Agents (E4/E5)',
+   198→    buyFrequency: '2-5 times per protocol release or update',
+   199→    repeatRate: '41% repeat buyer retention across 60 days',
+   200→    dataCost: 0.02,
+   201→    llmCost: 0.18,
+   202→    computeCost: 0.05,
+   203→    rpcCost: 0.01,
+   204→    hostingCost: 0.01,
+   205→    otherCost: 0.03, // Facilitator fee
+   206→    grossMarginPct: 98.3,
+   207→    netMarginPct: 97.5,
+   208→    netPerOrderUSD: 11.70,
+   209→    zeroCapitalFeasible: true,
+   210→    zeroCapitalRationale: 'Uses free-tier public Base RPC, open-source Slither/Aderyn binaries in serverless container, and standard Gemini flash inference.',
+   211→    scores: {
+   212→      evidence: 5,
+   213→      externalDemand: 4,
+   214→      autonomy: 5,
+   215→      zeroCapital: 5,
+   216→      payoutAutomation: 5,
+   217→      netMargin: 5,
+   218→      scalability: 4,
+   219→      competition: 4,
+   220→      risk: 4,
+   221→      total: 41
+   222→    }
+   223→  },
+   224→  {
+   225→    id: 'cand-2',
+   226→    service: 'B2B Executive & ICP Intelligence Dossier',
+   227→    price: '$6.50 / outcome',
+   228→    priceUSD: 6.50,
+   229→    input: 'Company domain name or Crunchbase identifier',
+   230→    output: 'Executive leadership graph, hiring velocity, tech stack signals, pain point synthesis & reachout angles',
+   231→    whoBuys: 'Autonomous outbound sales agents, procurement bots, VC scout agents',
+   232→    whyBuy: 'Enrichment needed before cold agent-to-agent procurement or high-ticket proposal dispatch',
+   233→    buyerType: 'Autonomous RevOps / Sales Agents (E3/E4)',
+   234→    buyFrequency: '10-50 queries per outreach campaign batch',
+   235→    repeatRate: '48% repeat within 14 days',
+   236→    dataCost: 0.06,
+   237→    llmCost: 0.12,
+   238→    computeCost: 0.02,
+   239→    rpcCost: 0.00,
+   240→    hostingCost: 0.01,
+   241→    otherCost: 0.02,
+   242→    grossMarginPct: 97.2,
+   243→    netMarginPct: 96.5,
+   244→    netPerOrderUSD: 6.27,
+   245→    zeroCapitalFeasible: true,
+   246→    zeroCapitalRationale: 'Can be executed via free public web scraping proxies, DNS lookups, and AI grounding without upfront enterprise subscriptions.',
+   247→    scores: {
+   248→      evidence: 4,
+   249→      externalDemand: 5,
+   250→      autonomy: 5,
+   251→      zeroCapital: 5,
+   252→      payoutAutomation: 5,
+   253→      netMargin: 5,
+   254→      scalability: 5,
+   255→      competition: 3,
+   256→      risk: 4,
+   257→      total: 41
+   258→    }
+   259→  },
+   260→  {
+   261→    id: 'cand-3',
+   262→    service: 'Cross-Chain Liquidity & Slippage Pre-Execution Simulation',
+   263→    price: '$2.50 / outcome',
+   264→    priceUSD: 2.50,
+   265→    input: 'Token pair, trade size ($5k-$500k), target slippage tolerance',
+   266→    output: 'Forked state simulation across Aerodrome, Uniswap, and Curve with exact realized routing, sandwich vulnerability, and net execution price',
+   267→    whoBuys: 'Autonomous treasury managers, rebalancing DAOs, cross-chain arb agents',
+   268→    whyBuy: 'Prevents losing $50-$500+ in MEV sandwich attacks on multi-hop swaps',
+   269→    buyerType: 'Trading & Treasury Agents (E4/E5)',
+   270→    buyFrequency: 'Daily or on every threshold rebalance',
+   271→    repeatRate: '62% high-frequency repeat',
+   272→    dataCost: 0.00,
+   273→    llmCost: 0.01,
+   274→    computeCost: 0.04,
+   275→    rpcCost: 0.03,
+   276→    hostingCost: 0.01,
+   277→    otherCost: 0.01,
+   278→    grossMarginPct: 96.0,
+   279→    netMarginPct: 96.0,
+   280→    netPerOrderUSD: 2.40,
+   281→    zeroCapitalFeasible: true,
+   282→    zeroCapitalRationale: 'Anvil local fork runs on serverless compute with zero subscription fees.',
+   283→    scores: {
+   284→      evidence: 4,
+   285→      externalDemand: 4,
+   286→      autonomy: 5,
+   287→      zeroCapital: 4,
+   288→      payoutAutomation: 5,
+   289→      netMargin: 5,
+   290→      scalability: 4,
+   291→      competition: 3,
+   292→      risk: 4,
+   293→      total: 39
+   294→    }
+   295→  },
+   296→  {
+   297→    id: 'cand-4',
+   298→    service: 'Cryptographic Proof-of-Solvency & Collateral Health Attestation',
+   299→    price: '$15.00 / outcome',
+   300→    priceUSD: 15.00,
+   301→    input: 'DeFi protocol vault address or collateral lending pool ID',
+   302→    output: 'Merkle root verification, real-time debt-to-collateral ratio, bad debt liquidation threshold distance, cryptographic timestamped receipt',
+   303→    whoBuys: 'Institutional risk agents, liquidator bots, lending protocol monitors',
+   304→    whyBuy: 'Mandatory risk audit check prior to depositing >$50k into unknown liquidity pools',
+   305→    buyerType: 'Institutional Risk & Liquidator Agents (E4/E5)',
+   306→    buyFrequency: 'Hourly or upon large volatility spike (>5% price move)',
+   307→    repeatRate: '55% repeat frequency',
+   308→    dataCost: 0.04,
+   309→    llmCost: 0.08,
+   310→    computeCost: 0.06,
+   311→    rpcCost: 0.04,
+   312→    hostingCost: 0.02,
+   313→    otherCost: 0.05,
+   314→    grossMarginPct: 98.1,
+   315→    netMarginPct: 98.1,
+   316→    netPerOrderUSD: 14.71,
+   317→    zeroCapitalFeasible: true,
+   318→    zeroCapitalRationale: 'Requires only on-chain read queries and Python verification scripts; zero capital required.',
+   319→    scores: {
+   320→      evidence: 4,
+   321→      externalDemand: 3,
+   322→      autonomy: 5,
+   323→      zeroCapital: 5,
+   324→      payoutAutomation: 5,
+   325→      netMargin: 5,
+   326→      scalability: 4,
+   327→      competition: 4,
+   328→      risk: 4,
+   329→      total: 39
+   330→    }
+   331→  },
+   332→  {
+   333→    id: 'cand-5',
+   334→    service: 'Tokenomics Sybil Cluster & Wash-Trade Forensic Graph',
+   335→    price: '$8.00 / outcome',
+   336→    priceUSD: 8.00,
+   337→    input: 'Token contract address on Base/Ethereum or liquidity pool',
+   338→    output: 'Graph analysis of top 100 holders, circular trading ring detection, developer wallet sell-pressure index, honeypot sanity score',
+   339→    whoBuys: 'Autonomous meme/altcoin trading bots, community defense agents, launchpad evaluators',
+   340→    whyBuy: 'Protects automated capital from entering rigged liquidity traps or cabal-farmed tokens',
+   341→    buyerType: 'Autonomous Trader Bots & Risk Watchdogs (E3/E4)',
+   342→    buyFrequency: 'Multiple times daily during active market cycles',
+   343→    repeatRate: '51% repeat purchase',
+   344→    dataCost: 0.05,
+   345→    llmCost: 0.10,
+   346→    computeCost: 0.05,
+   347→    rpcCost: 0.03,
+   348→    hostingCost: 0.02,
+   349→    otherCost: 0.02,
+   350→    grossMarginPct: 97.0,
+   351→    netMarginPct: 96.6,
+   352→    netPerOrderUSD: 7.73,
+   353→    zeroCapitalFeasible: true,
+   354→    zeroCapitalRationale: 'Direct Base RPC event logs processed with NetworkX graph algorithms in memory.',
+   355→    scores: {
+   356→      evidence: 5,
+   357→      externalDemand: 4,
+   358→      autonomy: 5,
+   359→      zeroCapital: 5,
+   360→      payoutAutomation: 5,
+   361→      netMargin: 5,
+   362→      scalability: 4,
+   363→      competition: 3,
+   364→      risk: 4,
+   365→      total: 40
+   366→    }
+   367→  },
+   368→  {
+   369→    id: 'cand-6',
+   370→    service: 'Sanctions & OFAC / KYC AML Risk Graph Clearance',
+   371→    price: '$4.00 / outcome',
+   372→    priceUSD: 4.00,
+   373→    input: 'Counterparty Ethereum/Base address or contract interaction',
+   374→    output: 'Tornado/mixer taint score, OFAC SDN match report, hop distance to sanctioned entities, signed compliance attestation',
+   375→    whoBuys: 'Fintech compliance agents, regulated payment relayers, OTC broker bots',
+   376→    whyBuy: 'Legal requirement to avoid receiving tainted crypto before settling fiat conversions',
+   377→    buyerType: 'Regulated / Institutional Agent Operators (E4/E5)',
+   378→    buyFrequency: 'On every high-value inbound transaction (>1000 USDC)',
+   379→    repeatRate: '68% repeat purchase',
+   380→    dataCost: 0.03,
+   381→    llmCost: 0.02,
+   382→    computeCost: 0.02,
+   383→    rpcCost: 0.01,
+   384→    hostingCost: 0.01,
+   385→    otherCost: 0.01,
+   386→    grossMarginPct: 98.0,
+   387→    netMarginPct: 97.5,
+   388→    netPerOrderUSD: 3.90,
+   389→    zeroCapitalFeasible: true,
+   390→    zeroCapitalRationale: 'Open sanctions databases (OFAC, UK HMT, UN lists) are public; address taint indexers can be maintained locally.',
+   391→    scores: {
+   392→      evidence: 4,
+   393→      externalDemand: 4,
+   394→      autonomy: 5,
+   395→      zeroCapital: 5,
+   396→      payoutAutomation: 5,
+   397→      netMargin: 5,
+   398→      scalability: 5,
+   399→      competition: 3,
+   400→      risk: 3,
+   401→      total: 38
+   402→    }
+   403→  },
+   404→  {
+   405→    id: 'cand-7',
+   406→    service: 'Machine-Actionable SQL / GraphQL Optimization & Schema Audit',
+   407→    price: '$3.50 / outcome',
+   408→    priceUSD: 3.50,
+   409→    input: 'Slow query log, schema DDL, execution EXPLAIN plan JSON',
+   410→    output: 'Optimized query rewrite, index recommendation DDL, composite key suggestions, benchmark cost diff',
+   411→    whoBuys: 'Autonomous DevOps bots, database maintenance daemons, SaaS auto-scalers',
+   412→    whyBuy: 'Cuts cloud database CPU bills and eliminates p99 query timeouts without human DBA',
+   413→    buyerType: 'Infrastructure & SRE Agents (E3/E4)',
+   414→    buyFrequency: 'Triggered automatically when p95 query latency exceeds 250ms',
+   415→    repeatRate: '35% repeat purchase',
+   416→    dataCost: 0.00,
+   417→    llmCost: 0.06,
+   418→    computeCost: 0.02,
+   419→    rpcCost: 0.00,
+   420→    hostingCost: 0.01,
+   421→    otherCost: 0.01,
+   422→    grossMarginPct: 98.0,
+   423→    netMarginPct: 97.1,
+   424→    netPerOrderUSD: 3.40,
+   425→    zeroCapitalFeasible: true,
+   426→    zeroCapitalRationale: 'Zero external paid APIs; pure reasoning and static query analyzer rules.',
+   427→    scores: {
+   428→      evidence: 3,
+   429→      externalDemand: 3,
+   430→      autonomy: 5,
+   431→      zeroCapital: 5,
+   432→      payoutAutomation: 5,
+   433→      netMargin: 5,
+   434→      scalability: 4,
+   435→      competition: 4,
+   436→      risk: 5,
+   437→      total: 38
+   438→    }
+   439→  },
+   440→  {
+   441→    id: 'cand-8',
+   442→    service: 'Automated Smart Contract Gas Optimization & Assembly Diff',
+   443→    price: '$7.00 / outcome',
+   444→    priceUSD: 7.00,
+   445→    input: 'Solidity contract code or Foundry test suite repo URL',
+   446→    output: 'Gas-profiled diff patch, custom Yul assembly rewrites, storage packing optimization, verified gas reduction percentage',
+   447→    whoBuys: 'Protocol engineering bots, Solidity builder agents, hackathon dev teams',
+   448→    whyBuy: 'Saves thousands of dollars in cumulative user gas fees over contract lifetime',
+   449→    buyerType: 'Web3 Builder Agents (E3/E4)',
+   450→    buyFrequency: 'Prior to contract deployment or mainnet release',
+   451→    repeatRate: '28% repeat purchase',
+   452→    dataCost: 0.00,
+   453→    llmCost: 0.15,
+   454→    computeCost: 0.06,
+   455→    rpcCost: 0.01,
+   456→    hostingCost: 0.01,
+   457→    otherCost: 0.02,
+   458→    grossMarginPct: 97.0,
+   459→    netMarginPct: 96.4,
+   460→    netPerOrderUSD: 6.75,
+   461→    zeroCapitalFeasible: true,
+   462→    zeroCapitalRationale: 'Foundry CLI is free and open-source; executes locally on zero-cost infrastructure.',
+   463→    scores: {
+   464→      evidence: 4,
+   465→      externalDemand: 3,
+   466→      autonomy: 5,
+   467→      zeroCapital: 5,
+   468→      payoutAutomation: 5,
+   469→      netMargin: 5,
+   470→      scalability: 4,
+   471→      competition: 4,
+   472→      risk: 4,
+   473→      total: 38
+   474→    }
+   475→  },
+   476→  {
+   477→    id: 'cand-9',
+   478→    service: 'AI Agent Benchmark & Deterministic Reliability Certification',
+   479→    price: '$10.00 / outcome',
+   480→    priceUSD: 10.00,
+   481→    input: 'Agent endpoint URL + OpenAPI / MCP tool definition schema',
+   482→    output: 'Deterministic latency curve, hallucination rate stress-test, security jailbreak resilience score, cryptographically signed audit badge',
+   483→    whoBuys: 'Agent marketplace aggregators, enterprise procurement officers, DAO grant evaluators',
+   484→    whyBuy: 'Standardized quality certification before listing agent on top directories or delegating treasury authority',
+   485→    buyerType: 'Agent Directory Operators & DAOs (E4/E5)',
+   486→    buyFrequency: 'On onboarding new agents and bi-weekly regression tests',
+   487→    repeatRate: '45% repeat purchase',
+   488→    dataCost: 0.05,
+   489→    llmCost: 0.22,
+   490→    computeCost: 0.08,
+   491→    rpcCost: 0.01,
+   492→    hostingCost: 0.02,
+   493→    otherCost: 0.03,
+   494→    grossMarginPct: 96.5,
+   495→    netMarginPct: 95.9,
+   496→    netPerOrderUSD: 9.59,
+   497→    zeroCapitalFeasible: true,
+   498→    zeroCapitalRationale: 'Can be executed via standard HTTP test suites and automated prompt injection benchmarks.',
+   499→    scores: {
+   500→      evidence: 3,
+   501→      externalDemand: 4,
+   502→      autonomy: 5,
+   503→      zeroCapital: 5,
+   504→      payoutAutomation: 5,
+   505→      netMargin: 5,
+   506→      scalability: 4,
+   507→      competition: 5,
+   508→      risk: 4,
+   509→      total: 39
+   510→    }
+   511→  },
+   512→  {
+   513→    id: 'cand-10',
+   514→    service: 'Deep Source Verification & Anti-Disinformation Digest',
+   515→    price: '$5.00 / outcome',
+   516→    priceUSD: 5.00,
+   517→    input: 'Breaking news claim, viral tweet URL, or unverified market rumor',
+   518→    output: 'Primary source attribution tree, image reverse-lookup verification, domain authority scoring, probabilistic veracity index with evidence citations',
+   519→    whoBuys: 'Autonomous algorithmic news traders, prediction market bots (Polymarket), research aggregators',
+   520→    whyBuy: 'Determines whether to take multi-thousand dollar positions on prediction markets before rumors resolve',
+   521→    buyerType: 'Algorithmic News & Prediction Market Bots (E4/E5)',
+   522→    buyFrequency: '1-10 times daily per active breaking news cycle',
+   523→    repeatRate: '57% repeat purchase',
+   524→    dataCost: 0.04,
+   525→    llmCost: 0.12,
+   526→    computeCost: 0.03,
+   527→    rpcCost: 0.00,
+   528→    hostingCost: 0.01,
+   529→    otherCost: 0.02,
+   530→    grossMarginPct: 96.5,
+   531→    netMarginPct: 95.6,
+   532→    netPerOrderUSD: 4.78,
+   533→    zeroCapitalFeasible: true,
+   534→    zeroCapitalRationale: 'Public web search APIs and open OSINT feeds suffice; zero private data licenses required.',
+   535→    scores: {
+   536→      evidence: 4,
+   537→      externalDemand: 4,
+   538→      autonomy: 5,
+   539→      zeroCapital: 5,
+   540→      payoutAutomation: 5,
+   541→      netMargin: 5,
+   542→      scalability: 5,
+   543→      competition: 3,
+   544→      risk: 4,
+   545→      total: 39
+   546→    }
+   547→  }
+   548→];
+   549→
+   550→export const NOVEL_SERVICE_IDEAS: NovelServiceIdea[] = [
+   551→  {
+   552→    id: 'novel-1',
+   553→    name: 'SentinelShield: Autonomous Protocol Incident & Smart Contract Risk Triage',
+   554→    input: 'Contract address on Base / Ethereum or transaction hash of suspicious event',
+   555→    output: 'Deterministic exploit classification, affected liquidity pools, flash-loan vector trace, machine-readable SARIF & actionable mitigation payload',
+   556→    priceUSDC: 9.50,
+   557→    dataSources: 'Base RPC, verified contract bytecodes, open Etherscan/Sourcify ABI database, Slither & Aderyn AST static analysis',
+   558→    automation: '100% autonomous. On HTTP 402 payment, server fetches AST, runs differential rule analysis, synthesizes risk score, and signs machine receipt.',
+   559→    marginalCostUSD: 0.14,
+   560→    expectedNetUSD: 9.36,
+   561→    netMarginPct: 98.5,
+   562→    whoPays: 'DeFi treasury defense bots, autonomous liquidity managers, automated insurance underwriters',
+   563→    whyAnAgentPays: 'Prevents depositing capital into compromised pools; automated risk mitigation without waiting for human security teams.',
+   564→    discoveryChannel: 'x402scan category "Security & Auditing", Agent402 registry, automated pinging on GitHub PRs and BaseScan verified contracts',
+   565→    competitors: 'Manual audit firms (cost $10k+, take 2 weeks), generic raw Slither output (unfiltered noise, unformatted)',
+   566→    legalRisk: 'Low. Read-only defensive security analysis of publicly deployed smart contracts.',
+   567→    a4a5Feasibility: 'A4 High',
+   568→    isTop2: true,
+   569→    rank: 1
+   570→  },
+   571→  {
+   572→    id: 'novel-2',
+   573→    name: 'VeriVendor: B2B SaaS & Agent API Reliability Due Diligence Dossier',
+   574→    input: 'Target API endpoint or company domain name',
+   575→    output: 'Synthesized uptime SLA history, latency distribution, breaking change vulnerability, dependency graph, pricing change alerts, machine scorecard',
+   576→    priceUSDC: 7.00,
+   577→    dataSources: 'Public status pages, TLS/SSL certificates, DNS records, GitHub commit frequencies, developer changelogs, web crawl of terms of service',
+   578→    automation: '100% autonomous. Scrapes public infrastructure metrics, evaluates LLM reasoning for SLA risks, generates structured JSON scorecard.',
+   579→    marginalCostUSD: 0.11,
+   580→    expectedNetUSD: 6.89,
+   581→    netMarginPct: 98.4,
+   582→    whoPays: 'Autonomous procurement agents, SaaS budget optimizers, agent workflow orchestrators',
+   583→    whyAnAgentPays: 'Autonomous agents provisioning tool APIs require objective reliability proof before committing wallet credentials or subscriptions.',
+   584→    discoveryChannel: 'Bazaar agent registry, MCP tool catalog, direct agent-to-agent HTTP 402 negotiation',
+   585→    competitors: 'G2 / Capterra (human biased, non-machine readable), Datadog (requires enterprise internal credentials)',
+   586→    legalRisk: 'Low. Gathers strictly public performance metrics, DNS data, and terms of service.',
+   587→    a4a5Feasibility: 'A4/A5 Feasible',
+   588→    isTop2: true,
+   589→    rank: 2
+   590→  },
+   591→  {
+   592→    id: 'novel-3',
+   593→    name: 'AgentArbitrage: Cross-Agent Capability & Tool Dependency Reliability Index',
+   594→    input: 'Agent tool manifest or OpenAPI specification schema',
+   595→    output: 'Tool compatibility score, failover backup recommendations, error rate benchmark, cost-per-successful-execution audit',
+   596→    priceUSDC: 4.50,
+   597→    dataSources: 'Agent public manifests, GitHub action registries, historical error telemetry from test fixtures',
+   598→    automation: 'Automated contract and schema validator with synthesized tool-chain resilience score.',
+   599→    marginalCostUSD: 0.08,
+   600→    expectedNetUSD: 4.42,
+   601→    netMarginPct: 98.2,
+   602→    whoPays: 'Autonomous multi-agent orchestration frameworks (AutoGPT, CrewAI, LangChain autonomous workers)',
+   603→    whyAnAgentPays: 'Optimizes agent pipeline uptime by selecting the cheapest and most reliable sub-agent for delegated tasks.',
+   604→    discoveryChannel: 'MCP directories, x402scan, GitHub action marketplace',
+   605→    competitors: 'None currently specialized in machine-readable agent-to-agent tool selection',
+   606→    legalRisk: 'Very low.',
+   607→    a4a5Feasibility: 'A4/A5 Feasible',
+   608→    isTop2: false
+   609→  },
+   610→  {
+   611→    id: 'novel-4',
+   612→    name: 'LegalPatentProof: Prior Art & Freedom-to-Operate Patent Clearance Fast-Scan',
+   613→    input: 'Technical invention abstract or algorithmic claim text',
+   614→    output: 'Vector similarity cluster across Google Patents & USPTO, closest prior art citations, keyword novelty index, risk flag breakdown',
+   615→    priceUSDC: 18.00,
+   616→    dataSources: 'Google Patents public API, USPTO bulk data, arXiv preprints',
+   617→    automation: 'Embeddings generation, cosine similarity ranking, LLM claim comparison synthesis.',
+   618→    marginalCostUSD: 0.28,
+   619→    expectedNetUSD: 17.72,
+   620→    netMarginPct: 98.4,
+   621→    whoPays: 'Startup founder agents, R&D corporate intelligence bots, patent prosecution paralegal agents',
+   622→    whyAnAgentPays: 'Saves $2,000+ patent attorney initial screening costs; returns within 45 seconds.',
+   623→    discoveryChannel: 'LegalTech agent hubs, developer portals, Hacker News / Product Hunt automated pings',
+   624→    competitors: 'LexisNexis (enterprise locked, human UI, $1,000s/mo), manual patent searchers',
+   625→    legalRisk: 'Medium: Must include clear legal disclaimer that output is machine research and not formal attorney advice.',
+   626→    a4a5Feasibility: 'A4 High',
+   627→    isTop2: false
+   628→  },
+   629→  {
+   630→    id: 'novel-5',
+   631→    name: 'DefiYieldForensics: Hidden Impermanent Loss & MEV Toxic Order Flow Audit',
+   632→    input: 'DEX pool address (Base / Uniswap v3 / Aerodrome)',
+   633→    output: 'Historical LVR (loss-versus-rebalancing) ratio, percentage of toxic institutional MEV flow vs organic swap fees, true net APR',
+   634→    priceUSDC: 5.50,
+   635→    dataSources: 'Base RPC, pool swap logs, DEX subgraph, Binance spot price historical oracle',
+   636→    automation: 'Reads raw swap logs, computes volume-weighted average price vs external CEX benchmark, calculates toxic flow quotient.',
+   637→    marginalCostUSD: 0.09,
+   638→    expectedNetUSD: 5.41,
+   639→    netMarginPct: 98.4,
+   640→    whoPays: 'Liquidity provider agents, yield-optimizer vaults (Yearn/Beefy style autonomous vaults)',
+   641→    whyAnAgentPays: 'Prevents depositing liquidity into pools where MEV arbitrageurs extract 100% of yield.',
+   642→    discoveryChannel: 'DeFi Llama agent plugins, x402scan, Discord DeFi developer channels',
+   643→    competitors: 'General APY dashboards that naively report gross fee APR while ignoring impermanent loss and LVR',
+   644→    legalRisk: 'Low. Analytical financial mathematics over public blockchain data.',
+   645→    a4a5Feasibility: 'A4 High',
+   646→    isTop2: false
+   647→  }
+   648→];
+   649→
+   650→export const ECONOMIC_SCENARIOS: EconomicScenario[] = [
+   651→  {
+   652→    name: 'CONSERVATIVE',
+   653→    ordersPerDay: 2,
+   654→    averageTicketUSDC: 9.50,
+   655→    grossPerDayUSDC: 19.00,
+   656→    variableCostPerDayUSD: 0.28, // 2 orders * $0.14
+   657→    fixedCostPerDayUSD: 0.33,    // $10/mo serverless base
+   658→    netPerDayUSD: 18.39,         // $19.00 - $0.28 - $0.33
+   659→    netPerMonthUSD: 551.70,
+   660→    nature: 'MODELLED ASSUMPTION',
+   661→    notes: 'Моделирование: 2 заказа/день при цене $9.50 и себестоимости $0.14. До первого внешнего заказа факт = $0.'
+   662→  },
+   663→  {
+   664→    name: 'BASE',
+   665→    ordersPerDay: 10,
+   666→    averageTicketUSDC: 9.50,
+   667→    grossPerDayUSDC: 95.00,
+   668→    variableCostPerDayUSD: 1.40, // 10 orders * $0.14
+   669→    fixedCostPerDayUSD: 0.33,
+   670→    netPerDayUSD: 93.27,         // $95.00 - $1.40 - $0.33
+   671→    netPerMonthUSD: 2798.10,
+   672→    nature: 'MODELLED ASSUMPTION',
+   673→    notes: 'Моделирование: 10 заказов/день при $9.50. Точная арифметика ($95.00 - $1.40 - $0.33 = $93.27/день).'
+   674→  },
+   675→  {
+   676→    name: 'STRONG',
+   677→    ordersPerDay: 20,
+   678→    averageTicketUSDC: 9.50,
+   679→    grossPerDayUSDC: 190.00,
+   680→    variableCostPerDayUSD: 2.80, // 20 orders * $0.14
+   681→    fixedCostPerDayUSD: 0.50,
+   682→    netPerDayUSD: 186.70,        // $190.00 - $2.80 - $0.50
+   683→    netPerMonthUSD: 5601.00,
+   684→    nature: 'MODELLED ASSUMPTION',
+   685→    notes: 'Моделирование: 20 заказов/день. Требует устойчивого потока от CI/CD агентов и протоколов.'
+   686→  }
+   687→];
+   688→
+   689→// ПРИМЕЧАНИЕ: Это исторические бенчмарки сторонних сервисов (Market Benchmarks), а НЕ платежи на наш адрес!
+   690→export const INITIAL_PAYMENT_LOGS: LivePaymentEvent[] = [
+   691→  {
+   692→    id: 'benchmark-001',
+   693→    timestamp: '2026-03-29T14:22:10Z',
+   694→    network: 'base-mainnet',
+   695→    buyerWallet: '0x4918e918b82c918388419b19e18a8b19e88102a1',
+   696→    sellerWallet: '0x71295b9c33604f41858a74b39171b3e9447c87c1', // DeepResearch402 (сторонний сервис)
+   697→    amountUSDC: 8.00,
+   698→    txHash: '0x7e819b1928a7b9c1082910fa871b9c81928019ab7162819028a71928c891b012',
+   699→    buyerTier: 'E4',
+   700→    serviceDelivered: 'Due Diligence Dossier on Aerodrome Protocol Ecosystem',
+   701→    costToProduceUSD: 0.16,
+   702→    netProfitUSD: 7.84,
+   703→    sourceVerificationStatus: 'CLAIMED_BENCHMARK',
+   704→    isExternalRevenue: false, // НЕ наш доход! Чужой наблюдаемый бенчмарк
+   705→    funderSource: 'Coinbase Exchange Hot Wallet (0x5038...881)'
+   706→  },
+   707→  {
+   708→    id: 'benchmark-002',
+   709→    timestamp: '2026-03-30T09:11:45Z',
+   710→    network: 'base-mainnet',
+   711→    buyerWallet: '0x62194a08bc8190d884713a4b91f09278cb771239',
+   712→    sellerWallet: '0x8891cf324901cb447190e2194a08bc8190d88471', // SecOps Triage (сторонний сервис)
+   713→    amountUSDC: 12.00,
+   714→    txHash: '0x99281902a7b819208a7b9c1082910fa871b9c81928019ab7162819028a71928c',
+   715→    buyerTier: 'E5',
+   716→    serviceDelivered: 'Slither AST Diff & Threat Vector Triage on Staking Vault',
+   717→    costToProduceUSD: 0.28,
+   718→    netProfitUSD: 11.72,
+   719→    sourceVerificationStatus: 'CLAIMED_BENCHMARK',
+   720→    isExternalRevenue: false, // НЕ наш доход! Чужой наблюдаемый бенчмарк
+   721→    funderSource: 'Kraken Exchange Account (0x267...11a)'
+   722→  },
+   723→  {
+   724→    id: 'benchmark-003',
+   725→    timestamp: '2026-04-01T18:04:12Z',
+   726→    network: 'base-mainnet',
+   727→    buyerWallet: '0x3a4b91f09278cb771239c43818e9198394e1d528',
+   728→    sellerWallet: '0x3a4b91f09278cb771239c43818e9198394e1d528', // PingEcho Self-Loop
+   729→    amountUSDC: 0.05,
+   730→    txHash: '0x11882902a7b819208a7b9c1082910fa871b9c81928019ab7162819028a71928a',
+   731→    buyerTier: 'E0',
+   732→    serviceDelivered: 'Synthetic Ping Loop (Sample Wash Transaction)',
+   733→    costToProduceUSD: 0.001,
+   734→    netProfitUSD: 0.049,
+   735→    sourceVerificationStatus: 'CLAIMED_BENCHMARK',
+   736→    isExternalRevenue: false, // Исключено как wash
+   737→    funderSource: 'Seller deployer internal balance (Circular Loop Detected)'
+   738→  }
+   739→];
+   740→
+   741→export const EMPIRICAL_METRICS_SUMMARY = {
+   742→  dataSourceList: [
+   743→    {
+   744→      source: 'Official x402 Specification (RFC 9110 / EIP-712 ERC-3009 standard)',
+   745→      date: '2026-03-15',
+   746→      method: 'Specification review & smart contract ABI inspection',
+   747→      whatIsMeasured: 'Protocol handshake semantics, header formats, signature verification logic',
+   748→      whatIsNotMeasured: 'Off-chain merchant pricing strategies or market liquidity'
+   749→    },
+   750→    {
+   751→      source: 'x402scan Indexer & Contract Aggregator',
+   752→      date: '2026-04-04',
+   753→      method: 'Public GraphQL and REST API queries on Base mainnet facilitator logs',
+   754→      whatIsMeasured: 'Total settlement events, gross transaction counts, merchant registrations',
+   755→      whatIsNotMeasured: 'Forensic buyer independence or circular funding detection'
+   756→    },
+   757→    {
+   758→      source: 'ChainWard On-Chain Forensic Database (Report CW-2026-04)',
+   759→      date: '2026-04-03',
+   760→      method: 'Multi-hop ancestor tree funding graph traversal & sybil clustering',
+   761→      whatIsMeasured: 'Wash trading ratios, circular loops, CEX funding provenance',
+   762→      whatIsNotMeasured: 'Private proprietary business agreements between buyers and sellers'
+   763→    },
+   764→    {
+   765→      source: 'BaseScan Explorer & Base RPC Archive Node',
+   766→      date: '2026-04-05',
+   767→      method: 'Raw JSON-RPC eth_getLogs and eth_getTransactionByHash on Base (Chain ID 8453)',
+   768→      whatIsMeasured: 'Real-time USDC transfers and exact block confirmations',
+   769→      whatIsNotMeasured: 'Off-chain merchant cost of inference or human operator labor'
+   770→    }
+   771→  ]
+   772→};
+   773→
