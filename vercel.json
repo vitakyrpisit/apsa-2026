@@ -1,8 +1,7 @@
 {
   "framework": "nextjs",
-  "buildCommand": "bun run build",
-  "devCommand": "bun run dev",
-  "installCommand": "bun install",
+  "buildCommand": "npx next build",
+  "installCommand": "npm install",
   "functions": {
     "src/app/api/**/*.ts": { "maxDuration": 30 }
   }
