@@ -37,45 +37,68 @@ export function build402Response(service: X402ServiceConfig, preview: Record<str
     service.description,
   );
 
-  const paymentRequirements = {
-    ...reqs,
-    amount: service.amountAtomic,
-    amountUSD: service.priceUSDC,
-    chainId: 8453,
+  // Agent402/x402 v2 canonical format: {x402Version, error, resource, accepts, extensions}
+  // The "accepts" array contains the payment requirements that Agent402 crawler reads
+  // to populate payToByNetwork.
+  const canonicalResponse = {
     x402Version: 2,
-    scheme: "exact",
-    network: "eip155:8453",
-    asset: BASE_USDC_MAINNET_ADDRESS,
-    payTo: EVM_PAYOUT_ADDRESS,
-    resource: service.resource,
-    description: service.description,
-    maxTimeoutSeconds: 3600,
+    error: "Payment required",
+    resource: {
+      url: `https://apsa-2026.vercel.app${service.resource}`,
+      description: service.description,
+      mimeType: service.mimeType,
+      serviceName: service.serviceName,
+      tags: service.tags,
+    },
+    accepts: [
+      {
+        scheme: "exact",
+        network: "eip155:8453",
+        amount: service.amountAtomic,
+        asset: BASE_USDC_MAINNET_ADDRESS,
+        payTo: EVM_PAYOUT_ADDRESS,
+        maxTimeoutSeconds: 300,
+        extra: {
+          name: "USD Coin",
+          version: "2",
+          description: service.description,
+        },
+      },
+    ],
     extensions: {
       bazaar: {
-        serviceName: service.serviceName,
-        tags: service.tags,
-        mimeType: service.mimeType,
+        info: {
+          input: {
+            type: "http",
+            method: "POST",
+            bodyType: "json",
+          },
+        },
       },
     },
   };
 
   return NextResponse.json(
     {
-      error: "Payment Required",
+      ...canonicalResponse,
+      // Keep legacy fields for backward compatibility
       status: "UNPAID",
       message: `Payment of $${service.priceUSDC} USDC required on Base Mainnet to invoke ${service.serviceName}.`,
-      paymentRequirements,
-      requirements: paymentRequirements,
+      paymentRequirements: canonicalResponse.accepts[0],
+      requirements: canonicalResponse.accepts[0],
       preview,
     },
     {
       status: 402,
       headers: {
         "Content-Type": "application/json",
-        "x402-version": "2.0",
-        "PAYMENT-REQUIRED": Buffer.from(JSON.stringify(paymentRequirements)).toString("base64"),
-        "payment-required": Buffer.from(JSON.stringify(paymentRequirements)).toString("base64"),
+        "x402-version": "2",
+        "PAYMENT-REQUIRED": Buffer.from(JSON.stringify(canonicalResponse)).toString("base64"),
+        "payment-required": Buffer.from(JSON.stringify(canonicalResponse)).toString("base64"),
         "WWW-Authenticate": `x402 token="USDC", network="base", amount="${service.amountAtomic}", recipient="${EVM_PAYOUT_ADDRESS}"`,
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, PAYMENT-SIGNATURE",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       },
     },
   );
