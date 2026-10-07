@@ -167,7 +167,7 @@ export interface Finding {
 
 export interface SentinelShieldOutput {
   service: 'SentinelShield Contract Risk Triage';
-  version: '2.0.0';
+  version: '2.1.0';
   target: {
     chain: string;
     contractAddress?: string;
@@ -179,10 +179,11 @@ export interface SentinelShieldOutput {
   exploitability: 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE';
   findings: Finding[];
   metrics: {
-    reentrancyProtected: boolean;
-    flashLoanDrainVulnerable: boolean;
+    // null = not evaluated (bytecode-only triage cannot determine it)
+    reentrancyProtected: boolean | null;
+    flashLoanDrainVulnerable: boolean | null;
     unauthorizedUpgradeVector: boolean;
-    uncheckedArithmetic: boolean;
+    uncheckedArithmetic: boolean | null;
   };
   sarif: {
     $schema: string;
@@ -216,8 +217,8 @@ export interface PaymentRequirementResponse {
     chainId: number;
     token: 'USDC';
     tokenAddress: string;
-    amount: string; // Atomic (e.g. 9500000)
-    amountUSD: number; // 9.50
+    amount: string; // Atomic (e.g. 490000)
+    amountUSD: number; // 0.49
     payTo: string;
     facilitator: string;
     resource: string;
