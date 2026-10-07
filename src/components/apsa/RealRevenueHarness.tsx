@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import type { TestResultItem } from '@/lib/apsa/test-suite';
-import type { OnChainWalletStatus, TxVerificationResult } from '@/lib/apsa/base-rpc';
+import React, { useState } from 'react';
+import type { TxVerificationResult } from '@/lib/apsa/base-rpc';
 import { EVM_PAYOUT_ADDRESS as PRODUCTION_PAY_TO } from '@/lib/apsa/wallet-registry';
+import { useApsaData } from './apsa-data-provider';
+import { toast } from 'sonner';
 import {
   ShieldAlert,
   Terminal,
@@ -17,47 +18,36 @@ import {
 type VerifyResultPayload = TxVerificationResult | { status: string; message: string } | { error?: string } | null;
 
 export const RealRevenueHarness: React.FC = () => {
-  const [testResults, setTestResults] = useState<TestResultItem[]>([]);
-  const [suitePassed, setSuitePassed] = useState<boolean | null>(null);
-  const [testing, setTesting] = useState(false);
-  const [walletStatus, setWalletStatus] = useState<OnChainWalletStatus | null>(null);
-  const [scanning, setScanning] = useState(false);
+  const { suite, wallet } = useApsaData();
 
-  // Real tx verification input
+  // Derive display values from the shared context (single source of truth).
+  const testResults = suite.results;
+  const suitePassed = suite.passed;
+  const testing = suite.loading;
+  const walletStatus = wallet.status;
+  const scanning = wallet.loading;
+
+  // Real tx verification input (local-only state)
   const [verifyHash, setVerifyHash] = useState('');
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState<VerifyResultPayload>(null);
 
-  const executeTestSuite = async () => {
-    setTesting(true);
-    try {
-      const res = await fetch('/api/test-suite', { method: 'POST' });
-      const data: { passed: boolean; results: TestResultItem[] } = await res.json();
-      setTestResults(data.results || []);
-      setSuitePassed(data.passed);
-    } catch (err) {
-      console.error('Test suite error:', err);
-    } finally {
-      setTesting(false);
-    }
+  const executeTestSuite = () => {
+    suite.rerun();
+    toast.info('Re-running 12-test suite…', {
+      description: 'Executing protocol verification on Base Mainnet.',
+    });
   };
 
-  const refreshLiveBalance = async () => {
-    setScanning(true);
-    try {
-      const res = await fetch('/api/onchain/status?network=base-mainnet');
-      const data: OnChainWalletStatus = await res.json();
-      setWalletStatus(data);
-    } catch (err) {
-      console.error('Balance query error:', err);
-    } finally {
-      setScanning(false);
-    }
+  const refreshLiveBalance = () => {
+    wallet.refresh();
   };
 
   const handleVerifyTx = async () => {
     if (!verifyHash.startsWith('0x') || verifyHash.length !== 66) {
-      alert('Please enter a full 66-character transaction hash starting with 0x.');
+      toast.error('Invalid transaction hash', {
+        description: 'Enter a full 66-character hash starting with 0x.',
+      });
       return;
     }
     setVerifyLoading(true);
@@ -70,18 +60,19 @@ export const RealRevenueHarness: React.FC = () => {
       });
       const data: VerifyResultPayload = await res.json();
       setVerifyResult(data);
+      if ('isExternalRevenue' in data && data.isExternalRevenue) {
+        toast.success('External revenue confirmed!', {
+          description: `USDC transfer to payout wallet detected on Base Mainnet.`,
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Verification failed';
       setVerifyResult({ error: message });
+      toast.error('Verification failed', { description: message });
     } finally {
       setVerifyLoading(false);
     }
   };
-
-  useEffect(() => {
-    executeTestSuite();
-    refreshLiveBalance();
-  }, []);
 
   const isConfirmed =
     verifyResult !== null &&

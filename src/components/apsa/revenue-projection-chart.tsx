@@ -19,7 +19,7 @@ import { ECONOMIC_SCENARIOS } from "@/lib/apsa/empirical-data";
 const SCENARIO_COLORS: Record<string, string> = {
   CONSERVATIVE: "#f59e0b", // amber
   BASE: "#10b981", // emerald
-  STRONG: "#a78bfa", // violet
+  STRONG: "#ec4899", // pink — avoids the "indigo/blue" perception of violet
 };
 
 interface ScenarioDatum {
@@ -82,7 +82,7 @@ export function RevenueProjectionChart({
         <div className="flex items-center gap-3 text-[11px] font-mono">
           <Legend2 color="#f59e0b" label="Conservative" />
           <Legend2 color="#10b981" label="Base" />
-          <Legend2 color="#a78bfa" label="Strong" />
+          <Legend2 color="#ec4899" label="Strong" />
           <Legend2 color="#34d399" label="Live (sliders)" />
         </div>
       </div>

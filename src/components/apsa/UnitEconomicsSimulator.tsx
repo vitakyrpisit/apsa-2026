@@ -6,6 +6,7 @@ import type { EconomicScenario } from '@/lib/apsa/types';
 import { Calculator, Sliders, ShieldCheck, RotateCcw } from 'lucide-react';
 import { RevenueProjectionChart } from './revenue-projection-chart';
 import { RevenueTimelineChart } from './revenue-timeline-chart';
+import { RevenueBreakdownChart } from './revenue-breakdown-chart';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { toast } from 'sonner';
 
@@ -244,6 +245,14 @@ export const UnitEconomicsSimulator: React.FC = () => {
 
       {/* REVENUE PROJECTION CHART (live slider-driven + 3 empirical scenarios) */}
       <RevenueProjectionChart
+        ticketPrice={ticketPrice}
+        ordersPerDay={ordersPerDay}
+        variableCostPerOrder={variableCostPerOrder}
+        fixedMonthlyCost={fixedMonthlyCost}
+      />
+
+      {/* REVENUE BREAKDOWN CHART (per-day cost structure) */}
+      <RevenueBreakdownChart
         ticketPrice={ticketPrice}
         ordersPerDay={ordersPerDay}
         variableCostPerOrder={variableCostPerOrder}

@@ -15,7 +15,9 @@ import { RealRevenueHarness } from "@/components/apsa/RealRevenueHarness";
 import { LiveTicker } from "@/components/apsa/live-ticker";
 import { CommandPalette, type CommandAction } from "@/components/apsa/command-palette";
 import { HelpDrawer } from "@/components/apsa/help-drawer";
+import { ApsaDataProvider, useApsaData } from "@/components/apsa/apsa-data-provider";
 import { TAB_HELPS } from "@/lib/apsa/tab-helps";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { OnChainWalletStatus } from "@/lib/apsa/base-rpc";
 import {
   EVM_PAYOUT_ADDRESS,
@@ -140,15 +142,29 @@ const TABS: TabDef[] = [
 ];
 
 export default function Home() {
-  const [activeNetwork, setActiveNetwork] = useState<Network>("base-mainnet");
-  const [activeTab, setActiveTab] = useState<ActiveTab>("mission");
-  const [walletStatus, setWalletStatus] = useState<OnChainWalletStatus | null>(
-    null,
+  return (
+    <ApsaDataProvider>
+      <Dashboard />
+    </ApsaDataProvider>
   );
-  const [testSuitePassed, setTestSuitePassed] = useState<boolean | null>(null);
-  const [lastTestRunAt, setLastTestRunAt] = useState<number | null>(null);
+}
+
+function Dashboard() {
+  const { suite, wallet } = useApsaData();
+  const [activeNetwork, setActiveNetwork] = useState<Network>("base-mainnet");
+  const [activeTab, setActiveTab] = useLocalStorage<ActiveTab>(
+    "apsa:activeTab",
+    "mission",
+  );
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+
+  // Pull live data from the shared context (single source of truth — no
+  // duplicate fetches). The provider primes the cache on mount and debounces
+  // concurrent consumers via in-flight refs.
+  const walletStatus = wallet.status;
+  const testSuitePassed = suite.passed;
+  const lastTestRunAt = suite.lastRunAt;
 
   // Keyboard shortcuts: 1-9 jump to tabs, ? opens help, Cmd/Ctrl+K opens palette.
   useEffect(() => {
@@ -182,63 +198,30 @@ export default function Home() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [setActiveTab]);
 
   const handleExportReport = useCallback(() => {
     setActiveTab("verdict");
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 360, behavior: "smooth" });
     }
-  }, []);
+  }, [setActiveTab]);
 
   const handleOpenTestHarness = useCallback(() => {
     setActiveTab("testnet");
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 360, behavior: "smooth" });
     }
-  }, []);
+  }, [setActiveTab]);
 
-  const handleStatusUpdated = useCallback((status: OnChainWalletStatus) => {
-    setWalletStatus(status);
-  }, []);
-
-  // Poll /api/onchain/status once on mount so the LiveTicker + MetricCards
-  // have data even before the user visits the Scanner tab. Subsequent polling
-  // is handled by the LiveOnChainTracker component itself.
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/onchain/status?network=base-mainnet")
-      .then((r) => r.json())
-      .then((s: OnChainWalletStatus) => {
-        if (!cancelled) setWalletStatus(s);
-      })
-      .catch(() => {
-        /* silent — Scanner tab will retry */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Poll the test suite once on mount so the LiveTicker reflects the verdict
-  // without forcing the user to the Mission tab. Initial state is already
-  // `null` (= "RUNNING"), so we only set it after the fetch resolves.
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/test-suite", { method: "POST" })
-      .then((r) => r.json())
-      .then((d: { passed: boolean; count: number }) => {
-        if (cancelled) return;
-        setTestSuitePassed(d.passed);
-        setLastTestRunAt(Date.now());
-      })
-      .catch(() => {
-        if (!cancelled) setTestSuitePassed(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const handleStatusUpdated = useCallback(
+    (status: OnChainWalletStatus) => {
+      // The Scanner tab's own polling surfaces newer data; we can ignore it
+      // here because the provider already keeps the shared cache fresh.
+      void status;
+    },
+    [],
+  );
 
   // Build command palette actions.
   const commandActions = useMemo<CommandAction[]>(
@@ -347,9 +330,9 @@ export default function Home() {
           ),
       },
     ],
-    // activeNetwork is intentionally a dep so the toggle-network action label
-    // resolves correctly.
-    [activeNetwork],
+    // activeNetwork + setActiveTab are deps so the toggle-network action
+    // label resolves correctly and tab navigation works.
+    [activeNetwork, setActiveTab],
   );
 
   return (
