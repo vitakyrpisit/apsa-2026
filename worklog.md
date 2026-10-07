@@ -1941,3 +1941,60 @@ Format is IDENTICAL. Both use the same canonical x402 v2 structure.
 ### Revenue: $0.00
 ### Status: WAITING FOR FIRST EXTERNAL BUYER
 ### Next: Agent402 crawler re-crawl (~30 min) → payToByNetwork populated → Smart Order Router eligible
+
+---
+Task ID: 23
+Agent: Z.ai Code (SENTINELSHIELD FIXED — ALL 5 SERVICES CANONICAL + payToByNetwork POPULATED)
+Task: Fix sentinelshield (was the only service NOT using canonical x402 v2 format), verify all 5, check Agent402.
+
+## BREAKTHROUGH: payToByNetwork NOW POPULATED ✅
+
+### Fix: SentinelShield was the last service using legacy format
+SentinelShield still used the old `paymentRequirements` format (not the `accepts` array).
+All 4 generic services already used `build402Response()` with canonical format.
+Fixed: SentinelShield now uses the same shared `handleX402Payment` + `build402Response`.
+
+### ALL 5 SERVICES — CANONICAL x402 v2 FORMAT (independently verified):
+| # | Service | x402Version | accepts[] | payTo | network |
+|---|---|---|---|---|---|
+| 1 | market-signal | 2 ✅ | YES ✅ | 0x829f...2BDA ✅ | eip155:8453 ✅ |
+| 2 | market-analysis | 2 ✅ | YES ✅ | 0x829f...2BDA ✅ | eip155:8453 ✅ |
+| 3 | site-audit | 2 ✅ | YES ✅ | 0x829f...2BDA ✅ | eip155:8453 ✅ |
+| 4 | company-intel | 2 ✅ | YES ✅ | 0x829f...2BDA ✅ | eip155:8453 ✅ |
+| 5 | sentinelshield | 2 ✅ | YES ✅ | 0x829f...2BDA ✅ | eip155:8453 ✅ |
+
+### Agent402 status (independently verified via API):
+- listed: true ✅
+- routable: true ✅
+- health: **1.0** (MAXIMUM — progression: 0.2 → 0.4 → 0.6 → 1.0) ✅
+- payToByNetwork: **{'eip155:8453': '0x829f877daAb94D766BB2b8511ad486C40f2C2BDA'}** ✅✅✅
+- paidToolCount: 5 ✅
+- toolCount: 7 ✅
+
+### payToByNetwork was the LAST BLOCKER for Agent402 discovery
+Now that payToByNetwork is populated, Agent402 Smart Order Router can:
+1. See our payment destination (0x829f...2BDA on Base)
+2. Match buyer requests to our tools
+3. Route external buyers to our endpoints
+4. Buyers pay via x402 → PayAI settle → USDC to operator wallet
+
+### ALL INFRASTRUCTURE IS NOW READY:
+- ✅ 5 paid x402 services (canonical v2 format, accepts array, payTo)
+- ✅ 3 free discovery endpoints (price feed, catalog, health)
+- ✅ OpenAPI 3.1 (8 paths)
+- ✅ .well-known/x402 + x402-manifest.json
+- ✅ JSON root content negotiation
+- ✅ PayAI facilitator (verify + settle + on-chain verification)
+- ✅ viem EIP-712 verification
+- ✅ Real data (CoinGecko + LLM, no hardcoded/fake)
+- ✅ No mock payment proof
+- ✅ Agent402: listed=true, health=1, routable=true, payToByNetwork POPULATED
+
+### Revenue: $0.00
+### Independent settlement: NONE
+### External buyers: 0
+### Status: ALL INFRASTRUCTURE READY — WAITING FOR FIRST EXTERNAL BUYER
+
+The Smart Order Router can now route buyers to our endpoints.
+The next event that converts this from "infrastructure" to "revenue" is:
+external agent → POST → 402 → signed payment → PayAI verify → PayAI settle → Base tx → USDC Transfer → 0x829f...2BDA
