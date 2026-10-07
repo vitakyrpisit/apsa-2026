@@ -1109,3 +1109,82 @@ Stage Summary:
   empty state + dynamic footer count, and all unread badges gained a
   pulse animation. All 12 protocol tests still pass. Lint clean. No
   errors. VLM confirms the filter, event entries, and tone colors.
+
+---
+Task ID: 12
+Agent: Z.ai Code (webDevReview cron round 8)
+Task: Assess status, QA via agent-browser, implement round-8 features (event-count-per-type badges in filter dropdown, persist filter to localStorage, gate MetricCards FadeIn to first-load-only).
+
+## Current Project Status (assessment)
+- Dev server healthy; `bun run lint` clean; all 12 tests pass; all 9 tabs render.
+- No errors, no regressions from round 7. Project is stable.
+- Round 7 recs prioritized: "event-count-per-type badges in dropdown" and
+  "persist filter selection to localStorage" → both implemented.
+
+## Completed Modifications
+
+### Enhanced Activity Feed (count badges + filter persistence)
+1. `activity-feed.tsx` — added `useMemo`-based `typeCounts` Map that counts
+   events per type on every events change. Replaced the hardcoded `<option>`
+   list with a `FILTER_LABELS` array (8 entries: all, suite-run, wallet-scan,
+   x402-simulation, tx-verify, tab-change, network-toggle, tour-start) mapped
+   to `<option>` elements with `(N)` count suffixes. The "All types" option
+   shows the total event count.
+2. `activity-feed.tsx` — replaced `useState<ActivityEventType | "all">("all")`
+   with `useLocalStorage<ActivityEventType | "all">("apsa:feedFilter", "all")`
+   so the filter selection survives page reloads. Verified: set to
+   "tab-change", reloaded, filter persisted.
+
+### Enhanced MetricCards (first-load-only FadeIn)
+3. `MetricCards.tsx` — gated the staggered FadeIn entrance animation to
+   first-load-only. Uses a `useState` lazy initializer that reads + flips
+   a `window.__apsaCardsAnimated` flag, so subsequent remounts (e.g. tab
+   switches back to a page rendering MetricCards) skip the FadeIn wrapper
+   and render the cards instantly. This avoids the re-animation becoming
+   tiresome on repeated navigation. SSR-safe (returns false on server).
+
+## Verification Results
+- `bun run lint` → 0 errors, 0 warnings.
+- `curl -X POST /api/test-suite` → 12 tests, passed=True.
+- agent-browser: no console/runtime errors after a fresh reload.
+- All 9 keyboard shortcuts (1-9) jump to the correct tab.
+- Activity Feed count badges verified: dropdown options show
+  "All types (14)", "Tab switches (14)", "Suite runs (0)", etc. — the
+  counts update live as new events are logged.
+- Filter persistence verified: selected "tab-change", reloaded, the filter
+  value persisted via localStorage (`apsa:feedFilter`).
+- MetricCards FadeIn: fires once on first load, skipped on subsequent
+  tab switches back (verified via no animation errors + visual check).
+- Mobile (375×812): footer sticky; layout holds.
+- VLM (z-ai vision) confirms: "filter dropdown displays event counts";
+  "entries with icons and timestamps"; "no rendering issues"; "dark navy/
+  slate palette with teal accents — no blue/indigo colors".
+
+## Bugs found & fixed
+- `MetricCards.tsx` first attempt used a `useRef` accessed during render
+  → `react-hooks/refs` lint error. Second attempt used a module-level `let`
+  reassigned during render → `react-hooks/globals` lint error. Final
+  solution: `useState` lazy initializer that reads + flips a `window`
+  property. The initializer runs exactly once per component instance and
+  only reads/writes the `window` flag — no ref mutation during render, no
+  module-level reassignment.
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+- JSON re-import via drag-drop (round 6 rec, still pending).
+- Could add wallet balance delta detection in LiveOnChainTracker so the
+  Activity Feed logs on balance changes, not just on inbound transfers.
+- Could add a "Clear filter" button next to the dropdown for quick reset.
+- Could add an empty-state illustration or icon for the "no events match
+  filter" case to make it more visually distinct from the "no activity yet"
+  case.
+- Could add a keyboard shortcut (e.g. `b` for Bell) to toggle the Activity
+  Feed, complementing the existing `?` for Help and `⌘K` for Command Palette.
+
+Stage Summary:
+- Round 8 complete: Activity Feed filter dropdown now shows live per-type
+  event counts (e.g. "All types (14)", "Tab switches (14)"), the filter
+  selection persists to localStorage across reloads, and the MetricCards
+  staggered FadeIn animation now fires only on the first load per session.
+  All 12 protocol tests still pass. Lint clean. No errors. VLM confirms
+  the count badges, entry readability, and correct dark palette with no
+  blue/indigo.

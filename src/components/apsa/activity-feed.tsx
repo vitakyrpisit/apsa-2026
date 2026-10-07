@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bell,
   X,
@@ -23,6 +23,7 @@ import {
   type ActivityEvent,
   type ActivityEventType,
 } from "./activity-feed-provider";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 interface ActivityFeedProps {
   open: boolean;
@@ -67,10 +68,33 @@ const TONE_BG: Record<ActivityEvent["tone"], string> = {
 export function ActivityFeed({ open, onOpenChange }: ActivityFeedProps) {
   const { events, unreadCount, markAllRead, clear } = useActivityFeed();
   const [, setTick] = useState(0);
-  const [filter, setFilter] = useState<ActivityEventType | "all">("all");
+  const [filter, setFilter] = useLocalStorage<ActivityEventType | "all">(
+    "apsa:feedFilter",
+    "all",
+  );
 
   const filteredEvents =
     filter === "all" ? events : events.filter((e) => e.type === filter);
+
+  // Count events per type for the dropdown option badges.
+  const typeCounts = useMemo(() => {
+    const counts = new Map<ActivityEventType, number>();
+    for (const e of events) {
+      counts.set(e.type, (counts.get(e.type) ?? 0) + 1);
+    }
+    return counts;
+  }, [events]);
+
+  const FILTER_LABELS: { value: ActivityEventType | "all"; label: string }[] = [
+    { value: "all", label: "All types" },
+    { value: "suite-run", label: "Suite runs" },
+    { value: "wallet-scan", label: "Wallet scans" },
+    { value: "x402-simulation", label: "x402 simulations" },
+    { value: "tx-verify", label: "Tx verifications" },
+    { value: "tab-change", label: "Tab switches" },
+    { value: "network-toggle", label: "Network toggles" },
+    { value: "tour-start", label: "Tour events" },
+  ];
 
   // Re-render every 5s so the relative timestamps ("Xs ago") stay fresh
   // while the panel is open.
@@ -162,14 +186,17 @@ export function ActivityFeed({ open, onOpenChange }: ActivityFeedProps) {
             className="ml-auto px-2 py-1 text-[11px] font-mono rounded-md bg-slate-950 border border-slate-800 text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
             aria-label="Filter events by type"
           >
-            <option value="all">All types ({events.length})</option>
-            <option value="suite-run">Suite runs</option>
-            <option value="wallet-scan">Wallet scans</option>
-            <option value="x402-simulation">x402 simulations</option>
-            <option value="tx-verify">Tx verifications</option>
-            <option value="tab-change">Tab switches</option>
-            <option value="network-toggle">Network toggles</option>
-            <option value="tour-start">Tour events</option>
+            {FILTER_LABELS.map((opt) => {
+              const count =
+                opt.value === "all"
+                  ? events.length
+                  : typeCounts.get(opt.value) ?? 0;
+              return (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label} ({count})
+                </option>
+              );
+            })}
           </select>
         </div>
 
