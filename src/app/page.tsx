@@ -15,6 +15,7 @@ import { RealRevenueHarness } from "@/components/apsa/RealRevenueHarness";
 import { LiveTicker } from "@/components/apsa/live-ticker";
 import { CommandPalette, type CommandAction } from "@/components/apsa/command-palette";
 import { HelpDrawer } from "@/components/apsa/help-drawer";
+import { GuidedTour } from "@/components/apsa/guided-tour";
 import { ApsaDataProvider, useApsaData } from "@/components/apsa/apsa-data-provider";
 import { TAB_HELPS } from "@/lib/apsa/tab-helps";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -158,6 +159,7 @@ function Dashboard() {
   );
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
 
   // Pull live data from the shared context (single source of truth — no
   // duplicate fetches). The provider primes the cache on mount and debounces
@@ -264,6 +266,19 @@ function Dashboard() {
         },
       },
       {
+        id: "start-tour",
+        label: "Start Guided Tour",
+        hint: "Walk through every tab",
+        group: "Actions",
+        keywords: ["tour", "guide", "onboarding", "help", "learn"],
+        run: () => {
+          setTourOpen(true);
+          toast.info("Starting guided tour…", {
+            description: "Use ← → to navigate, Esc to exit.",
+          });
+        },
+      },
+      {
         id: "scan-wallet",
         label: "Scan receive-only wallet on Base",
         hint: "Live RPC",
@@ -332,7 +347,7 @@ function Dashboard() {
     ],
     // activeNetwork + setActiveTab are deps so the toggle-network action
     // label resolves correctly and tab navigation works.
-    [activeNetwork, setActiveTab],
+    [activeNetwork, setActiveTab, setTourOpen],
   );
 
   return (
@@ -520,6 +535,17 @@ function Dashboard() {
         onOpenChange={setHelpOpen}
         helps={TAB_HELPS}
         activeTabId={activeTab}
+        onNavigate={(id) => {
+          setActiveTab(id as ActiveTab);
+          window.scrollTo({ top: 360, behavior: "smooth" });
+        }}
+        onStartTour={() => setTourOpen(true)}
+      />
+
+      <GuidedTour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        helps={TAB_HELPS}
         onNavigate={(id) => {
           setActiveTab(id as ActiveTab);
           window.scrollTo({ top: 360, behavior: "smooth" });

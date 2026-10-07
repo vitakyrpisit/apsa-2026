@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HelpCircle, X, ChevronRight } from "lucide-react";
+import { HelpCircle, X, ChevronRight, MapPin } from "lucide-react";
 
 export interface TabHelp {
   id: string;
@@ -16,6 +16,7 @@ interface HelpDrawerProps {
   helps: TabHelp[];
   activeTabId: string;
   onNavigate: (id: string) => void;
+  onStartTour?: () => void;
 }
 
 /**
@@ -34,6 +35,7 @@ export function HelpDrawer({
   helps,
   activeTabId,
   onNavigate,
+  onStartTour,
 }: HelpDrawerProps) {
   const [visitedHelpId, setVisitedHelpId] = useState<string | null>(null);
 
@@ -156,9 +158,24 @@ export function HelpDrawer({
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-slate-800 flex items-center justify-between gap-3">
-          <span className="text-[10px] font-mono text-slate-500">
-            Press <kbd className="px-1 py-0.5 rounded border border-slate-700 bg-slate-950">Esc</kbd> to close
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
+              <kbd className="px-1 py-0.5 rounded border border-slate-700 bg-slate-950">Esc</kbd> to close
+            </span>
+            {onStartTour && (
+              <button
+                onClick={() => {
+                  onOpenChange(false);
+                  onStartTour();
+                }}
+                className="px-2.5 py-1.5 rounded-md text-xs font-mono text-amber-300 bg-amber-950/60 hover:bg-amber-900/60 border border-amber-800/60 flex items-center gap-1.5 transition-colors"
+                title="Walk through every tab sequentially"
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                Tour
+              </button>
+            )}
+          </div>
           <button
             onClick={() => {
               onNavigate(activeHelpId);

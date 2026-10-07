@@ -3,12 +3,24 @@
 import React, { useState } from 'react';
 import { ECONOMIC_SCENARIOS } from '@/lib/apsa/empirical-data';
 import type { EconomicScenario } from '@/lib/apsa/types';
-import { Calculator, Sliders, ShieldCheck, RotateCcw } from 'lucide-react';
+import { Calculator, Sliders, ShieldCheck, RotateCcw, Layers, TrendingUp, PieChart, Clock, Grid3x3, ScrollText } from 'lucide-react';
 import { RevenueProjectionChart } from './revenue-projection-chart';
 import { RevenueTimelineChart } from './revenue-timeline-chart';
 import { RevenueBreakdownChart } from './revenue-breakdown-chart';
+import { RevenueSensitivityChart } from './revenue-sensitivity-chart';
+import { SubSectionNav, type SubSection } from './sub-section-nav';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { toast } from 'sonner';
+
+const ECON_SUBSECTIONS: SubSection[] = [
+  { id: 'econ-scenarios', label: 'Scenarios', icon: Layers },
+  { id: 'econ-simulator', label: 'Simulator', icon: Sliders },
+  { id: 'econ-projection', label: 'Projection', icon: TrendingUp },
+  { id: 'econ-breakdown', label: 'Cost Breakdown', icon: PieChart },
+  { id: 'econ-sensitivity', label: 'Sensitivity', icon: Grid3x3 },
+  { id: 'econ-timeline', label: 'Timeline', icon: Clock },
+  { id: 'econ-audit', label: 'Audit', icon: ScrollText },
+];
 
 export const UnitEconomicsSimulator: React.FC = () => {
   const [selectedPreset, setSelectedPreset] = useLocalStorage<'CONSERVATIVE' | 'BASE' | 'STRONG'>('apsa:econ:preset', 'BASE');
@@ -76,8 +88,11 @@ export const UnitEconomicsSimulator: React.FC = () => {
         </p>
       </div>
 
+      {/* Sub-section sticky nav for this long tab */}
+      <SubSectionNav sections={ECON_SUBSECTIONS} title="Jump to" />
+
       {/* THREE SCENARIOS COMPARISON CARDS (SECTION 16) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div id="econ-scenarios" className="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-mt-[150px]">
         {ECONOMIC_SCENARIOS.map((sc: EconomicScenario) => (
           <div
             key={sc.name}
@@ -115,7 +130,7 @@ export const UnitEconomicsSimulator: React.FC = () => {
       </div>
 
       {/* INTERACTIVE DYNAMIC SIMULATOR SLIDERS */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+      <div id="econ-simulator" className="bg-slate-900 border border-slate-800 rounded-xl p-5 scroll-mt-[150px]">
         <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-emerald-400" />
@@ -244,26 +259,42 @@ export const UnitEconomicsSimulator: React.FC = () => {
       </div>
 
       {/* REVENUE PROJECTION CHART (live slider-driven + 3 empirical scenarios) */}
-      <RevenueProjectionChart
-        ticketPrice={ticketPrice}
-        ordersPerDay={ordersPerDay}
-        variableCostPerOrder={variableCostPerOrder}
-        fixedMonthlyCost={fixedMonthlyCost}
-      />
+      <div id="econ-projection" className="scroll-mt-[150px]">
+        <RevenueProjectionChart
+          ticketPrice={ticketPrice}
+          ordersPerDay={ordersPerDay}
+          variableCostPerOrder={variableCostPerOrder}
+          fixedMonthlyCost={fixedMonthlyCost}
+        />
+      </div>
 
       {/* REVENUE BREAKDOWN CHART (per-day cost structure) */}
-      <RevenueBreakdownChart
-        ticketPrice={ticketPrice}
-        ordersPerDay={ordersPerDay}
-        variableCostPerOrder={variableCostPerOrder}
-        fixedMonthlyCost={fixedMonthlyCost}
-      />
+      <div id="econ-breakdown" className="scroll-mt-[150px]">
+        <RevenueBreakdownChart
+          ticketPrice={ticketPrice}
+          ordersPerDay={ordersPerDay}
+          variableCostPerOrder={variableCostPerOrder}
+          fixedMonthlyCost={fixedMonthlyCost}
+        />
+      </div>
+
+      {/* REVENUE SENSITIVITY CHART (2D heatmap) */}
+      <div id="econ-sensitivity" className="scroll-mt-[150px]">
+        <RevenueSensitivityChart
+          ticketPrice={ticketPrice}
+          ordersPerDay={ordersPerDay}
+          variableCostPerOrder={variableCostPerOrder}
+          fixedMonthlyCost={fixedMonthlyCost}
+        />
+      </div>
 
       {/* REVENUE TIMELINE CHART (cumulative forward-looking projection) */}
-      <RevenueTimelineChart netDailyUSD={netDaily} />
+      <div id="econ-timeline" className="scroll-mt-[150px]">
+        <RevenueTimelineChart netDailyUSD={netDaily} />
+      </div>
 
       {/* SECTION 17: OUTCOME VS TECHNOLOGY VERIFICATION MATRIX */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+      <div id="econ-audit" className="bg-slate-900 border border-slate-800 rounded-xl p-5 scroll-mt-[150px]">
         <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono uppercase tracking-wider mb-1">
           <ShieldCheck className="w-4 h-4" />
           <span>Section 17: What Is the Customer Actually Buying?</span>

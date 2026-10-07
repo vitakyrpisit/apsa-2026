@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import type { TxVerificationResult } from '@/lib/apsa/base-rpc';
 import { EVM_PAYOUT_ADDRESS as PRODUCTION_PAY_TO } from '@/lib/apsa/wallet-registry';
 import { useApsaData } from './apsa-data-provider';
+import { Shimmer } from './shimmer';
 import { toast } from 'sonner';
 import {
   ShieldAlert,
@@ -232,7 +233,27 @@ export const RealRevenueHarness: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {testResults.map((t) => (
+              {testing && testResults.length === 0
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={`skel-${i}`} className="hover:bg-slate-800/40">
+                      <td className="py-2.5 px-3">
+                        <Shimmer className="h-4 w-4 rounded" />
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <Shimmer className="h-4 w-40 rounded" />
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <Shimmer className="h-4 w-56 rounded" />
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <Shimmer className="h-4 w-32 rounded" />
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <Shimmer className="h-4 w-12 rounded" />
+                      </td>
+                    </tr>
+                  ))
+                : testResults.map((t) => (
                 <tr key={t.testNumber} className="hover:bg-slate-800/40">
                   <td className="py-2.5 px-3 text-slate-400 font-bold">{t.testNumber}</td>
                   <td className="py-2.5 px-3 font-semibold text-white">{t.name}</td>

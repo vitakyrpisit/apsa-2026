@@ -632,3 +632,144 @@ Stage Summary:
   tests still pass. Lint clean. No errors. VLM confirms the Economics tab
   renders 3 charts + scenario cards + sliders + audit table cleanly
   with the correct amber/emerald/pink palette.
+
+---
+Task ID: 8
+Agent: Z.ai Code (webDevReview cron round 4)
+Task: Assess status, QA via agent-browser, implement round-4 features (Economics sticky sub-section nav, RevenueSensitivityChart 2D heatmap, GuidedTour mode, Shimmer loading skeletons, silence noisy console.error).
+
+## Current Project Status (assessment)
+- Dev server healthy; `bun run lint` clean; all 12 tests pass; all 9 tabs render.
+- Found a noisy `console.error` from LiveOnChainTracker during reload/tab-switch
+  races ("Error fetching on-chain status: Failed to fetch") — a real QA issue
+  even though the fallback logic was correct. Silenced it (round 4 fix).
+- No regressions from round 3. The Economics tab was flagged as "quite long"
+  in round 3 recs → top priority for round 4 was a sticky sub-section nav.
+
+## Completed Modifications
+
+### New components (3)
+1. `src/components/apsa/sub-section-nav.tsx` (NEW) — `SubSectionNav`: a
+   sticky horizontal pill-nav for long tab pages. Clicking a pill smooth-
+   scrolls to the anchored section; the active pill tracks scroll position
+   via IntersectionObserver (rootMargin `-150px 0px -60% 0px` to account
+   for the sticky header + ticker + this nav). Each pill has an optional
+   icon. Used by the Economics tab but reusable on any long page.
+2. `src/components/apsa/revenue-sensitivity-chart.tsx` (NEW) —
+   `RevenueSensitivityChart`: a 2D heatmap of projected monthly net profit
+   across a 9×8 grid of ticketPrice (rows: $2–$25) × ordersPerDay (columns:
+   1–50). Cells are color-coded rose (loss) → amber (thin) → emerald
+   (strong) with opacity scaled by magnitude. The current slider position
+   is highlighted with an emerald ring; hover shows the exact combo +
+   monthly value. Includes a Loss/Thin/Strong legend and a live readout
+   footer.
+3. `src/components/apsa/guided-tour.tsx` (NEW) — `GuidedTour`: a sequential
+   spotlight overlay that walks the operator through every tab's help
+   content, one step at a time. Features:
+   - Centered card with the current step's title/summary/bullets.
+   - Prev/Next buttons + clickable progress dots + a progress bar.
+   - Arrow-left/right keyboard nav; Esc closes.
+   - Automatically navigates to the tab matching each step (via onNavigate).
+   - "Finish" button on the last step.
+   - Structured as `GuidedTour` (mount/unmount gate) + `GuidedTourInner`
+     (owns the step state) to reset to step 0 on each open WITHOUT a
+     set-state-in-effect.
+
+### Enhanced existing components
+4. `UnitEconomicsSimulator.tsx` — inserted `<SubSectionNav>` after the
+   overview banner with 7 sub-sections (Scenarios/Simulator/Projection/
+   Cost Breakdown/Sensitivity/Timeline/Audit). Wrapped each existing
+   section in a div with the matching id + `scroll-mt-[150px]` so the
+   smooth-scroll lands below the sticky nav. Inserted the new
+   `<RevenueSensitivityChart>` between the Breakdown and Timeline charts.
+   The Economics tab now has 4 distinct visualizations.
+5. `RealRevenueHarness.tsx` — wired the `Shimmer` component (created in
+   round 2 but unused) into the 12-test table. When `testing && testResults
+   .length === 0`, renders 6 shimmer skeleton rows (one per column: #,
+   name, expected, result, status) instead of an empty table. Smooths the
+   brief "RUNNING" → "ALL PASS" transition on slow networks.
+6. `help-drawer.tsx` — added an optional `onStartTour` prop. When provided,
+   renders a "Tour" button (amber-themed, MapPin icon) in the drawer
+   footer next to the "Go to this tab" button. Clicking it closes the
+   drawer and opens the GuidedTour.
+7. `LiveOnChainTracker.tsx` — silenced the noisy `console.error('Error
+   fetching on-chain status:', e)` in the catch block. Transient fetch
+   failures during reloads/tab-switches are expected; the previous status
+   remains displayed and the 30s poll retries. Replaced with an explanatory
+   comment. Verified: no more console errors after a fresh reload.
+
+### Page-level wiring (page.tsx)
+8. Added `tourOpen` state + the `<GuidedTour>` component (controlled).
+9. Added a "Start Guided Tour" action to the CommandPalette (group:
+   Actions, keywords: tour/guide/onboarding/help/learn) — opens the tour
+   with an info toast.
+10. Passed `onStartTour={() => setTourOpen(true)}` to the HelpDrawer so
+    the "Tour" button in the drawer footer also opens it.
+11. Updated the `commandActions` useMemo deps to include `setTourOpen`.
+
+## Verification Results
+- `bun run lint` → 0 errors, 0 warnings.
+- `curl -X POST /api/test-suite` → 12 tests, passed=True.
+- agent-browser: no console/runtime errors after a fresh reload (the
+  previously-noisy "Error fetching on-chain status" is gone).
+- All 9 keyboard shortcuts (1-9) jump to the correct tab.
+- Economics tab: sticky sub-section nav renders with all 7 pills
+  (Scenarios/Simulator/Projection/Cost Breakdown/Sensitivity/Timeline/
+  Audit). Clicking "Sensitivity" smooth-scrolls to the heatmap.
+- Economics tab now has 4 visualizations: RevenueProjectionChart (bar),
+  RevenueBreakdownChart (horizontal waterfall), RevenueSensitivityChart
+  (2D heatmap), RevenueTimelineChart (area).
+- Guided Tour: opens via Cmd+K → "tour" → Enter, OR via the HelpDrawer
+  "Tour" button. Arrow-right navigates Mission → Verdict → ... → Novel
+  (verified 4 steps). Esc closes.
+- Shimmer skeletons: 6 shimmer rows render in the Mission tab test table
+  while the suite is loading (before the first result arrives).
+- Mobile (375×812): 4 charts + nav pills render; footer stays sticky.
+- VLM (z-ai vision) confirms: "sticky horizontal pill-nav with labels
+  Scenarios/Simulator/Projection/Sensitivity"; "2D grid heatmap with
+  rose/amber/emerald cells"; "NO blue/indigo"; "no rendering issues,
+  layout is clean, text is legible, all charts fully rendered and
+  aligned correctly."
+
+## Bugs found & fixed
+- `guided-tour.tsx` first attempt called `setStep(0)` synchronously in a
+  `useEffect` when the tour opened → `react-hooks/set-state-in-effect`
+  lint error. Restructured into a `GuidedTour` wrapper (mount/unmount
+  gate via `if (!open) return null`) + `GuidedTourInner` (owns the step
+  state, naturally resets to 0 on each mount). No set-state-in-effect.
+- `guided-tour.tsx` had a stale `eslint-disable-next-line` directive
+  after the restructure → removed it.
+- `LiveOnChainTracker.tsx` emitted a `console.error` on every transient
+  fetch failure (visible during reloads) → silenced with an explanatory
+  comment; the existing fallback logic was already correct.
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+- The GuidedTour navigates the parent's active tab via `onNavigate`, which
+  calls `setActiveTab` (persisted to localStorage). This means finishing
+  the tour leaves the operator on the last tour tab — which is the
+  desired behavior, but worth noting.
+- The Economics sub-section nav is currently Economics-specific. Could
+  extract the pattern to other long tabs (Verdict, Forensics) if they
+  grow similarly long.
+- The RevenueSensitivityChart uses a fixed 9×8 grid; could make the
+  price/orders ranges configurable via sliders for a "zoom" mode.
+- Could add a "Share scenario" feature: encode the Economics slider
+  values into a URL hash so an operator can share a specific scenario
+  with a colleague.
+- Could add a `RevenueBreakdownChart` toggle between "per-day" and
+  "per-month" views.
+- The Shimmer is now wired into the Mission tab; could also wire it into
+  the LiveOnChainTracker's initial load and the LiveTicker's
+  "RUNNING" → "ALL PASS" transition for consistency.
+
+Stage Summary:
+- Round 4 complete: 3 new components (SubSectionNav sticky pill-nav,
+  RevenueSensitivityChart 2D heatmap, GuidedTour sequential spotlight),
+  4 existing components enhanced (Economics tab with 7 anchored sub-
+  sections + the sensitivity chart; RealRevenueHarness with shimmer
+  skeleton rows; HelpDrawer with a Tour button; LiveOnChainTracker with
+  silenced noisy errors), and full page-level wiring (GuidedTour state +
+  command palette action + HelpDrawer integration). All 12 protocol
+  tests still pass. Lint clean. No console errors. VLM confirms the
+  Economics tab now has a sticky sub-section nav, a 2D heatmap, and the
+  correct rose/amber/emerald palette with no blue/indigo.

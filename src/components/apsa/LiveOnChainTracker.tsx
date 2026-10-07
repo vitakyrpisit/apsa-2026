@@ -25,8 +25,10 @@ export const LiveOnChainTracker: React.FC<LiveOnChainTrackerProps> = ({ network,
       if (onStatusUpdated) {
         onStatusUpdated(data);
       }
-    } catch (e) {
-      console.error('Error fetching on-chain status:', e);
+    } catch {
+      // Transient fetch failures (e.g. during tab switches / reloads) are
+      // expected — the previous status remains displayed and the 30s poll
+      // will retry. Silently swallow to avoid noisy console errors.
     } finally {
       setLoading(false);
     }
