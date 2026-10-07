@@ -1,124 +1,57 @@
 import { NextResponse } from "next/server";
-import ZAI from "z-ai-web-dev-sdk";
-import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS } from "@/lib/apsa/wallet-registry";
+import { handleX402Payment, build402Response, build200Response, type X402ServiceConfig, X402Error } from "@/lib/apsa/x402-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-const PRICE_USDC = 0.05;
-const PRICE_ATOMIC = "50000";
-
-const TICKER_MAP: Record<string, string> = {
-  BTC: "bitcoin", ETH: "ethereum", USDC: "usd-coin",
-  BASE: "base", SOL: "solana", TRX: "tron",
+const SERVICE: X402ServiceConfig = {
+  serviceId: "market-analysis", serviceName: "Market Analysis", description: "LLM market analysis",
+  resource: "/api/market-analysis", priceUSDC: 0.05, amountAtomic: "50000",
+  tags: ["market","analysis","crypto","llm"], mimeType: "application/json",
 };
 
-/** Fetch real price from CoinGecko (free, no key) */
+const TICKERS: Record<string,string> = { BTC:"bitcoin",ETH:"ethereum",USDC:"usd-coin",BASE:"base",SOL:"solana",TRX:"tron" };
+
 async function getPrice(symbol: string) {
-  const id = TICKER_MAP[symbol] ?? symbol.toLowerCase();
-  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`;
+  const id = TICKERS[symbol] ?? symbol.toLowerCase();
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return null;
-    const data = (await res.json()) as Record<string, { usd: number; usd_24h_change: number; usd_market_cap: number; usd_24h_vol: number }>;
-    const d = data[id];
-    if (!d) return null;
-    return { symbol, price: d.usd, change24h: d.usd_24h_change ?? 0, marketCap: d.usd_market_cap ?? 0, volume24h: d.usd_24h_vol ?? 0 };
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`, { signal: AbortSignal.timeout(5000) });
+    const data = (await res.json()) as Record<string,{usd:number;usd_24h_change:number;usd_market_cap:number;usd_24h_vol:number}>;
+    const d = data[id]; if (!d) return null;
+    return { price:d.usd, change24h:d.usd_24h_change??0, marketCap:d.usd_market_cap??0, volume24h:d.usd_24h_vol??0 };
   } catch { return null; }
 }
 
-/** Generate LLM analysis on-demand (serverless-safe) */
-async function generateAnalysis(symbol: string, data: { price: number; change24h: number; marketCap: number; volume24h: number }) {
-  try {
-    const zai = await ZAI.create();
-    const res = await zai.chat.completions.create({
-      messages: [{
-        role: "user",
-        content: `Analyze ${symbol}. Price: $${data.price}, 24h: ${data.change24h.toFixed(2)}%, MarketCap: $${(data.marketCap/1e9).toFixed(2)}B, Volume: $${(data.volume24h/1e6).toFixed(2)}M. Respond as JSON: {"title":"short headline","summary":"2-3 sentences","keyPoints":["point1","point2","point3"],"signal":"BULLISH|BEARISH|NEUTRAL","confidence":0-100}`,
-      }],
-      thinking: { type: "disabled" },
-    });
-    const content = res.choices[0]?.message?.content ?? "{}";
-    const clean = content.replace(/```json\n?/g, "").replace(/```/g, "").trim();
-    return JSON.parse(clean);
-  } catch {
-    return {
-      title: `${symbol} at $${data.price}`,
-      summary: `Price $${data.price}, 24h ${data.change24h.toFixed(2)}%.`,
-      keyPoints: [`Price: $${data.price}`, `24h: ${data.change24h.toFixed(2)}%`],
-      signal: data.change24h >= 0 ? "BULLISH" : "BEARISH",
-      confidence: 50,
-    };
-  }
-}
+export async function GET() { return NextResponse.json({ service:SERVICE.serviceName, price:`$${SERVICE.priceUSDC}`, symbols:Object.keys(TICKERS), endpoint:"POST /api/market-analysis?symbol={SYMBOL}" }); }
 
-/** GET — free listing of available symbols */
-export async function GET() {
-  return NextResponse.json({
-    service: "MarketIntelAgent — LLM Market Analysis",
-    price: `${PRICE_USDC} USDC`,
-    payTo: EVM_PAYOUT_ADDRESS,
-    network: "base-mainnet",
-    symbols: Object.keys(TICKER_MAP),
-    endpoint: "POST /api/market-analysis?symbol={SYMBOL}",
-    manifest: "/.well-known/x402-manifest.json",
-  });
-}
-
-/** POST — x402 gated: unpaid → 402, paid → full LLM analysis */
 export async function POST(req: Request) {
+  let body: unknown = null; try { body = await req.json(); } catch { body = {}; }
   const url = new URL(req.url);
-  const symbol = url.searchParams.get("symbol")?.toUpperCase();
+  const symbol = (url.searchParams.get("symbol") || (body as {symbol?:string})?.symbol || "BTC").toUpperCase();
+  if (!TICKERS[symbol]) return NextResponse.json({ error:"Invalid symbol", valid:Object.keys(TICKERS) }, { status:400 });
 
-  if (!symbol || !TICKER_MAP[symbol]) {
-    return NextResponse.json({ error: "Invalid symbol", valid: Object.keys(TICKER_MAP) }, { status: 400 });
-  }
-
-  // Collect data on-demand (serverless-safe, no in-memory store)
   const data = await getPrice(symbol);
-  if (!data) {
-    return NextResponse.json({ error: "Could not fetch market data", symbol }, { status: 503 });
-  }
+  if (!data) return NextResponse.json({ error:"Price data unavailable" }, { status:503 });
 
-  const paymentProof = req.headers.get("x-payment-proof");
+  const preview = { symbol, price:data.price, change24h:data.change24h, signal: data.change24h>=0?"BULLISH":"BEARISH" };
+  try {
+    const settlement = await handleX402Payment(req, body, SERVICE, preview);
+    if (!settlement) return build402Response(SERVICE, preview);
 
-  if (!paymentProof) {
-    // Return 402 with basic data as preview
-    return NextResponse.json({
-      error: "Payment Required",
-      message: `${symbol} analysis costs $${PRICE_USDC} USDC.`,
-      paymentRequirements: {
-        scheme: "exact", network: "eip155:8453",
-        amount: PRICE_ATOMIC, amountUSDC: PRICE_USDC,
-        payTo: EVM_PAYOUT_ADDRESS, asset: BASE_USDC_MAINNET_ADDRESS,
-        description: `Market analysis for ${symbol}`,
-      },
-      preview: {
-        symbol, price: data.price, change24h: data.change24h,
-        signal: data.change24h >= 0 ? "BULLISH" : "BEARISH",
-      },
-    }, {
-      status: 402,
-      headers: { "x402-version": "1.0", "WWW-Authenticate": `x402 token="USDC", network="base-mainnet", amount="${PRICE_ATOMIC}", recipient="${EVM_PAYOUT_ADDRESS}"` },
-    });
-  }
+    // REAL DATA — LLM analysis
+    let analysis;
+    try {
+      const ZAI = (await import("z-ai-web-dev-sdk")).default;
+      const zai = await ZAI.create();
+      const res = await zai.chat.completions.create({
+        messages: [{ role:"user", content:`Analyze ${symbol}. Price:$${data.price}, 24h:${data.change24h.toFixed(2)}%, MCap:$${(data.marketCap/1e9).toFixed(2)}B, Vol:$${(data.volume24h/1e6).toFixed(2)}M. JSON: {"title":"headline","summary":"2-3 sentences","keyPoints":["p1","p2","p3"],"signal":"BULLISH|BEARISH|NEUTRAL","confidence":0-100}` }],
+        thinking: { type:"disabled" },
+      });
+      const content = res.choices[0]?.message?.content || "{}";
+      analysis = JSON.parse(content.replace(/```json\n?/g,"").replace(/```/g,"").trim());
+    } catch { analysis = { title:`${symbol} at $${data.price}`, summary:`Price $${data.price}, 24h ${data.change24h.toFixed(2)}%.`, keyPoints:[`Price: $${data.price}`,`24h: ${data.change24h.toFixed(2)}%`], signal: data.change24h>=0?"BULLISH":"BEARISH", confidence:50 }; }
 
-  // Payment received — generate full LLM analysis on-demand
-  const analysis = await generateAnalysis(symbol, data);
-
-  return NextResponse.json({
-    status: "DELIVERED",
-    symbol,
-    analysis: {
-      title: analysis.title,
-      summary: analysis.summary,
-      keyPoints: analysis.keyPoints,
-      signal: analysis.signal,
-      confidence: analysis.confidence,
-    },
-    marketData: { price: data.price, change24h: data.change24h, marketCap: data.marketCap, volume24h: data.volume24h },
-    payment: { amountUSDC: PRICE_USDC, payTo: EVM_PAYOUT_ADDRESS, network: "base-mainnet" },
-    generatedAt: new Date().toISOString(),
-  });
+    return build200Response(SERVICE, { ...analysis, marketData: data }, settlement);
+  } catch (e) { if (e instanceof X402Error) return NextResponse.json(e.body, { status:e.statusCode }); throw e; }
 }

@@ -1,82 +1,44 @@
 import { NextResponse } from "next/server";
-import ZAI from "z-ai-web-dev-sdk";
-import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS } from "@/lib/apsa/wallet-registry";
+import { handleX402Payment, build402Response, build200Response, type X402ServiceConfig, X402Error } from "@/lib/apsa/x402-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-const PRICE_USDC = 0.50;
-const PRICE_ATOMIC = "500000";
+const SERVICE: X402ServiceConfig = {
+  serviceId: "company-intel", serviceName: "Company Intelligence", description: "B2B research report",
+  resource: "/api/company-intel", priceUSDC: 0.50, amountAtomic: "500000",
+  tags: ["business","intelligence","research","b2b"], mimeType: "application/json",
+};
 
-export async function GET() {
-  return NextResponse.json({
-    service: "Company Intelligence — B2B Research Report",
-    price: `${PRICE_USDC} USDC`,
-    payTo: EVM_PAYOUT_ADDRESS,
-    network: "base-mainnet",
-    endpoint: "POST /api/company-intel?name={COMPANY}",
-  });
-}
+export async function GET() { return NextResponse.json({ service:SERVICE.serviceName, price:`$${SERVICE.priceUSDC}`, endpoint:"POST /api/company-intel?name={COMPANY}" }); }
 
 export async function POST(req: Request) {
+  let body: unknown = null; try { body = await req.json(); } catch { body = {}; }
   const url = new URL(req.url);
-  const companyName = url.searchParams.get("name");
+  const companyName = url.searchParams.get("name") || (body as {name?:string})?.name;
+  if (!companyName) return NextResponse.json({ error:"Missing name" }, { status:400 });
 
-  if (!companyName) {
-    return NextResponse.json({ error: "Missing name", endpoint: "POST /api/company-intel?name=Apple" }, { status: 400 });
-  }
-
-  const paymentProof = req.headers.get("x-payment-proof");
-
-  if (!paymentProof) {
-    return NextResponse.json({
-      error: "Payment Required",
-      message: `Intelligence report for ${companyName} costs $${PRICE_USDC} USDC.`,
-      paymentRequirements: {
-        scheme: "exact", network: "eip155:8453",
-        amount: PRICE_ATOMIC, amountUSDC: PRICE_USDC,
-        payTo: EVM_PAYOUT_ADDRESS, asset: BASE_USDC_MAINNET_ADDRESS,
-        description: `Company intelligence: ${companyName}`,
-      },
-      preview: { company: companyName, type: "B2B research + competitive analysis" },
-    }, {
-      status: 402,
-      headers: { "x402-version": "1.0", "WWW-Authenticate": `x402 token="USDC", network="base-mainnet", amount="${PRICE_ATOMIC}", recipient="${EVM_PAYOUT_ADDRESS}"` },
-    });
-  }
-
-  // Payment received — generate intelligence report via LLM + web search
-  let report;
+  const preview = { company: companyName, type:"B2B research + competitive analysis" };
   try {
-    const zai = await ZAI.create();
-    // First: web search for company info
-    const searchResults = await zai.functions.invoke("web_search", { query: `${companyName} company revenue employees business model 2026`, num: 5 });
-    const searchContext = searchResults.map((r: { name: string; snippet: string }) => `${r.name}: ${r.snippet}`).join("\n");
+    const settlement = await handleX402Payment(req, body, SERVICE, preview);
+    if (!settlement) return build402Response(SERVICE, preview);
 
-    // Then: LLM analysis
-    const llmRes = await zai.chat.completions.create({
-      messages: [{
-        role: "user",
-        content: `Create a B2B intelligence report for "${companyName}". Search results:\n${searchContext}\n\nRespond as JSON: {"overview":"2-3 sentences","businessModel":"description","revenueEstimate":"estimate","keyStrengths":["s1","s2"],"weaknesses":["w1","w2"],"opportunities":["o1","o2"],"threats":["t1","t2"],"competitivePosition":"assessment","recommendation":"BUY|SELL|PARTNER|AVOID"}`,
-      }],
-      thinking: { type: "disabled" },
-    });
-    const content = llmRes.choices[0]?.message?.content ?? "{}";
-    report = JSON.parse(content.replace(/```json\n?/g, "").replace(/```/g, "").trim());
-  } catch {
-    report = {
-      overview: `Intelligence report for ${companyName}.`,
-      businessModel: "Could not determine — analysis limited.",
-      recommendation: "NEUTRAL",
-    };
-  }
+    // REAL DATA — web search + LLM analysis
+    let report;
+    try {
+      const ZAI = (await import("z-ai-web-dev-sdk")).default;
+      const zai = await ZAI.create();
+      const searchResults = await zai.functions.invoke("web_search", { query: `${companyName} company revenue employees business model 2026`, num: 5 });
+      const searchContext = searchResults.map((r:{name:string;snippet:string}) => `${r.name}: ${r.snippet}`).join("\n");
+      const llmRes = await zai.chat.completions.create({
+        messages: [{ role:"user", content:`Create B2B intelligence report for "${companyName}". Search results:\n${searchContext}\n\nRespond as JSON: {"overview":"2-3 sentences","businessModel":"description","keyStrengths":["s1","s2"],"weaknesses":["w1","w2"],"recommendation":"BUY|SELL|PARTNER|AVOID"}` }],
+        thinking: { type:"disabled" },
+      });
+      const content = llmRes.choices[0]?.message?.content || "{}";
+      report = JSON.parse(content.replace(/```json\n?/g,"").replace(/```/g,"").trim());
+    } catch { report = { overview:`Intelligence report for ${companyName}.`, businessModel:"Could not determine.", recommendation:"NEUTRAL" }; }
 
-  return NextResponse.json({
-    status: "DELIVERED",
-    company: companyName,
-    report,
-    payment: { amountUSDC: PRICE_USDC, payTo: EVM_PAYOUT_ADDRESS, network: "base-mainnet" },
-    generatedAt: new Date().toISOString(),
-  });
+    return build200Response(SERVICE, report, settlement);
+  } catch (e) { if (e instanceof X402Error) return NextResponse.json(e.body, { status:e.statusCode }); throw e; }
 }
