@@ -5,8 +5,8 @@ import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS } from "@/lib/apsa/wallet
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SIGNAL_PRICE_USDC = 0.01;
-const SIGNAL_PRICE_ATOMIC = "10000"; // 0.01 USDC = 10000 atomic
+const SIGNAL_PRICE_USDC = 0.001;
+const SIGNAL_PRICE_ATOMIC = "1000"; // 0.01 USDC = 10000 atomic
 
 /**
  * GET /api/market-signal — free list of available signals (metadata only)

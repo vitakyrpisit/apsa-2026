@@ -39,7 +39,7 @@ export async function GET() {
       {
         serviceId: "market-signal",
         name: "MarketIntelAgent — Trading Signals",
-        priceUSDC: 0.01, priceAtomic: "10000",
+        priceUSDC: 0.001, priceAtomic: "1000",
         payoutAddress: EVM_PAYOUT_ADDRESS,
         network: "base-mainnet", token: "USDC",
         tokenAddress: BASE_USDC_MAINNET_ADDRESS,
@@ -72,8 +72,15 @@ export async function GET() {
     payoutAddressMode: "receive-only",
     discovery: {
       manifest: "/.well-known/x402-manifest.json",
+      catalog: "/api/x402",
       health: "/api/health",
+      freePriceFeed: "/api/price?symbol={SYMBOL}",
     },
+    freeEndpoints: [
+      { endpoint: "GET /api/price?symbol={SYMBOL}", description: "Free crypto price feed (no payment)" },
+      { endpoint: "GET /api/x402", description: "x402 service catalog" },
+      { endpoint: "GET /api/health", description: "Health check" },
+    ],
     generatedAt: new Date().toISOString(),
   };
 
