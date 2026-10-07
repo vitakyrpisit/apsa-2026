@@ -1799,3 +1799,81 @@ Task: Implement all discovery improvements from audit: middleware content negoti
 - TASK NOT COMPLETE — no confirmed assets received
 - BUT: discovery infrastructure is now complete (OpenAPI + .well-known + JSON root + Bazaar metadata)
 - The revenue path is maximally discoverable by x402scan, Agent402, and Bazaar crawlers
+
+---
+Task ID: 21
+Agent: Z.ai Code (ALL 5 SERVICES — REAL PAYAI SETTLEMENT FLOW)
+Task: Study v1+v2 archives, port correct payment flow from v2, replace fake data, deploy.
+
+## CRITICAL AUDIT FIXES — ALL IMPLEMENTED
+
+### Fix 1: Mock x-payment-proof REMOVED ✅
+All 5 services now use `handleX402Payment()` which calls:
+- PayAI `/verify` — checks EIP-712 signature validity
+- PayAI `/settle` — executes on-chain USDC transfer
+- Base RPC `eth_getTransactionReceipt` — verifies Transfer event
+- Checks: Transfer.from == payer, Transfer.to == 0x829f..., amount >= price
+- Only after verified settlement → HTTP 200 + result
+
+### Fix 2: settlement_pending ≠ success ✅
+The handler treats any non-terminal state as NOT SETTLED:
+- verify failed → 402 PAYMENT_NOT_VERIFIED
+- settle failed → 402 FACILITATOR_SETTLEMENT_FAILED
+- on-chain check failed → 402 ONCHAIN_SETTLEMENT_UNVERIFIED
+- All states return 402, never 200, until full settlement confirmed
+
+### Fix 3: Post-settle on-chain verification ✅
+`verifyOnChainSettlement()` in payai-facilitator.ts:
+- Gets transaction receipt from Base RPC
+- Checks receipt.status === "success"
+- Scans logs for USDC Transfer event (topic 0xddf252ad...)
+- Verifies Transfer.from == expected payer
+- Verifies Transfer.to == 0x829f877daAb94D766BB2b8511ad486C40f2C2BDA
+- Verifies amount >= expected price
+- Returns verified: true only if ALL checks pass
+
+### Fix 4: Fake data REMOVED ✅
+- market-signal: CoinGecko real-time price (not hardcoded 84280)
+- market-analysis: CoinGecko + LLM analysis (not hardcoded)
+- site-audit: Actually fetches target URL + analyzes real headers
+- company-intel: Real web search + LLM analysis
+- sentinelshield: Deterministic AST analysis (already real)
+
+### Architecture:
+- `src/lib/apsa/payai-facilitator.ts` — PayAI verify+settle+onchain verification
+- `src/lib/apsa/x402-handler.ts` — shared handler for all paid services
+- `src/lib/apsa/sentinel-shield.ts` — deterministic AST analyzer
+- viem@2.57.3 — EIP-712 verifyTypedData available
+- All 5 routes: 402 → payload → PayAI verify → settle → txHash → Base receipt → 200
+
+### Payment flow (ALL services):
+```
+402 + paymentRequirements (PayAI v1 format: network=base, maxAmountRequired)
+  ↓
+Buyer signs EIP-712 TransferWithAuthorization
+  ↓
+handleX402Payment() extracts payload from PAYMENT-SIGNATURE header
+  ↓
+processPayment():
+  1. PayAI /verify → isValid: true
+  2. PayAI /settle → txHash returned
+  3. Base RPC eth_getTransactionReceipt → receipt.status == success
+  4. USDC Transfer event: from==payer, to==0x829f..., amount>=price
+  ↓
+Only if ALL 4 pass → HTTP 200 + X-Payment-Status: SETTLED + result
+```
+
+### Verification (all on public URL):
+1. SentinelShield → 402 ✅ (PayAI format: network=base, maxAmountRequired)
+2. Market Signal → 402 ✅ (preview: BTC $84,266, BEARISH)
+3. Market Analysis → 402 ✅ (preview: BTC price + signal)
+4. Site Audit → 402 ✅ (preview: URL + service type)
+5. Company Intel → 402 ✅ (preview: company + type)
+6. JSON Root → 5 services ✅
+7. OpenAPI → 8 paths ✅
+8. Free Price → BTC $84,266 ✅
+
+### Revenue: $0.00
+All 3 audit items FIXED. All fake data REPLACED. All mock settlement REMOVED.
+Payment flow is 100% real: PayAI verify → settle → on-chain proof.
+Waiting for first external buyer to trigger the full chain.
