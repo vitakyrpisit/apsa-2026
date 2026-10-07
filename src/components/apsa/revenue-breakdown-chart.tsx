@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -18,6 +19,8 @@ interface RevenueBreakdownChartProps {
   variableCostPerOrder: number;
   fixedMonthlyCost: number;
 }
+
+type Horizon = "daily" | "monthly";
 
 interface CostSlice {
   key: string;
@@ -45,6 +48,10 @@ export function RevenueBreakdownChart({
   variableCostPerOrder,
   fixedMonthlyCost,
 }: RevenueBreakdownChartProps) {
+  const [horizon, setHorizon] = useState<Horizon>("daily");
+  const mult = horizon === "monthly" ? 30 : 1;
+  const suffix = horizon === "monthly" ? "/mo" : "/d";
+
   // Derive the per-order cost split from the live variableCostPerOrder,
   // using the SentinelShield benchmark proportions (8:8:2:2:0:2 → scaled).
   // Benchmark total = $0.14; we scale each slice proportionally.
@@ -78,18 +85,23 @@ export function RevenueBreakdownChart({
   const totalCostDaily = totalVarDaily + fixedDaily;
   const netDaily = grossDaily - totalCostDaily;
 
+  // Apply the horizon multiplier for display.
+  const grossDisplay = grossDaily * mult;
+  const totalCostDisplay = totalCostDaily * mult;
+  const netDisplay = netDaily * mult;
+
   // Chart data: gross, then each cost slice (negative for a waterfall feel),
   // then net.
   const chartData = [
-    { name: "GROSS", value: Number(grossDaily.toFixed(2)), fill: "#10b981", isGross: true },
+    { name: "GROSS", value: Number(grossDisplay.toFixed(2)), fill: "#10b981", isGross: true },
     ...perOrderSplits.map((s) => ({
       name: s.label.split(" ")[0].toUpperCase(),
-      value: Number((-s.value).toFixed(3)),
+      value: Number((-s.value * mult).toFixed(3)),
       fill: s.color,
       vendor: s.vendor,
     })),
-    { name: "FIXED", value: Number((-fixedDaily).toFixed(3)), fill: fixedSlice.color, vendor: fixedSlice.vendor },
-    { name: "NET", value: Number(netDaily.toFixed(2)), fill: netDaily >= 0 ? "#34d399" : "#f43f5e", isNet: true },
+    { name: "FIXED", value: Number((-fixedDaily * mult).toFixed(3)), fill: fixedSlice.color, vendor: fixedSlice.vendor },
+    { name: "NET", value: Number(netDisplay.toFixed(2)), fill: netDisplay >= 0 ? "#34d399" : "#f43f5e", isNet: true },
   ];
 
   return (
@@ -97,38 +109,62 @@ export function RevenueBreakdownChart({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-800">
         <div>
           <div className="text-xs font-mono text-emerald-400 uppercase tracking-wider mb-1">
-            Per-Day Cost Structure Breakdown
+            Cost Structure Breakdown
           </div>
           <h3 className="text-base font-bold text-white tracking-tight">
             Where Every Dollar Goes (Live Sliders)
           </h3>
         </div>
-        <div className="flex items-center gap-3 text-[11px] font-mono">
-          <span className="text-slate-400">
-            Gross:{" "}
-            <span className="text-emerald-400 font-bold">
-              ${grossDaily.toFixed(2)}
-            </span>
-            /d
-          </span>
-          <span className="text-slate-400">
-            Costs:{" "}
-            <span className="text-rose-400 font-bold">
-              -${totalCostDaily.toFixed(2)}
-            </span>
-            /d
-          </span>
-          <span className="text-slate-400">
-            Net:{" "}
-            <span
-              className={`font-bold ${
-                netDaily >= 0 ? "text-emerald-400" : "text-rose-400"
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px] font-mono">
+            <button
+              onClick={() => setHorizon("daily")}
+              className={`px-2 py-0.5 rounded transition-colors ${
+                horizon === "daily"
+                  ? "bg-emerald-600 text-white font-medium"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              +${netDaily.toFixed(2)}
+              /day
+            </button>
+            <button
+              onClick={() => setHorizon("monthly")}
+              className={`px-2 py-0.5 rounded transition-colors ${
+                horizon === "monthly"
+                  ? "bg-emerald-600 text-white font-medium"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              /mo
+            </button>
+          </div>
+          <div className="flex items-center gap-3 text-[11px] font-mono">
+            <span className="text-slate-400">
+              Gross:{" "}
+              <span className="text-emerald-400 font-bold">
+                ${grossDisplay.toFixed(2)}
+              </span>
+              {suffix}
             </span>
-            /d
-          </span>
+            <span className="text-slate-400">
+              Costs:{" "}
+              <span className="text-rose-400 font-bold">
+                -${totalCostDisplay.toFixed(2)}
+              </span>
+              {suffix}
+            </span>
+            <span className="text-slate-400">
+              Net:{" "}
+              <span
+                className={`font-bold ${
+                  netDisplay >= 0 ? "text-emerald-400" : "text-rose-400"
+                }`}
+              >
+                +${netDisplay.toFixed(2)}
+              </span>
+              {suffix}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -176,7 +212,7 @@ export function RevenueBreakdownChart({
                 const vendor = (item?.payload as { vendor?: string })?.vendor;
                 const v = Number(value);
                 return [
-                  `${v >= 0 ? "+" : ""}$${Math.abs(v).toFixed(3)}/day${vendor ? ` · ${vendor}` : ""}`,
+                  `${v >= 0 ? "+" : ""}$${Math.abs(v).toFixed(3)}${suffix}${vendor ? ` · ${vendor}` : ""}`,
                   (item?.payload as { name?: string })?.name ?? "",
                 ];
               }}
@@ -185,7 +221,7 @@ export function RevenueBreakdownChart({
               wrapperStyle={{ fontSize: "10px", fontFamily: "monospace" }}
               formatter={(value) => <span className="text-slate-400">{value}</span>}
             />
-            <Bar dataKey="value" name="Daily USD" radius={[0, 4, 4, 0]} maxBarSize={26}>
+            <Bar dataKey="value" name={horizon === "monthly" ? "Monthly USD" : "Daily USD"} radius={[0, 4, 4, 0]} maxBarSize={26}>
               {chartData.map((entry, idx) => (
                 <Cell key={idx} fill={entry.fill} />
               ))}
@@ -200,13 +236,13 @@ export function RevenueBreakdownChart({
           <div key={s.key} className="flex items-center gap-1.5 text-slate-400">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ background: s.color }} />
             <span className="truncate">{s.label}</span>
-            <span className="ml-auto text-slate-300">${s.value.toFixed(3)}</span>
+            <span className="ml-auto text-slate-300">${(s.value * mult).toFixed(3)}</span>
           </div>
         ))}
         <div className="flex items-center gap-1.5 text-slate-400">
           <span className="w-2.5 h-2.5 rounded-sm" style={{ background: fixedSlice.color }} />
           <span className="truncate">Fixed</span>
-          <span className="ml-auto text-slate-300">${fixedSlice.value.toFixed(3)}</span>
+          <span className="ml-auto text-slate-300">${(fixedSlice.value * mult).toFixed(3)}</span>
         </div>
       </div>
     </div>

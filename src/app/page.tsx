@@ -16,6 +16,7 @@ import { LiveTicker } from "@/components/apsa/live-ticker";
 import { CommandPalette, type CommandAction } from "@/components/apsa/command-palette";
 import { HelpDrawer } from "@/components/apsa/help-drawer";
 import { GuidedTour } from "@/components/apsa/guided-tour";
+import { FadeIn } from "@/components/apsa/fade-in";
 import { ApsaDataProvider, useApsaData } from "@/components/apsa/apsa-data-provider";
 import { TAB_HELPS } from "@/lib/apsa/tab-helps";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -418,8 +419,9 @@ function Dashboard() {
           </div>
         </nav>
 
-        {/* Dynamic Tab Panes */}
-        <div className="transition-opacity duration-200">
+        {/* Dynamic Tab Panes — keyed by activeTab so framer-motion remounts
+            and re-runs the entrance animation on every tab switch. */}
+        <FadeIn key={activeTab} duration={0.3} y={8}>
           {activeTab === "mission" && <RealRevenueHarness />}
           {activeTab === "verdict" && (
             <ExecutiveVerdictReport
@@ -441,7 +443,7 @@ function Dashboard() {
               onStatusUpdated={handleStatusUpdated}
             />
           )}
-        </div>
+        </FadeIn>
 
         {/* Quick-action floating buttons (desktop only, subtle) */}
         <div className="hidden lg:flex fixed bottom-6 right-6 z-30 flex-col gap-2">

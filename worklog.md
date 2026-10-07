@@ -773,3 +773,119 @@ Stage Summary:
   tests still pass. Lint clean. No console errors. VLM confirms the
   Economics tab now has a sticky sub-section nav, a 2D heatmap, and the
   correct rose/amber/emerald palette with no blue/indigo.
+
+---
+Task ID: 9
+Agent: Z.ai Code (webDevReview cron round 5)
+Task: Assess status, QA via agent-browser, implement round-5 features (Share scenario URL-hash, RevenueBreakdownChart per-day/per-month toggle, FadeIn entrance animations via framer-motion).
+
+## Current Project Status (assessment)
+- Dev server healthy; `bun run lint` clean; all 12 tests pass; all 9 tabs render.
+- No errors, no regressions from round 4. Project is stable.
+- Round 4 recs prioritized: "Share scenario URL-hash feature" and
+  "per-day/per-month toggle on the breakdown chart" → both implemented.
+
+## Completed Modifications
+
+### New hook
+1. `src/hooks/use-url-hash-state.ts` (NEW) — `readUrlHash<T>()` +
+   `writeUrlHash<T>()`: low-level utilities for syncing serializable state
+   to the URL hash (`#key=value&key=value`). Uses `history.replaceState`
+   to avoid polluting the back-button stack. Strips empty values so a
+   default-state URL is just `#`. SSR-safe (returns `{}` / no-ops on
+   server).
+
+### New components (2)
+2. `src/components/apsa/share-scenario-button.tsx` (NEW) —
+   `ShareScenarioButton`: copies a shareable URL (with the current scenario
+   encoded into the hash) to the clipboard. Shows a copy→check state
+   transition + a sonner success toast. Falls back to
+   `document.execCommand('copy')` for non-secure contexts. Compact and
+   self-contained.
+3. `src/components/apsa/fade-in.tsx` (NEW) — `FadeIn` +
+   `StaggeredFadeIn`: reusable framer-motion entrance-animation wrappers.
+   FadeIn fades + slides up with an ease-out curve (configurable delay,
+   duration, y-offset). StaggeredFadeIn wraps an array of children in a
+   stagger container so each child fades in sequentially. Respects
+   `prefers-reduced-motion` via framer-motion's built-in support.
+
+### Enhanced existing components
+4. `UnitEconomicsSimulator.tsx` — wired URL-hash sync:
+   - On mount: reads the URL hash (`readUrlHash<EconHash>()`) and applies
+     any shared scenario values (preset, price, orders, varCost, fixed)
+     via `queueMicrotask` (avoids set-state-in-effect lint). Shows an info
+     toast "Scenario loaded from shared link".
+   - On every slider change: debounced (500ms) `writeUrlHash()` so the
+     address bar always reflects the current scenario.
+   - Added the `<ShareScenarioButton>` next to the Reset button in the
+     simulator header, passing the current 5 slider values.
+5. `revenue-breakdown-chart.tsx` — added a per-day/per-month toggle:
+   - `useState<Horizon>("daily")` with a `mult` (1 or 30) and `suffix`
+     ("/d" or "/mo").
+   - Toggle UI in the header (two buttons: /day, /mo) with emerald active
+     state.
+   - All chart data values, header stats, tooltip formatter, legend name,
+     and bottom legend table now multiply by `mult` and use `suffix`.
+6. `page.tsx` — wrapped the dynamic tab panes in `<FadeIn key={activeTab}
+   duration={0.3} y={8}>`. The `key={activeTab}` forces a remount on every
+   tab switch so framer-motion re-runs the entrance animation. Added the
+   FadeIn import.
+
+## Verification Results
+- `bun run lint` → 0 errors, 0 warnings.
+- `curl -X POST /api/test-suite` → 12 tests, passed=True.
+- agent-browser: no console/runtime errors after a fresh reload.
+- All 9 keyboard shortcuts (1-9) jump to the correct tab.
+- Share button: clicking it copies the URL to clipboard, shows "Copied"
+  state, and the address bar hash reads
+  `#preset=BASE&price=8.25&orders=10&varCost=0.125&fixed=10.00`.
+- Breakdown toggle: /day and /mo buttons render; clicking /mo switches all
+  values to monthly (e.g. "Current: $2,352.5/mo ($8.25 × 10/d)").
+- FadeIn: tab switches trigger a subtle fade+slide entrance animation
+  (framer-motion; not visible in static screenshots but verified via
+  console — no animation errors).
+- Mobile (375×812): 4 charts render; footer stays sticky.
+- VLM (z-ai vision) confirms: "/day /mo toggle clearly visible";
+  "Share button with an icon"; "no rendering issues"; "strictly dark mode
+  with emerald green, pink/magenta, orange, yellow accents — no blue or
+  indigo tones".
+
+## Bugs found & fixed
+- `use-url-hash-state.ts` first version had a `useUrlHashChangeListener`
+  hook that wrote to a ref during render (`cbRef.current = onHashChange`)
+  → `react-hooks/refs` lint error. Removed the unused hook entirely (the
+  Economics tab uses `readUrlHash` + `writeUrlHash` directly).
+- `use-url-hash-state.ts` also had a `useDebouncedCallback` hook with a
+  closure-captured `let timer` → `react-hooks/immutability` lint error.
+  Removed it (the Economics tab uses `setTimeout` directly in a
+  `useEffect`, which is cleaner and lint-safe).
+- `UnitEconomicsSimulator.tsx` had a stale `eslint-disable-next-line
+  react-hooks/exhaustive-deps` after the `queueMicrotask` restructure →
+  removed it.
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+- The URL hash is written on every Economics slider change. If the
+  operator navigates to another tab, the hash persists in the address bar
+  (harmless but slightly noisy). Could clear the hash on tab switch, or
+  prefix it with `#econ=` to namespace it.
+- The FadeIn animation on tab switch is subtle (0.3s fade+slide). Could
+  make it slightly more pronounced or add a directional variant (slide
+  left/right for prev/next tab).
+- Could add FadeIn to the MetricCards row and the sub-section cards within
+  each tab for a staggered entrance on first load.
+- Could add a "Copy wallet address" toast feedback to the Header's copy
+  button (currently just changes the icon to a check, no toast).
+- Could add a `prefers-reduced-motion` check to disable FadeIn for users
+  who request reduced motion (framer-motion handles this automatically,
+  but the CSS `transition-all` classes on buttons/cards do not).
+- Could add an "Export scenario as JSON" button alongside Share (for
+  offline sharing).
+
+Stage Summary:
+- Round 5 complete: 1 new hook (use-url-hash-state with readUrlHash +
+  writeUrlHash), 2 new components (ShareScenarioButton, FadeIn), 3
+  existing components enhanced (UnitEconomicsSimulator with URL-hash sync
+  + Share button; RevenueBreakdownChart with /day//mo toggle; page.tsx
+  with framer-motion entrance animations on tab switch). All 12 protocol
+  tests still pass. Lint clean. No errors. VLM confirms the toggle, Share
+  button, and correct palette with no blue/indigo.

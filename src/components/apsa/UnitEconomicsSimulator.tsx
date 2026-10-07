@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ECONOMIC_SCENARIOS } from '@/lib/apsa/empirical-data';
 import type { EconomicScenario } from '@/lib/apsa/types';
 import { Calculator, Sliders, ShieldCheck, RotateCcw, Layers, TrendingUp, PieChart, Clock, Grid3x3, ScrollText } from 'lucide-react';
@@ -9,7 +9,9 @@ import { RevenueTimelineChart } from './revenue-timeline-chart';
 import { RevenueBreakdownChart } from './revenue-breakdown-chart';
 import { RevenueSensitivityChart } from './revenue-sensitivity-chart';
 import { SubSectionNav, type SubSection } from './sub-section-nav';
+import { ShareScenarioButton } from './share-scenario-button';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import { readUrlHash, writeUrlHash } from '@/hooks/use-url-hash-state';
 import { toast } from 'sonner';
 
 const ECON_SUBSECTIONS: SubSection[] = [
@@ -22,6 +24,14 @@ const ECON_SUBSECTIONS: SubSection[] = [
   { id: 'econ-audit', label: 'Audit', icon: ScrollText },
 ];
 
+interface EconHash {
+  preset?: string;
+  price?: string;
+  orders?: string;
+  varCost?: string;
+  fixed?: string;
+}
+
 export const UnitEconomicsSimulator: React.FC = () => {
   const [selectedPreset, setSelectedPreset] = useLocalStorage<'CONSERVATIVE' | 'BASE' | 'STRONG'>('apsa:econ:preset', 'BASE');
   const [ticketPrice, setTicketPrice] = useLocalStorage<number>('apsa:econ:ticketPrice', 8.25);
@@ -30,6 +40,42 @@ export const UnitEconomicsSimulator: React.FC = () => {
   const [fixedMonthlyCost, setFixedMonthlyCost] = useLocalStorage<number>('apsa:econ:fixedMonthly', 10.00);
   // ephemeral UI state (not persisted)
   const [resetTick, setResetTick] = useState(0);
+
+  // On mount: read the URL hash and apply any shared scenario values,
+  // overriding the localStorage defaults. Uses queueMicrotask so the
+  // setState calls are asynchronous (avoids set-state-in-effect lint).
+  useEffect(() => {
+    const hash = readUrlHash<EconHash>();
+    if (Object.keys(hash).length === 0) return;
+    queueMicrotask(() => {
+      if (hash.preset === 'CONSERVATIVE' || hash.preset === 'BASE' || hash.preset === 'STRONG') {
+        setSelectedPreset(hash.preset);
+      }
+      if (hash.price) setTicketPrice(parseFloat(hash.price));
+      if (hash.orders) setOrdersPerDay(parseInt(hash.orders, 10));
+      if (hash.varCost) setVariableCostPerOrder(parseFloat(hash.varCost));
+      if (hash.fixed) setFixedMonthlyCost(parseFloat(hash.fixed));
+      toast.info('Scenario loaded from shared link', {
+        description: 'Slider values restored from the URL hash.',
+      });
+    });
+    // mount-only — the deps array is intentionally empty.
+  }, []);
+
+  // Debounced write: whenever the slider values change, update the URL hash
+  // so the address bar always reflects the current scenario (shareable).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      writeUrlHash<EconHash>({
+        preset: selectedPreset,
+        price: ticketPrice.toFixed(2),
+        orders: String(ordersPerDay),
+        varCost: variableCostPerOrder.toFixed(3),
+        fixed: fixedMonthlyCost.toFixed(2),
+      });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [selectedPreset, ticketPrice, ordersPerDay, variableCostPerOrder, fixedMonthlyCost]);
 
   // Calculated metrics
   const grossDaily = ticketPrice * ordersPerDay;
@@ -155,6 +201,15 @@ export const UnitEconomicsSimulator: React.FC = () => {
               <RotateCcw className="w-3 h-3" />
               Reset
             </button>
+            <ShareScenarioButton
+              value={{
+                preset: selectedPreset,
+                price: ticketPrice.toFixed(2),
+                orders: String(ordersPerDay),
+                varCost: variableCostPerOrder.toFixed(3),
+                fixed: fixedMonthlyCost.toFixed(2),
+              }}
+            />
           </div>
         </div>
 
