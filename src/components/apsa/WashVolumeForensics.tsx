@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { MAJOR_SELLER_AUDITS, BUYER_TIERS } from '@/lib/apsa/empirical-data';
 import type { SellerAuditRecord, BuyerTier } from '@/lib/apsa/types';
 import { ShieldAlert, Search, Layers } from 'lucide-react';
+import { WashVolumeChart } from './wash-volume-chart';
 
 export const WashVolumeForensics: React.FC = () => {
   const [selectedSeller, setSelectedSeller] = useState<SellerAuditRecord>(MAJOR_SELLER_AUDITS[1]); // Default to DeepResearch402
@@ -105,6 +106,9 @@ export const WashVolumeForensics: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* WASH VOLUME DONUT + PER-SELLER BREAKDOWN */}
+      <WashVolumeChart />
 
       {/* Major Sellers Forensic Audit Table */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">

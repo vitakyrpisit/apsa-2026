@@ -247,3 +247,123 @@ Stage Summary:
 - No errors in dev.log or browser console during the full verification.
 - Next: create the 15-minute recurring webDevReview cron job (Task 5) and
   report completion to the operator.
+
+---
+Task ID: 5
+Agent: Z.ai Code (webDevReview cron round 1)
+Task: Assess current project status, perform QA via agent-browser, fix bugs, and add new features + styling polish per the recurring 15-min webDevReview mandate.
+
+## Current Project Status (assessment)
+- Dev server healthy (port 3000), `bun run lint` clean (0 errors / 0 warnings).
+- All 12 protocol tests PASS against real Base Mainnet RPC (block ~#52.27M).
+- All 9 tabs render correctly; API routes (/api/health, /api/onchain/status,
+  /api/verify/tx, /api/test-suite, /api/x402/sentinelshield, /.well-known/
+  x402-manifest.json, /api/download/bundle.zip) all respond 200.
+- No runtime/console/hydration errors.
+- The dashboard was functional but visually flat (no charts, no live ticker,
+  static numbers, no command palette).
+
+## Completed Modifications
+
+### New components created (5)
+1. `src/components/apsa/animated-number.tsx` — `useCountUp` hook +
+   `AnimatedNumber` component: rAF-driven ease-out cubic count-up animation
+   for numeric KPI values.
+2. `src/components/apsa/live-ticker.tsx` — `LiveTicker`: sticky sub-header
+   (top-[57px]) showing BLOCK height, USDC balance, 12-TEST verdict, SYNC
+   age, RPC mode (LIVE/FALLBACK), and the receive-only wallet short address
+   with a pulsing live-dot. Updates every 1s for the sync-age counter.
+3. `src/components/apsa/revenue-projection-chart.tsx` — `RevenueProjectionChart`:
+   recharts ComposedChart (bars + line) showing the 3 empirical scenarios
+   (Conservative=amber, Base=emerald, Strong=violet) plus a live "LIVE"
+   scenario computed from the UnitEconomicsSimulator sliders. Includes a
+   4-card summary grid below.
+4. `src/components/apsa/wash-volume-chart.tsx` — `WashVolumeChart`: recharts
+   donut (wash rose vs external emerald) with a centered total-volume label,
+   plus a per-seller stacked-bar breakdown panel for the top 6 sellers.
+5. `src/components/apsa/command-palette.tsx` — `CommandPalette`: Cmd+K /
+   Ctrl+K quick-switcher with grouped actions (Navigate / Actions /
+   External), arrow-key + Enter navigation, Esc to dismiss. Supports both
+   controlled (`open`/`onOpenChange`) and uncontrolled usage.
+
+### Enhanced existing components (3)
+6. `MetricCards.tsx` — full redesign: gradient-glow hover borders (emerald/
+   rose/teal/amber variants), `-translate-y-0.5` hover lift, icon badges
+   in colored rounded squares, seeded deterministic SVG sparkline
+   mini-charts (area+line) per card, `AnimatedNumber` for the primary KPI
+   balance + wash % + net margin.
+7. `UnitEconomicsSimulator.tsx` — inserted `<RevenueProjectionChart>` after
+   the dynamic simulator results strip, fed by the live slider values
+   (ticketPrice, ordersPerDay, variableCostPerOrder, fixedMonthlyCost).
+8. `WashVolumeForensics.tsx` — inserted `<WashVolumeChart>` after the
+   Buyer Tier Hierarchy, before the Major Sellers table.
+
+### Page-level wiring (page.tsx)
+9. Added `LiveTicker` between `Header` and `<main>`.
+10. Added `CommandPalette` (controlled via `paletteOpen` state) at root.
+11. Added a ⌘K button in the tab bar + 2 floating action buttons (command
+    palette + download bundle) fixed bottom-right on desktop.
+12. Added on-mount polling of `/api/onchain/status` and `/api/test-suite`
+    so the LiveTicker + MetricCards have data before the user visits those
+    tabs; test-suite verdict propagates to the ticker.
+13. Tab labels shortened (e.g. "1. Verdict" instead of the full long label)
+    with `title=` tooltips preserving the full labels, for a cleaner tab bar.
+14. Wired `sonner` toast notifications for command-palette actions
+    (re-run tests, open testnet, toggle network).
+
+## Verification Results
+- `bun run lint` → 0 errors, 0 warnings.
+- `curl /api/test-suite` → 12 tests, passed=True.
+- agent-browser: all 9 tabs render correct headings; no console/runtime
+  errors after a fresh reload.
+- VLM (z-ai vision CLI) analysis of the dashboard screenshot confirms:
+  * "5 KPI cards each equipped with sparkline mini-charts"
+  * "live ticker strip displaying real-time blockchain data (Block, USDC, RPC)"
+  * "sophisticated dark-mode aesthetic with emerald green for success,
+     crimson for alerts"
+  * "no misplaced blue or indigo tones"
+- RevenueProjectionChart: 1 recharts chart renders with 4 colored bars
+  (amber/emerald/violet/green) + overlaid line + 4-card summary grid.
+- WashVolumeChart: 1 recharts donut renders with centered total label +
+  per-seller stacked bars.
+- Command palette opens via Ctrl+K, filters by label/keywords, executes
+  on Enter.
+- Mobile (375×812): footer remains sticky; layout holds.
+
+## Bugs found & fixed
+- `command-palette.tsx` imported non-existent `Esc` icon from lucide-react
+  → caused a 500 compile error on every route. Removed the import and
+  replaced the `<Esc>` icon usage with a plain `esc` text kbd badge.
+- `page.tsx` `useEffect` called `setTestSuitePassed(null)` synchronously
+  at the top of the effect body → flagged by `react-hooks/set-state-in-effect`
+  lint rule. Removed the redundant call (initial state is already `null`).
+- recharts `STRONG` scenario color was cyan (#06b6d4) which a VLM perceived
+  as "blue" → switched to violet (#a78bfa) to be unmistakably non-blue while
+  staying within the approved accent palette.
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+- Base Mainnet public RPC (mainnet.base.org) intermittently returns HTTP
+  429 rate-limit → the deterministic fallback in `base-rpc.ts` kicks in
+  correctly (balance shown as $0.00, isRealRpc=false), but the LiveTicker
+  shows "FALLBACK" during those windows. Next phase could add a fallback
+  RPC list (e.g. Cloudflare, Alchemy public) and rotate on 429.
+- Information density is high (VLM flagged this as a potential novice-
+  accessibility concern). Next phase could add a "Guided Tour" or a
+  collapsible "What am I looking at?" help panel per tab.
+- The Mission tab's test suite still auto-runs on mount (in addition to
+  the page-level on-mount poll). This double-run is intentional (the
+  Mission tab shows per-test details) but could be deduplicated by lifting
+  the results into a shared context.
+- No persistence of user actions (e.g. last-selected scenario preset,
+  last simulation inputs) across page reloads. Next phase could add
+  `localStorage` persistence for the UnitEconomicsSimulator + TestnetWorkbench.
+- Could add a `RevenueTimelineChart` (area chart of projected cumulative
+  net profit over 30/90/365 days) to the Economics tab for a forward-
+  looking visual.
+- Could add keyboard shortcuts (1-9) to jump directly to tabs.
+
+Stage Summary:
+- Dashboard significantly enhanced this round: 5 new components, 3 existing
+  components upgraded, full page-level wiring (LiveTicker + CommandPalette
+  + toasts + floating actions). All 12 protocol tests still pass. Lint
+  clean. No errors. VLM confirms visual polish is "exceptional".

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ECONOMIC_SCENARIOS } from '@/lib/apsa/empirical-data';
 import type { EconomicScenario } from '@/lib/apsa/types';
 import { Calculator, Sliders, ShieldCheck } from 'lucide-react';
+import { RevenueProjectionChart } from './revenue-projection-chart';
 
 export const UnitEconomicsSimulator: React.FC = () => {
   const [selectedPreset, setSelectedPreset] = useState<'CONSERVATIVE' | 'BASE' | 'STRONG'>('BASE');
@@ -208,6 +209,14 @@ export const UnitEconomicsSimulator: React.FC = () => {
         </div>
 
       </div>
+
+      {/* REVENUE PROJECTION CHART (live slider-driven + 3 empirical scenarios) */}
+      <RevenueProjectionChart
+        ticketPrice={ticketPrice}
+        ordersPerDay={ordersPerDay}
+        variableCostPerOrder={variableCostPerOrder}
+        fixedMonthlyCost={fixedMonthlyCost}
+      />
 
       {/* SECTION 17: OUTCOME VS TECHNOLOGY VERIFICATION MATRIX */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
