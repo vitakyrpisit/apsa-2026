@@ -6,6 +6,7 @@ import { EVM_PAYOUT_ADDRESS as PRODUCTION_PAY_TO } from '@/lib/apsa/wallet-regis
 import { useApsaData } from './apsa-data-provider';
 import { useActivityFeed } from './activity-feed-provider';
 import { Shimmer } from './shimmer';
+import { RevenueReadinessChecklist } from './revenue-readiness-checklist';
 import { toast } from 'sonner';
 import {
   ShieldAlert,
@@ -99,6 +100,9 @@ export const RealRevenueHarness: React.FC = () => {
 
   return (
     <div className="space-y-8">
+
+      {/* Revenue Readiness Checklist — what's verified + what the operator must do */}
+      <RevenueReadinessChecklist />
 
       {/* Top Banner: Mission Directive & Zero-Illusion Warning */}
       <div className="bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-950 border border-emerald-500/50 rounded-xl p-6 shadow-xl">
