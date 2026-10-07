@@ -1,0 +1,32 @@
+1. Affiliate — пока самый сильный «обычный интернет-бизнес»
+№1 — B2B SaaS affiliate / PartnerStack
+Что сделал человек + AI:
+Взяли существующую referral-ссылку B2B AI-продукта и превратили её в полноценный partner channel: подбор партнёров, контент, оптимизация размещений, recurring commissions.
+Сколько:
+$336,000 нового ARR за ~8 месяцев, 140 новых клиентов. В финальном месяце — $97,700 ARR. Комиссия — 25% от recurring revenue на 12 месяцев. Важная оговорка: автор прямо пишет, что ARR — не то же самое, что cash collected. affiliatemarketing.express
+Статус: 🟡 VERIFIED CASE, но не payout proof
+Человек: занимался partner management и коммерческой стратегией.
+Автономность: A2 → потенциально A4.
+Можно повторить: ДА, но не как полностью пассивный affiliate-site.
+Наша версия
+Агент может самостоятельно:
+найти SaaS
+↓
+проверить affiliate programme
+↓
+найти underserved keyword
+↓
+создать comparison
+↓
+найти потенциальных publishers
+↓
+подготовить outreach
+↓
+отслеживать conversions
+↓
+обновлять страницы
+↓
+получать recurring commissions
+
+Почему мне нравится: recurring commission превращает одну продажу в долгий cash flow.
+AI MONEY SCORE: 27/35
