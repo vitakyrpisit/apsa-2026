@@ -18,6 +18,7 @@ export async function GET() {
       { id: "company-intel", price: "0.50 USDC", endpoint: "POST /api/company-intel?name={COMPANY}" },
     ],
     freeServices: [
+      { id: "sentinelshield-preview", endpoint: "GET /api/sentinelshield/preview?address={ADDRESS}" },
       { id: "price-feed", endpoint: "GET /api/price?symbol={SYMBOL}" },
       { id: "x402-catalog", endpoint: "GET /api/x402" },
       { id: "manifest", endpoint: "GET /.well-known/x402-manifest.json" },

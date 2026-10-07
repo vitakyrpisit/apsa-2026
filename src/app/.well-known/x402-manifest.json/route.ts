@@ -77,6 +77,7 @@ export async function GET() {
       freePriceFeed: "/api/price?symbol={SYMBOL}",
     },
     freeEndpoints: [
+      { method: "GET", resource: "/api/sentinelshield/preview?address={ADDRESS}", description: "Free smart contract risk preview (loss leader → paid full report)" },
       { endpoint: "GET /api/price?symbol={SYMBOL}", description: "Free crypto price feed (no payment)" },
       { endpoint: "GET /api/x402", description: "x402 service catalog" },
       { endpoint: "GET /api/health", description: "Health check" },

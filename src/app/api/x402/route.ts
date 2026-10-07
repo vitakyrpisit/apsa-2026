@@ -24,6 +24,7 @@ export async function GET() {
       { id: "company-intel", price: "$0.50", endpoint: "POST /api/company-intel?name={COMPANY}", type: "business" },
     ],
     freeEndpoints: [
+      { endpoint: "GET /api/sentinelshield/preview?address={ADDRESS}", description: "Free smart contract risk preview" },
       { endpoint: "GET /api/price?symbol={SYMBOL}", description: "Free crypto price feed" },
       { endpoint: "GET /api/x402", description: "This service catalog" },
       { endpoint: "GET /api/health", description: "Health check" },
