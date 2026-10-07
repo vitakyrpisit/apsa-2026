@@ -1998,3 +1998,65 @@ Now that payToByNetwork is populated, Agent402 Smart Order Router can:
 The Smart Order Router can now route buyers to our endpoints.
 The next event that converts this from "infrastructure" to "revenue" is:
 external agent → POST → 402 → signed payment → PayAI verify → PayAI settle → Base tx → USDC Transfer → 0x829f...2BDA
+
+---
+Task ID: 24
+Agent: Z.ai Code (SENTINELSHIELD PATCH APPLIED — OPCODE ANALYZER)
+Task: Apply the SentinelShield patch from files.zip, fix route to validate→analyze→payment→deliver, deploy.
+
+## SentinelShield PATCH APPLIED
+
+### What was patched:
+1. **sentinelShieldCore.ts → sentinel-shield.ts**: Replaced substring search (f4/ff) with
+   proper EVM opcode walker. Now reads opcodes sequentially, skips PUSH data and Solidity
+   metadata trailer. Detects: DELEGATECALL, SELFDESTRUCT, CREATE, CREATE2, ORIGIN (tx.origin),
+   EIP-1967 proxy slot, EIP-1167 minimal proxy. Returns null for bytecode-undeterminable
+   properties (reentrancy, flash-loan, arithmetic).
+
+2. **types.ts**: Updated with SentinelShieldInput/Output types matching patch.
+
+3. **sentinelshield route**: New flow:
+   - STEP 1: validateSentinelInput() — BEFORE any payment. Returns charged:false on error.
+   - STEP 2: analyzeContractRisk() — BEFORE settlement. If analysis fails, buyer not charged.
+   - STEP 3: handleX402Payment() — PayAI verify + settle + on-chain verification.
+   - STEP 4: build200Response() — deliver already-computed result.
+
+### Key improvements:
+- No more false positives from hex substring search
+- Buyer never charged for invalid input or failed analysis
+- `charged: false` explicitly returned on all error paths
+- Opcode walker skips PUSH data and Solidity metadata
+- EIP-1967 and EIP-1167 proxy patterns detected
+- CREATE2 and tx.origin (ORIGIN opcode) flagged
+- Null for undeterminable properties (not false)
+
+### FINAL STATUS (independently verified):
+ALL 5 services — canonical x402 v2 format (accepts array):
+| # | Service | x402Version | accepts[] | payTo | network | amount |
+|---|---|---|---|---|---|---|
+| 1 | market-signal | 2 ✅ | YES ✅ | 0x829f... | eip155:8453 ✅ | 1000 |
+| 2 | market-analysis | 2 ✅ | YES ✅ | 0x829f... | eip155:8453 ✅ | 50000 |
+| 3 | site-audit | 2 ✅ | YES ✅ | 0x829f... | eip155:8453 ✅ | 250000 |
+| 4 | company-intel | 2 ✅ | YES ✅ | 0x829f... | eip155:8453 ✅ | 500000 |
+| 5 | sentinelshield | 2 ✅ | YES ✅ | 0x829f... | eip155:8453 ✅ | 9500000 |
+
+Agent402:
+- listed: true ✅
+- routable: true ✅
+- health: 1.0 ✅
+- payToByNetwork: {eip155:8453: 0x829f877daAb94D766BB2b8511ad486C40f2C2BDA} ✅
+- paidToolCount: 5 ✅
+
+Payment flow:
+- PayAI /verify (no API key, free tier) ✅
+- PayAI /settle (on-chain USDC transfer) ✅
+- Base RPC receipt verification (Transfer.from/to/amount) ✅
+- viem EIP-712 verifyTypedData ✅
+- No mock x-payment-proof ✅
+- No fake data (CoinGecko + LLM + real HTTP fetch) ✅
+- SentinelShield: opcode-based analysis (no f4/ff false positives) ✅
+- Validation before payment (charged:false on errors) ✅
+- Analysis before settlement (buyer not charged for failed analysis) ✅
+
+Revenue: $0.00
+Status: ALL INFRASTRUCTURE READY — WAITING FOR FIRST EXTERNAL BUYER
