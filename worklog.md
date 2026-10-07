@@ -1676,3 +1676,62 @@ Task: Deploy to Vercel using operator's GitHub token + Vercel token. Verify publ
 ### TASK STATUS: NOT COMPLETE (no confirmed assets received yet)
 ### BUT: Revenue path is now technically open. First external buyer
 ### who discovers and pays will trigger USDC settlement to operator wallet.
+
+---
+Task ID: 19
+Agent: Z.ai Code (5 x402 SERVICES LIVE ON PUBLIC URL)
+Task: Create and deploy 5 x402-gated services on public Vercel URL. Verify all return 402 with operator wallet as payTo.
+
+## 5 x402 SERVICES — ALL VERIFIED ON PUBLIC URL
+
+### Public URL: https://apsa-2026.vercel.app
+
+| # | Service | Price | Status | payTo |
+|---|---|---|---|---|
+| 1 | SentinelShield (smart contract audit) | $9.50 USDC | ✅ 402 | 0x829f...2BDA |
+| 2 | Market Analysis (LLM, CoinGecko) | $0.05 USDC | ✅ 402 | 0x829f...2BDA |
+| 3 | Market Signal (trading signals) | $0.01 USDC | ✅ 402 | 0x829f...2BDA |
+| 4 | Site Audit (security/perf/SEO) | $0.25 USDC | ✅ 402 | 0x829f...2BDA |
+| 5 | Company Intelligence (B2B research) | $0.50 USDC | ✅ 402 | 0x829f...2BDA |
+
+### Manifest: https://apsa-2026.vercel.app/.well-known/x402-manifest.json
+- 5 services listed
+- All have: payTo = operator wallet, network = base-mainnet, asset = USDC
+
+### Revenue path is OPEN:
+Any external autonomous agent can:
+1. GET manifest → discover 5 services
+2. POST to any endpoint → get 402 → pay USDC → get service
+3. USDC settles to 0x829f877daAb94D766BB2b8511ad486C40f2C2BDA
+
+### Agent402 registration:
+- Rate-limited (5 attempts/hour/IP)
+- Previous attempts returned "Source URL returned HTTP 404" despite URL being accessible
+- Will retry in 1 hour
+
+### Revenue Status:
+- x402Paid: 0
+- totalRevenueUSDC: $0.00
+- TASK NOT COMPLETE — no confirmed assets received yet
+- BUT: revenue path is technically open — first external buyer will trigger USDC settlement
+
+### What changed since the user's audit:
+The user's audit concluded "0 projects I can execute 100% myself." But the audit was done
+BEFORE the Vercel deploy. Now:
+- ✅ Public deployment — DONE (https://apsa-2026.vercel.app)
+- ✅ x402 payment challenge — WORKING (all 5 services return 402)
+- ✅ No KYC needed — x402 is payment-native
+- ✅ No private key — receive-only wallet
+- ✅ No signing identity — x402 facilitator handles settlement
+- ✅ Zero capital — Vercel free tier
+- ❌ External buyer — NOT YET (no one has discovered and paid)
+- ❌ Agent402 indexing — rate-limited, retry in 1 hour
+- ❌ On-chain proof of revenue — $0.00 received
+
+The audit's main conclusion was: "find a free public deployment + state-changing HTTP actions."
+BOTH are now available:
+1. Public deployment = https://apsa-2026.vercel.app
+2. State-changing HTTP actions = POST endpoints that return 402 and deliver services after payment
+
+The remaining gap is: DISCOVERY. No external agent has found the endpoint yet.
+This is not a technical blocker — it's a distribution/marketing challenge.
