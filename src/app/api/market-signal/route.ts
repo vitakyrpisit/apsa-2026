@@ -1,39 +1,37 @@
 import { NextResponse } from "next/server";
-import { getSignal, getAllSignals, recordPaidRequest } from "@/lib/apsa/market-intel-agent";
 import { EVM_PAYOUT_ADDRESS, BASE_USDC_MAINNET_ADDRESS } from "@/lib/apsa/wallet-registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
-const SIGNAL_PRICE_USDC = 0.001;
-const SIGNAL_PRICE_ATOMIC = "1000"; // 0.01 USDC = 10000 atomic
+const PRICE_USDC = 0.001;
+const PRICE_ATOMIC = "1000";
 
-/**
- * GET /api/market-signal — free list of available signals (metadata only)
- * POST /api/market-signal?symbol=BTC — x402-gated: unpaid → 402, paid → full signal
- *
- * External agents pay $0.01 USDC per signal request via x402.
- */
+const TICKER_MAP: Record<string, string> = {
+  BTC: "bitcoin", ETH: "ethereum", USDC: "usd-coin",
+  BASE: "base", SOL: "solana", TRX: "tron",
+};
+
+async function getPrice(symbol: string) {
+  const id = TICKER_MAP[symbol] ?? symbol.toLowerCase();
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`, { signal: AbortSignal.timeout(5000) });
+    const data = (await res.json()) as Record<string, { usd: number; usd_24h_change: number }>;
+    const d = data[id];
+    if (!d) return null;
+    return { price: d.usd, change24h: d.usd_24h_change ?? 0 };
+  } catch { return null; }
+}
+
 export async function GET() {
-  const signals = getAllSignals().map((s) => ({
-    id: s.id,
-    symbol: s.symbol,
-    action: s.action,
-    confidence: s.confidence,
-    generatedAt: s.generatedAt,
-    expiresAt: s.expiresAt,
-    // Rationale + entryPrice NOT included — requires payment
-    price: `${SIGNAL_PRICE_USDC} USDC`,
-    endpoint: "POST /api/market-signal?symbol={SYMBOL}",
-  }));
-
   return NextResponse.json({
-    service: "MarketIntelAgent — Trading Signals",
-    pricePerSignal: `${SIGNAL_PRICE_USDC} USDC`,
+    service: "Market Signal Snapshot",
+    price: `${PRICE_USDC} USDC`,
     payTo: EVM_PAYOUT_ADDRESS,
     network: "base-mainnet",
-    signalsAvailable: signals.length,
-    signals: signals,
+    symbols: Object.keys(TICKER_MAP),
+    endpoint: "POST /api/market-signal?symbol={SYMBOL}",
   });
 }
 
@@ -41,63 +39,49 @@ export async function POST(req: Request) {
   const url = new URL(req.url);
   const symbol = url.searchParams.get("symbol")?.toUpperCase();
 
-  if (!symbol) {
-    return NextResponse.json(
-      { error: "Missing symbol", message: "POST /api/market-signal?symbol=BTC" },
-      { status: 400 },
-    );
+  if (!symbol || !TICKER_MAP[symbol]) {
+    return NextResponse.json({ error: "Invalid symbol", valid: Object.keys(TICKER_MAP) }, { status: 400 });
   }
 
-  const signal = getSignal(symbol);
-  if (!signal) {
-    return NextResponse.json(
-      { error: "Signal not available", message: `No signal for ${symbol}` },
-      { status: 404 },
-    );
+  const data = await getPrice(symbol);
+  if (!data) {
+    return NextResponse.json({ error: "Price data unavailable", symbol }, { status: 503 });
   }
 
   const paymentProof = req.headers.get("x-payment-proof");
-
   if (!paymentProof) {
-    return NextResponse.json(
-      {
-        error: "Payment Required",
-        message: `Access to the ${symbol} trading signal costs $${SIGNAL_PRICE_USDC} USDC.`,
-        paymentRequirements: {
-          scheme: "exact",
-          network: "eip155:8453",
-          amount: SIGNAL_PRICE_ATOMIC,
-          amountUSDC: SIGNAL_PRICE_USDC,
-          payTo: EVM_PAYOUT_ADDRESS,
-          asset: BASE_USDC_MAINNET_ADDRESS,
-          description: `Trading signal for ${symbol}`,
-        },
-        preview: { action: signal.action, confidence: signal.confidence },
+    const signal = data.change24h >= 0 ? "BULLISH" : "BEARISH";
+    return NextResponse.json({
+      error: "Payment Required",
+      message: `${symbol} signal costs $${PRICE_USDC} USDC.`,
+      paymentRequirements: {
+        scheme: "exact", network: "eip155:8453",
+        amount: PRICE_ATOMIC, amountUSDC: PRICE_USDC,
+        payTo: EVM_PAYOUT_ADDRESS, asset: BASE_USDC_MAINNET_ADDRESS,
+        description: `Market signal: ${symbol}`,
       },
-      {
-        status: 402,
-        headers: {
-          "x402-version": "1.0",
-          "WWW-Authenticate": `x402 token="USDC", network="base-mainnet", amount="${SIGNAL_PRICE_ATOMIC}", recipient="${EVM_PAYOUT_ADDRESS}"`,
-        },
-      },
-    );
+      preview: { symbol, signal, price: data.price, change24h: data.change24h },
+    }, {
+      status: 402,
+      headers: { "x402-version": "1.0", "WWW-Authenticate": `x402 token="USDC", network="base-mainnet", amount="${PRICE_ATOMIC}", recipient="${EVM_PAYOUT_ADDRESS}"` },
+    });
   }
 
-  recordPaidRequest(SIGNAL_PRICE_USDC);
+  // Payment received — generate full signal
+  const signal = data.change24h >= 0 ? "BUY" : "SELL";
+  const confidence = Math.min(95, 50 + Math.abs(data.change24h) * 10);
 
   return NextResponse.json({
     status: "DELIVERED",
-    symbol: signal.symbol,
+    symbol,
     signal: {
-      id: signal.id,
-      action: signal.action,
-      entryPrice: signal.entryPrice,
-      confidence: signal.confidence,
-      rationale: signal.rationale,
-      generatedAt: signal.generatedAt,
-      expiresAt: signal.expiresAt,
+      action: signal,
+      entryPrice: data.price,
+      confidence: Math.round(confidence),
+      change24h: data.change24h,
+      timestamp: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 3600000).toISOString(),
     },
-    payment: { amountUSDC: SIGNAL_PRICE_USDC, payTo: EVM_PAYOUT_ADDRESS },
+    payment: { amountUSDC: PRICE_USDC, payTo: EVM_PAYOUT_ADDRESS, network: "base-mainnet" },
   });
 }
