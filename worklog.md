@@ -1283,3 +1283,85 @@ Stage Summary:
   shortcuts (`b` for Activity Feed, `g` for Guided Tour). All 12 protocol
   tests still pass. Lint clean. No errors. VLM confirms the Import button,
   button grouping, and correct dark palette with no blue/indigo.
+
+---
+Task ID: 14
+Agent: Z.ai Code (webDevReview cron round 10)
+Task: Assess status, QA via agent-browser, implement round-10 features (keyboard-shortcuts cheat-sheet overlay, Import value range-checking, Activity Feed "Clear filter" button, 'h' keyboard shortcut).
+
+## Current Project Status (assessment)
+- Dev server healthy; `bun run lint` clean; all 12 tests pass; all 9 tabs render.
+- No errors, no regressions from round 9. Project is stable.
+- Round 9 recs prioritized: "keyboard-shortcuts cheat-sheet overlay" and
+  "value range-checking to ImportJsonButton" → both implemented.
+
+## Completed Modifications
+
+### New component
+1. `src/components/apsa/keyboard-shortcuts-overlay.tsx` (NEW) —
+   `KeyboardShortcutsOverlay`: a centered modal showing all available
+   keyboard shortcuts, grouped into 3 categories (Navigation / Overlays /
+   Actions). 9 shortcuts listed: 1-9 (tab jump), ← → (tour nav), ⌘K
+   (command palette), ? (help drawer), b (activity feed), g (guided tour),
+   h (this overlay), Esc (close), Enter (palette execute). Each key combo
+   rendered as a `<kbd>` badge. Esc closes. Backdrop click closes.
+
+### Enhanced existing components
+2. `page.tsx` — added the `<KeyboardShortcutsOverlay>` + `shortcutsOpen`
+   state. Added the `h` keyboard shortcut to open it. Added a Keyboard
+   button (with `h` kbd badge) in the tab bar next to the Help button.
+   Added a "Show Keyboard Shortcuts" action to the CommandPalette (group:
+   Actions, keywords: shortcuts/keyboard/hotkey/cheat). Updated the
+   keyboard handler `useEffect` deps to include `setShortcutsOpen`.
+3. `UnitEconomicsSimulator.tsx` — added value range-checking to the
+   ImportJsonButton's `onImport` callback. Imported values are now clamped
+   to the slider bounds before applying:
+   - ticketPrice: clamp(1, 25)
+   - ordersPerDay: clamp(1, 50) + rounded
+   - variableCostPerOrder: clamp(0.02, 0.5)
+   - fixedMonthlyCost: max(0)
+   This prevents out-of-range values from breaking the sliders or producing
+   nonsensical chart data.
+4. `activity-feed.tsx` — added a "Clear filter" (X) button that appears
+   next to the filter dropdown whenever a filter other than "all" is
+   active. Clicking it resets the filter to "all" for a one-click reset.
+
+## Verification Results
+- `bun run lint` → 0 errors, 0 warnings.
+- `curl -X POST /api/test-suite` → 12 tests, passed=True.
+- agent-browser: no console/runtime errors after a fresh reload.
+- `h` key: opens the KeyboardShortcutsOverlay showing all 9 shortcuts in
+  3 groups (Navigation / Overlays / Actions) with kbd badges. Esc closes.
+- All 9 keyboard shortcuts (1-9) jump to the correct tab.
+- All 9 tabs render correctly.
+- Mobile (375×812): footer sticky; layout holds.
+- VLM (z-ai vision) confirms: "Keyboard Shortcuts modal centered on dark
+  dashboard"; "organized into Navigation, Overlays, Actions groups";
+  "shortcut keys rendered as kbd badges"; "dark navy/slate palette with
+  teal/green accents — no blue or indigo"; "rendering clean without
+  visible issues".
+
+## Bugs found & fixed
+- `keyboard-shortcuts-overlay.tsx` imported a non-existent `Esc` icon from
+  lucide-react → caused a compile error (500 on every route). Removed the
+  import and the `<Esc>` usage in the footer, replaced with a text label.
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+- Could persist the last-known wallet balance to localStorage for cross-
+  mount delta detection in LiveOnChainTracker (round 9 rec, still pending).
+- Could add an empty-state illustration for the "no events match filter"
+  case in the Activity Feed (currently just text).
+- The KeyboardShortcutsOverlay could show contextual shortcuts (e.g. when
+  on the Economics tab, show the sub-section nav shortcuts).
+- Could add a "Rate this dashboard" feedback form or a GitHub-issues link
+  in the footer for operator feedback.
+- Could add a `prefers-reduced-motion` check to disable FadeIn + badge
+  pulse for accessibility.
+
+Stage Summary:
+- Round 10 complete: 1 new component (KeyboardShortcutsOverlay with 9
+  shortcuts in 3 groups), 3 existing components enhanced (page.tsx with
+  `h` shortcut + tab-bar Keyboard button + command-palette action;
+  Economics Import with value range-clamping; Activity Feed with "Clear
+  filter" button). All 12 protocol tests still pass. Lint clean. No
+  errors. VLM confirms the modal, kbd badges, and correct dark palette.

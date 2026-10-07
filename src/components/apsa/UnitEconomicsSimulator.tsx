@@ -237,10 +237,12 @@ export const UnitEconomicsSimulator: React.FC = () => {
                 } else if (data.scenario === "CONSERVATIVE" || data.scenario === "BASE" || data.scenario === "STRONG") {
                   setSelectedPreset(data.scenario);
                 }
-                if (typeof data.ticketPrice === "number") setTicketPrice(data.ticketPrice);
-                if (typeof data.ordersPerDay === "number") setOrdersPerDay(data.ordersPerDay);
-                if (typeof data.variableCostPerOrder === "number") setVariableCostPerOrder(data.variableCostPerOrder);
-                if (typeof data.fixedMonthlyCost === "number") setFixedMonthlyCost(data.fixedMonthlyCost);
+                // Range-check imported values against the slider bounds before applying.
+                const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+                if (typeof data.ticketPrice === "number") setTicketPrice(clamp(data.ticketPrice, 1, 25));
+                if (typeof data.ordersPerDay === "number") setOrdersPerDay(Math.max(1, Math.min(50, Math.round(data.ordersPerDay))));
+                if (typeof data.variableCostPerOrder === "number") setVariableCostPerOrder(clamp(data.variableCostPerOrder, 0.02, 0.5));
+                if (typeof data.fixedMonthlyCost === "number") setFixedMonthlyCost(Math.max(0, data.fixedMonthlyCost));
               }}
             />
           </div>

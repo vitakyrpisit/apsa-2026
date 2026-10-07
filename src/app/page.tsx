@@ -22,6 +22,7 @@ import {
   useActivityFeed,
 } from "@/components/apsa/activity-feed-provider";
 import { ActivityFeed } from "@/components/apsa/activity-feed";
+import { KeyboardShortcutsOverlay } from "@/components/apsa/keyboard-shortcuts-overlay";
 import { ApsaDataProvider, useApsaData } from "@/components/apsa/apsa-data-provider";
 import { TAB_HELPS } from "@/lib/apsa/tab-helps";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -50,6 +51,7 @@ import {
   Download,
   HelpCircle,
   Bell,
+  Keyboard,
 } from "lucide-react";
 
 type ActiveTab =
@@ -171,6 +173,7 @@ function Dashboard() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [feedOpen, setFeedOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   // Pull live data from the shared context (single source of truth — no
   // duplicate fetches). The provider primes the cache on mount and debounces
@@ -197,6 +200,12 @@ function Dashboard() {
       if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         setHelpOpen((o) => !o);
+        return;
+      }
+      // h shows the keyboard-shortcuts cheat sheet
+      if (e.key === "h" || e.key === "H") {
+        e.preventDefault();
+        setShortcutsOpen(true);
         return;
       }
       // b toggles the Activity Feed
@@ -228,7 +237,7 @@ function Dashboard() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [setActiveTab, logEvent, setFeedOpen, setTourOpen]);
+  }, [setActiveTab, logEvent, setFeedOpen, setTourOpen, setShortcutsOpen]);
 
   const handleExportReport = useCallback(() => {
     setActiveTab("verdict");
@@ -310,6 +319,14 @@ function Dashboard() {
         },
       },
       {
+        id: "show-shortcuts",
+        label: "Show Keyboard Shortcuts",
+        hint: "Cheat sheet",
+        group: "Actions",
+        keywords: ["shortcuts", "keyboard", "hotkey", "help", "cheat"],
+        run: () => setShortcutsOpen(true),
+      },
+      {
         id: "scan-wallet",
         label: "Scan receive-only wallet on Base",
         hint: "Live RPC",
@@ -376,7 +393,7 @@ function Dashboard() {
     ],
     // activeNetwork + setActiveTab are deps so the toggle-network action
     // label resolves correctly and tab navigation works.
-    [activeNetwork, setActiveTab, setTourOpen, logEvent],
+    [activeNetwork, setActiveTab, setTourOpen, logEvent, setShortcutsOpen],
   );
 
   return (
@@ -435,6 +452,16 @@ function Dashboard() {
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
+            </button>
+            <button
+              onClick={() => setShortcutsOpen(true)}
+              title="Keyboard shortcuts (Press h)"
+              className="px-2.5 py-2 rounded-lg text-slate-400 hover:text-emerald-300 hover:bg-slate-800/60 flex items-center gap-1.5 transition-colors flex-shrink-0"
+            >
+              <Keyboard className="w-3.5 h-3.5" />
+              <kbd className="hidden sm:inline text-[10px] text-slate-500 font-mono">
+                h
+              </kbd>
             </button>
             <button
               onClick={() => setHelpOpen(true)}
@@ -608,6 +635,11 @@ function Dashboard() {
       />
 
       <ActivityFeed open={feedOpen} onOpenChange={setFeedOpen} />
+
+      <KeyboardShortcutsOverlay
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+      />
     </div>
   );
 }
