@@ -55,3 +55,15 @@ server.log
 
 # Agent identity + wallet keypairs (NEVER commit)
 .basedagents/
+
+# Agent Souk credentials (NEVER commit)
+.agentsouk/
+
+# AgentPact credentials (NEVER commit)
+.agentpact/
+
+# Toku.agency credentials (NEVER commit)
+.toku/
+
+# Mercatai credentials (NEVER commit)
+.mercatai/

@@ -11,6 +11,7 @@ import { TestnetWorkbench } from "@/components/apsa/TestnetWorkbench";
 import { UnitEconomicsSimulator } from "@/components/apsa/UnitEconomicsSimulator";
 import { AutonomousLoopAudit } from "@/components/apsa/AutonomousLoopAudit";
 import { BasedAgentsIntegration } from "@/components/apsa/BasedAgentsIntegration";
+import { MarketplacesIntegration } from "@/components/apsa/MarketplacesIntegration";
 import { ExecutiveVerdictReport } from "@/components/apsa/ExecutiveVerdictReport";
 import { RealRevenueHarness } from "@/components/apsa/RealRevenueHarness";
 import { LiveTicker } from "@/components/apsa/live-ticker";
@@ -55,6 +56,7 @@ import {
   Bell,
   Keyboard,
   Store,
+  Globe,
 } from "lucide-react";
 
 type ActiveTab =
@@ -68,7 +70,8 @@ type ActiveTab =
   | "autonomy"
   | "scanner"
   | "intel"
-  | "market";
+  | "market"
+  | "marketplaces";
 
 type Network = "base-mainnet" | "base-sepolia";
 
@@ -169,6 +172,14 @@ const TABS: TabDef[] = [
     icon: Store,
     accent: "bg-cyan-600 text-white shadow-sm ring-1 ring-cyan-400/50",
     hover: "text-cyan-400 hover:text-cyan-200 hover:bg-cyan-950/40",
+  },
+  {
+    id: "marketplaces",
+    shortLabel: "All Marketplaces",
+    fullLabel: "All AI Agent Marketplaces — Unified Identity Registry",
+    icon: Globe,
+    accent: "bg-teal-600 text-white shadow-sm ring-1 ring-teal-400/50",
+    hover: "text-teal-400 hover:text-teal-200 hover:bg-teal-950/40",
   },
 ];
 
@@ -533,6 +544,7 @@ function Dashboard() {
           )}
           {activeTab === "intel" && <MarketIntelAgent />}
           {activeTab === "market" && <BasedAgentsIntegration />}
+          {activeTab === "marketplaces" && <MarketplacesIntegration />}
         </FadeIn>
 
         {/* Quick-action floating buttons (desktop only, subtle) */}

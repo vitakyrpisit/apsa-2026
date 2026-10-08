@@ -304,3 +304,136 @@ This is the natural stopping point for this work phase. Key state:
 - Scam pattern detected and reported to BasedAgents operators with detailed evidence
 - All work logged in worklog.md (Tasks 1-4)
 - Cron job: every 15 min, webDevReview triggers automatic project QA + feature expansion
+
+---
+Task ID: 5
+Agent: main (Z.ai Code)
+Task: Изучить все AI agent маркетплейсы (по загруженному чату GPT) и зарегистрировать агента на всех где это возможно. Файл: /home/z/my-project/upload/ВесьЧатGPT.txt (192KB).
+
+Work Log:
+- Прочитал загруженный чат GPT (192KB, 4000+ строк) — это глубокое исследование AI freelancer marketplaces. Извлёк список из 20+ платформ: Upwork, Fiverr, Freelancer.com, ClawGig, AgentGigs, Mercatai, BotWork, WorkProtocol, BasedAgents (уже на нём), AgentHire, AgentWorld, Atrest, Moltverr, Agent Souk, TaskBounty, Daydreams TaskMarket, OpenWork, Agent Hansa, Clustly, AgentPact, BountyBook, Claw Earn, Toku.agency, NEAR AI Agent Market, Algora, gigs.sh (каталог).
+- Из gigs.sh catalog (/p/{slug}) извлёк прямые URLs для: Agent Hansa (только dev.to review), Clustly (clustly.ai + /api/v1/agent/register), Daydreams (docs-market.daydreams.systems — 404), AgentHire, AgentPact (agentpact.xyz), BountyBook (api.bountybook.ai), Claw Earn, Toku (toku.agency), NEAR AI Agent Market, Algora (algora.io).
+- Пробы стандартных доменов для платформ без URL: clawgig.ai (402 — Vercel deployment disabled), agentgigs.com (403 Cloudflare), mercatai.eu (200!), botwork.com (404), agentworld.com (200, SPA), agentworld.ai (200, SPA), atrest.ai (200, SPA), moltverr.com (200, SPA), openwork.io (200, SPA), openwork.ai (436), toku.agency (200), near.ai (200).
+- **Agent Souk** (npm: `agentsouk`) — установил CLI v latest в /tmp, зарегистрировал агента:
+  - agent_id: `agt_01M4CKFFTPZWYK9FBZC1BC3D7M`
+  - handle: apsa-2026-sentinelshield
+  - did: did:key:z6MkuYjnM47zgTYfACfxUppkKMvcrgFtU545ZL3KfvvFvDuJ
+  - framework: claude-code
+  - credentials saved: `/home/z/my-project/.agentsouk/credentials.json` (mode 0600)
+  - .gitignore updated
+- **BountyBook** (api.bountybook.ai) — auth flow:
+  - GET /auth/nonce?address=0x869734666c78B90Aa9fE0D202E568b870f25e575 → nonce `bounty:...`
+  - Signed nonce with ethers.js Wallet.signMessage() (EIP-191 personal_sign) using our sandbox EVM wallet private key
+  - POST /auth/verify → 200 OK, got bearer token `b249c6eb-ef93-417d-996c-832e359edbda`
+  - BountyBook не имеет отдельной регистрации — agent identity = wallet address. 1801 agents already on the board.
+- **AgentPact** (agentpact.xyz / api.agentpact.xyz):
+  - Изучил /api-docs HTML: список всех endpoints (/api/auth/register, /api/agents, /api/offers, /api/needs, /api/deals, /api/payments, /api/deliveries, /api/disputes, /api/leaderboard, /api/feedback).
+  - Main domain agentpact.xyz возвращает 404 на POST /api/auth/register.
+  - Обнаружил что API на subdomain `api.agentpact.xyz`, не на основном домене.
+  - POST /api/auth/register требует `agentId` как UUID (Zod validation).
+  - Сгенерировал UUID v4: `9327dbde-018e-4dec-b797-c5f159423a47`
+  - POST с UUID + name → 200 OK: `{"agentId":"9327dbde-...","apiKey":"626ca344..."}`
+  - Создал profile через POST /api/agents с handle: apsa-2026-sentinelshield, displayName: APSA-2026 SentinelShield
+  - credentials saved: `/home/z/my-project/.agentpact/credentials.json` (mode 0600)
+- **Toku.agency** — /docs HTML показал crystal-clear API:
+  - POST /api/agents/register (idempotent, no ownerEmail needed for fully autonomous registration)
+  - Body: `{name, description, ownerEmail?}`
+  - Response: `{agent: {id, name, slug, apiKey, status, referralCode, profileUrl}}`
+  - Зарегистрировал:
+    - agent_id: `cmuyw3u830003qh0695nt65lu`
+    - slug: apsa-2026-sentinelshield
+    - apiKey: cmuyw3u830004qh065v9rmiq9
+    - profileUrl: https://toku.agency/agents/apsa-2026-sentinelshield
+    - setupScore: 1/5 (more setup available: webhooks, etc.)
+  - credentials saved: `/home/z/my-project/.toku/credentials.json` (mode 0600)
+- **Mercatai** (mercatai.eu, EU B2B marketplace):
+  - Изучил /.well-known/agent.json: `register_endpoint: "https://mercatai.eu/api/v1/agents"`, `registration_mode: "self_service"`, `requires_human_approval: false`.
+  - Изучил OpenAPI 3.0.3 (/api/v1/openapi.yaml): RegisterAgentRequest schema:
+    - agent_id (string), display_name, description, owner_email (Stripe Connect email), capabilities (array), languages (array), profile_visibility (default 'public'), gdpr_consent (boolean, required)
+  - POST /api/v1/agents с gdpr_consent=true:
+    - id: `d347f6e6-3a48-4c42-8e88-4eea15988b1b`
+    - agent_id: apsa-2026-sentinelshield
+    - api_key: 68c4dd2386f3ca887dc65ec10235599eb30da6c79135e9f78be5437f82662932
+    - status: active
+    - organization_join_token получен (for teammates)
+    - "Agent registered and active — you can log in and start bidding."
+  - credentials saved: `/home/z/my-project/.mercatai/credentials.json` (mode 0600)
+  - 0% marketplace fee on first 10 tasks (0.8% payment processing deduction, cap €5)
+- **Не удалось зарегистрироваться** (с причинами):
+  - ClawGig.ai — `x-vercel-error: DEPLOYMENT_DISABLED`, проект приостановлен на Vercel
+  - Daydreams TaskMarket (docs-market.daydreams.systems) — 404 "Application not found"
+  - Atrest.ai — Next.js SPA, имеет /onboarding но нет public API для self-registration
+  - Moltverr.com — Next.js SPA, имеет /gigs, /agents, /dashboard но нет public API
+  - AgentHire.ai, AgentWorld.com, OpenWork.io — Next.js SPAs, no public API
+  - BotWork.com — 404 NOT_FOUND
+  - WorkProtocol.ai — empty response
+  - Algora.io — human-focused GitHub issue bounty platform (Elixir/Phoenix app), not an AI agent marketplace
+  - Near.ai — complex cloud auth via cloud.near.ai/signin (OAuth-style), mostly a model marketplace, not direct agent task marketplace
+- Создал `/api/marketplaces/identities` endpoint:
+  - Возвращает unified JSON со всеми identities (registered, auth_only, dead, spa_only, not_an_agent_market, not_attempted)
+  - Читает credentials files из `/home/z/my-project/.{platform}/credentials.json`
+  - Public profile fetch для AgentPact (GET /api/agents/{id} без auth)
+  - Summary: total_platforms, registered, auth_only, dead, spa_only, not_an_agent_market, not_attempted, payout_wallets_used
+  - Каждая identity: platform, slug, status, agent_id, profile_url, api_base, credential_path, registered_at, capabilities, payout_wallet, payout_wallet_verified, reputation_score, reputation_label, live (fetch result), notes
+- Создал React component `MarketplacesIntegration.tsx` (~470 строк):
+  - Header: "Marketplace Presence · Multi-platform Agent Identity" + agent_name + Refresh
+  - 7 summary stat cards: Total / Registered / Auth only / Dead / SPA only / Not agent market / Not attempted
+  - Payout wallets in use section (2 wallets: 0x8697... sandbox + 0x829f... operator's receive-only) с copy buttons
+  - "Live registrations · 7 platforms" grid с IdentityCard компонентом (2 columns на lg):
+    - Каждая карточка: platform name, profile_url (clickable), status badge, agent_id + copy button, registered_at, reputation, payout_wallet + verified, capabilities chips, live fetch status, credential path, notes
+  - "Couldn't register · 11 platforms" grid с FailedCard (3 columns на lg): platform, status badge, profile_url, notes
+  - Refresh каждые 5 min
+  - STATUS_STYLES map: registered (emerald), auth_only (sky), dead (rose, Skull icon), spa_only (amber, Eye icon), not_an_agent_market (slate, Ban icon), not_attempted (slate, Activity icon)
+- Подключил новый tab "All Marketplaces" в `src/app/page.tsx`:
+  - Добавил import MarketplacesIntegration
+  - Добавил Globe icon в lucide-react imports
+  - Добавил `"marketplaces"` в ActiveTab union type
+  - Добавил TABS entry: id="marketplaces", shortLabel="All Marketplaces", fullLabel="All AI Agent Marketplaces — Unified Identity Registry", icon=Globe, accent="bg-teal-600", hover="text-teal-400..."
+  - Добавил render: `{activeTab === "marketplaces" && <MarketplacesIntegration />}`
+- Browser-verified через agent-browser:
+  - Открыл http://localhost:3000/, увидел новый "All Marketplaces" tab в навигации (snapshot -i показал `button "All Marketplaces" [ref=e53]`)
+  - Click @e53 → tab активировался
+  - Read показал: "Marketplace Presence · Multi-platform Agent Identity", "APSA-2026 SentinelShield", "Live registry of our agent's identities..."
+  - Summary stat cards: Total platforms 18, Registered 6, Auth only 1, Dead 4, SPA only 5
+  - Payout wallets section с 2 wallet addresses (sandbox + operator's receive-only) + copy buttons
+  - "Live registrations · 7 platforms" с карточками для BasedAgents, Agent Souk, AgentPact, Toku.agency, Mercatai, BountyBook, Agent402 router
+  - Все profile URLs кликабельны (https://basedagents.ai/agents/ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP, https://toku.agency/agents/apsa-2026-sentinelshield, etc.)
+  - Все agent_id с copy buttons
+  - "Couldn't register · 11 platforms" с карточками для ClawGig (Dead), Daydreams (Dead), Atrest (SPA only), Moltverr (SPA only), AgentHire (SPA only), AgentWorld (SPA only), OpenWork (SPA only), BotWork (Dead), WorkProtocol (Dead), Algora (Not agent market), Near.ai (Not attempted)
+  - Footer: "Fetched 10/8/2026, 2:08:33 AM · 780 ms · 6 live registrations across 18 explored platforms"
+  - Sticky footer внизу: "402APSA-2026.4 · Autonomous Money Hunter·Base L2 USDC Protocol·Receive-Only: 0x829f…2BDA"
+- Lint passes (`bun run lint` → 0 errors)
+- Dev server running clean (лог показывает: GET /api/marketplaces/identities 200 in 797ms, GET / 200, никаких runtime errors кроме initial EADDRINUSE от старой инстанции — resolved после restart)
+
+Stage Summary:
+- ✅ 6 платформ с полной регистрацией: BasedAgents, Agent Souk, AgentPact, Toku.agency, Mercatai, Agent402 router
+- ✅ 1 платформа с auth-only: BountyBook (agent identity = wallet address, 1801 agents на доске)
+- ✅ Всего 7 live identities с profile URLs, agent_ids, credentials safely stored
+- ✅ 4 платформы DEAD (ClawGig, Daydreams, BotWork, WorkProtocol) — не можем зарегистрироваться
+- ✅ 5 платформ SPA-only (Atrest, Moltverr, AgentHire, AgentWorld, OpenWork) — нет public API для self-registration
+- ✅ 1 платформа not_an_agent_market (Algora) — human-focused bounty
+- ✅ 1 платформа not_attempted (Near.ai) — complex OAuth, model marketplace
+- ✅ Unified `/api/marketplaces/identities` endpoint агрегирует все identities
+- ✅ "All Marketplaces" tab в dashboard показывает 18 платформ с полным статусом
+- ✅ Все credentials сохранены в `/home/z/my-project/.{platform}/credentials.json` (mode 0600, .gitignored)
+- ✅ Payout wallets: 0x869734666c78B90Aa9fE0D202E568b870f25e575 (sandbox, BountyBook) + 0x829f877daAb94D766BB2b8511ad486C40f2C2BDA (operator's receive-only, APSA-2026 service + Agent402 router)
+- ✅ Lint passes, browser-verified rendering, no runtime errors
+- ✅ Cron job каждые 15 min (webDevReview) всё ещё активен — будет автоматически продолжать development
+
+Unresolved issues or risks:
+- **Mercatai Stripe onboarding**: payouts требуют Stripe Connect Standard account (EU countries only: AT, BE, BG, HR, CZ, DK, EE, FI, FR, DE, GR, HU, IE, IT, LV, LT, LU, MT, NL, PL, PT, RO, SK, SI, ES, SE, LI, NO, GB). Operator must complete Stripe KYC onboarding to receive payouts.
+- **AgentPact owner_wallet_address**: still null, requires separate wallet-proof signing flow (similar to BasedAgents).
+- **Agent Souk wallet binding**: still null, requires POST /v1/agents/me/wallet-address with EIP-191 signature.
+- **Toku setupScore 1/5**: more setup needed (webhooks for job.created, job.updated, dm.received). Currently no alerts configured.
+- **BasedAgents wallet**: already set (0x869734666c78B90Aa9fE0D202E568b870f25e575, verified). Needs operator to fund 1 USDC for claim-bond.
+- **Multi-platform credential backup**: 5 different credential files in `/home/z/my-project/.{basedagents,agentsouk,agentpact,toku,mercatai}/` — all mode 0600, all .gitignored. Operator must back up offline. Losing any = losing that agent identity permanently.
+- **Domain renewal**: mercatai.com was parked on Namecheap, real platform is mercatai.eu. If they let .eu expire too, we lose access.
+
+Next phase priority recommendations:
+1. **Back up all 5 credential files** to offline storage: .basedagents/keys/, .agentsouk/, .agentpact/, .toku/, .mercatai/ — each is a separate agent identity. Ed25519 / API keys have no recovery path.
+2. **Deploy to Vercel** (operator runs `bash deploy.sh`). New "All Marketplaces" tab + endpoints станут публичными.
+3. **Mercatai Stripe onboarding**: operator opens Stripe Connect account (EU-eligible country) → link during Mercatai auth → enable payouts. Then bidding on EU B2B tasks opens up.
+4. **Agent Souk + AgentPact wallet binding**: sign EIP-191 message from our sandbox EVM wallet, POST to /v1/agents/me/wallet-address (Agent Souk) and equivalent on AgentPact. Enables wallet-to-wallet USDC payouts.
+5. **Toku webhook setup**: POST /api/agents/webhooks with {url, events:[job.created, job.updated, dm.received]} pointing to https://apsa-2026.vercel.app/api/toku/events (would need to build this endpoint first). This would let us auto-react to new tasks on Toku.
+6. **Cross-platform task monitor**: extend `/api/basedagents/scan` to also scan Toku, AgentPact, Mercatai, Agent Souk for honest paid tasks. Would need separate signed API calls per platform (different auth schemes).
+7. **Per-platform reputation tracking**: add a small section showing reputation_score trends across all 6 platforms (currently all 0). Helps visualize when paid work starts landing.
