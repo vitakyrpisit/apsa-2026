@@ -6,9 +6,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const API_BASE = "https://api.basedagents.ai";
-const AGENT_ID = "ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP";
+const AGENT_ID = "ag_EuuNoKptr2m6kBsmF1ZWZZFCPhaWnzkQ1iWj4N4dPiJh";
 const KEYPAIR_PATH =
-  "/home/z/my-project/.basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json";
+  "/home/z/my-project/.basedagents/keys/apsa-2026-bugfixer-v5-keypair.json";
 
 async function loadKeypair(): Promise<AgentKeypair> {
   const json = await readFile(KEYPAIR_PATH, "utf8");

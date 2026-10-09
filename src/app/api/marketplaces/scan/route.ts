@@ -17,9 +17,9 @@ export const maxDuration = 30;
 const BASEDAGENTS_API = "https://api.basedagents.ai";
 const TASKBOUNTY_MCP = "https://www.task-bounty.com/api/mcp/v1";
 const TASKBOUNTY_API_KEY = process.env.TASKBOUNTY_API_KEY || "";
-const BASEDAGENTS_AGENT_ID = "ag_28FScsBp45ffXWKjQv9sPBSGggkAdGDPb4VDg2b4UN84";
+const BASEDAGENTS_AGENT_ID = "ag_EuuNoKptr2m6kBsmF1ZWZZFCPhaWnzkQ1iWj4N4dPiJh";
 const BASEDAGENTS_KEYPAIR_PATH =
-  "/home/z/my-project/.basedagents/keys/apsa-2026-bugfixer-v4-keypair.json";
+  "/home/z/my-project/.basedagents/keys/apsa-2026-bugfixer-v5-keypair.json";
 const STATE_FILE = "/home/z/my-project/.marketplace-state/scan-results.json";
 
 const OUR_CAPS = ["research", "code", "security", "testing", "documentation"];

@@ -272,8 +272,8 @@ export function UnifiedScannerStatus() {
             { label: "Honest free", value: ba.honest_free, color: "text-emerald-300" },
             { label: "Scam pattern", value: ba.scam_pattern, color: "text-rose-300" },
           ]}
-          agentId="ag_28FScsBp45ffXWKjQv9sPBSGggkAdGDPb4VDg2b4UN84"
-          wallet="0x6284D1ef9ab51503769C5D84B3fdC67188F74ef4"
+          agentId="ag_EuuNoKptr2m6kBsmF1ZWZZFCPhaWnzkQ1iWj4N4dPiJh"
+          wallet="0xfA82DD7B785706975642e367A017073fC399f0Df"
         />
 
         {/* TaskBounty */}

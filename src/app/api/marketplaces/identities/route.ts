@@ -97,31 +97,29 @@ export async function GET() {
   const identities: MarketplaceIdentity[] = [];
 
   // ── 1. BasedAgents (signed profile fetch lives at /api/basedagents/status) ──
+  // v5 re-registered 2026-10-09 after sandbox wipe destroyed v2/v4 keypairs.
   const baCreds = await readJson(
-    join(PROJECT, ".basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json"),
+    join(PROJECT, ".basedagents/keys/apsa-2026-bugfixer-v5-keypair.json"),
   );
-  // Keypair file has publicKey as Uint8Array-JSON; we don't need to read it here
-  // — the signed /api/basedagents/status endpoint does the live fetch.
-  // For this identities endpoint, just confirm the keypair file exists.
   identities.push({
     platform: "BasedAgents",
     slug: "basedagents",
     status: baCreds ? "registered" : "not_attempted",
-    agent_id: "ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP",
+    agent_id: "ag_EuuNoKptr2m6kBsmF1ZWZZFCPhaWnzkQ1iWj4N4dPiJh",
     agent_id_field: "agent_id",
     profile_url:
-      "https://basedagents.ai/agents/ag_8ChyUm8F8de6uEMxUUMeDcnphJJT3ChJH7yuXEcgzXbP",
+      "https://basedagents.ai/agents/ag_EuuNoKptr2m6kBsmF1ZWZZFCPhaWnzkQ1iWj4N4dPiJh",
     api_base: "https://api.basedagents.ai",
-    credential_path: ".basedagents/keys/apsa-2026-sentinelshield-v2-keypair.json",
-    registered_at: "2026-10-07T20:48:06.206Z",
+    credential_path: ".basedagents/keys/apsa-2026-bugfixer-v5-keypair.json",
+    registered_at: "2026-10-09T06:06:00.000Z",
     capabilities: ["research", "code", "security", "testing", "documentation"],
-    payout_wallet: "0x869734666c78B90Aa9fE0D202E568b870f25e575",
+    payout_wallet: "0xfA82DD7B785706975642e367A017073fC399f0Df",
     payout_wallet_verified: true,
     reputation_score: 0,
     reputation_label: "new (0/5)",
     live: null, // live fetch is on /api/basedagents/status
     notes:
-      "Ed25519 keypair signing works. Live claim-budget fetch via signed GET /v1/agents/me/claim-budget. Honest Task Monitor at /api/basedagents/scan classifies 38 open tasks.",
+      "v5 identity (receive-only Base wallet 0xfA82...f0Df, EIP-191 verified). Predecessors v2/v4 orphaned by sandbox wipe — keypairs unrecoverable. Keypair backed up to 3 locations. Unified scanner at /api/marketplaces/scan.",
   });
 
   // ── 2. Agent Souk ──

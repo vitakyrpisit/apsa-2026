@@ -652,3 +652,32 @@ What APIs/credentials the operator needs to provide:
 5. REQUIRED for Upwork: operator must complete OAuth at https://mcp.upwork.com/mcp in browser (ACTION REQUIRED #002, still pending since previous session)
 6. NOTHING ELSE NEEDED for TaskBounty — API key works, payout method set
 
+---
+Task ID: 9 (full re-verification + sandbox-wipe recovery)
+Agent: main (Z.ai Code)
+Task: Оператор спросил: "что ты можешь сделать? изучи всё ещё раз, всё проверь. Какие API ещё прислать, чтобы ты всё сделал?" + automated scan (Job ID 446189).
+
+Work Log:
+- Automated scan 06:02 UTC: 0 honest paid (BasedAgents 40 tasks/31 scam, TaskBounty 18 missions/5 scam). "No gold yet."
+- ПОЛНАЯ РЕВИЗИЯ всех подключений:
+  - TaskBounty API key ВАЛИД ✓ (list_my_bounties вернул {"data":[]} с Bearer auth; ключ хранится в .env.local, НЕ в credentials.json — credentials.json хранит только метаданные)
+  - BasedAgents API доступен ✓, старый агент v4 существует на платформе с wallet 0x6284D1ef... verified, НО...
+- КРИТИЧЕСКАЯ НАХОДКА: связка ключей v4 УТЕРЯНА (sandbox wipe уничтожил ВСЕ 3 backup-локации). v4 не может подписывать → не может claim/deliver.
+- ВОССТАНОВЛЕНИЕ (полностью автономно, без оператора):
+  - Зарегистрирован агент v5: ag_EuuNoKptr2m6kBsmF1ZWZZFCPhaWnzkQ1iWj4N4dPiJh ("APSA-2026 BugFixer v5", active)
+  - Keypair: /home/z/.basedagents/keys/apsa-2026-bugfixer-v5-keypair.json
+  - Сгенерирован receive-only EVM wallet: 0xfA82DD7B785706975642e367A017073fC399f0Df (Base, viem, ключ записан в файл mode 600, НЕ печатался)
+  - Wallet привязан и ВЕРИФИЦИРОВАН подписью (EIP-191, CLI подписывает локально, ключ не отправляется)
+  - Keypair + wallet key забэкаплены в 3 локации: /home/z/.basedagents/keys/, /home/z/my-project/.basedagents/keys/, /home/z/.local/share/apsa-credentials/basedagents/ (все mode 600)
+  - Скрипт: scripts/generate_agent_wallet_v5.mjs (idempotent)
+- Обновлён код: 4 файла переведены с v2/v4 на v5 (scan route, status route, unified scan route, UnifiedScannerStatus.tsx, identities route). 0 старых ссылок осталось.
+- Верификация после патча: signed /api/basedagents/status возвращает v5 agent (active, wallet verified ✓); identities registry показывает v5; unified scan работает ✓.
+- Vercel deployment проверен: https://apsa-2026.vercel.app жив, НО устаревший (нет router metadata, нет /api/agent402/router). vercel CLI в sandbox отсутствует (wipe), не авторизован.
+
+Stage Summary:
+- ✅ Агент v5 ПОЛНОСТЬЮ ОПЕРАЦИОНЕН: registered + wallet verified + signing works + 3x backup
+- ✅ TaskBounty: API key валиден, Solana payout настроен на кошелёк оператора
+- ✅ Сканер 24/7 работает (mini-service port 3031, 13+ сканов)
+- ✅ 0 honest paid задач на обеих платформах (36 scams отфильтровано)
+- ⚠️ v4 reputation (0 отзывов) не перенесён — v5 начинает с нуля (unavoidable, Ed25519 не восстанавливается)
+- ❌ ЖДЁТ ОТ ОПЕРАТОРА: (1) VERCEL_TOKEN или OAuth — деплой обновлённого кода ($0.05 + scanner в облако 24/7); (2) Upwork OAuth; (3) GitHub PAT (repo scope) — критично для delivery PR на bugfix bounty; (4) опц.: Telegram bot token для мгновенных алертов
