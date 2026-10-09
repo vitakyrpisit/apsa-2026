@@ -1,0 +1,3357 @@
+Изучить всю документацию на сайтах:
+
+https://deploymentsafety.openai.com/gpt-6-astra/sec%3Aappendix-sol-luna
+https://openai.com/index/safety-overview-gpt-6-astra/
+https://openai.com/index/gpt-6-astra/
+ARC-AGI, который развивает ARC Prize Foundation.
+
+Применить все самое точное и правильное для поиска критической уязвимости или доказать и подтвердить что баг доказан и можно отправлять заявку.
+
+
+Я сопоставил отчёт с последними зафиксированными задачами проекта. Сейчас нельзя давать разработчику команду на пересборку или восстановление файлов: сначала нужно установить, какие исходники и артефакты действительно существуют, найти последнюю постановку задачи и проверить, не расходятся ли архивы, манифесты и интерфейс. Иначе можно перезаписать единственную сохранившуюся рабочую версию.
+
+## 1. Последние поставленные задачи — по приоритету
+
+## P0
+
+V25-P0 — STRICT-EVIDENCE-ID
+
+Критический приоритет
+
+Устранить обход проверки идентификаторов доказательств: убрать prefix-match `f.name.startswith(eid)`, определить строгую проверку `evidence_id`, проверку доверенного манифеста и обязательные негативные тесты. Проверить отдельно EXECUTOR и REVIEWER.
+
+## P1
+
+Восстановить согласованность двух пакетов
+
+Проверить наличие `40_ROLE_LOCK.json`, `__main__.py`, протокола, тестов и одинаковых правил сборки. Установить, какие различия между EXECUTOR и REVIEWER намеренные, а какие являются дефектами.
+
+## P2
+
+Установить каноническую версию и состояние интерфейса
+
+Сопоставить архивы с исходниками, worklog, SHA-256, манифестами и активным `page.tsx`. Не считать наличие файла доказательством того, что именно он используется при запуске.
+
+## P3
+
+Только после аудита — подготовить безопасное восстановление
+
+Сначала представить план, перечень источников восстановления, ожидаемые изменения и риски. Пересборку, изменение интерфейса и публикацию выполнять только после отдельного подтверждения оператора.
+
+Важно: это порядок задач, восстановленный по предоставленному вами отчёту и контексту проекта. Я не могу по одному этому тексту подтвердить, что описанное удаление файлов действительно произошло на текущем диске.
+
+## 2. Команда для ИИ-разработчика
+
+Скопируйте и передайте разработчику целиком. Она специально ограничивает его режимом аудита: без изменений файлов и без сборки.
+
+# PROTOCOL_FINAL — READ-ONLY FORENSIC AUDIT / TASK RECOVERY
+
+## Роль
+
+Ты — ИИ-разработчик и технический аудитор проекта PROTOCOL_FINAL. Сейчас твоя задача — установить фактическое состояние проекта и восстановить последнюю последовательность поставленных задач. Не приступай к исправлению кода.
+
+## ЖЁСТКИЙ ЗАПРЕТ НА ИЗМЕНЕНИЯ
+
+До отдельного письменного разрешения оператора запрещено:
+
+- редактировать, создавать, удалять, перемещать и переименовывать файлы;
+- распаковывать архивы в рабочие каталоги или перезаписывать существующие файлы;
+- запускать сборку, генерацию SFX/ZIP, автоформатирование или миграции;
+- устанавливать и обновлять зависимости;
+- менять `page.tsx`, API-маршруты, конфигурацию, манифесты и хеши;
+- выполнять Git reset, checkout, clean, restore, rebase или другие операции изменения состояния;
+- публиковать, загружать или заменять релизные артефакты.
+
+Разрешены только чтение, перечисление файлов, вычисление хешей, просмотр истории и безопасные тесты, которые гарантированно не записывают данные в проект. Если безопасность теста не подтверждена, не запускай его.
+
+## Цели аудита
+
+### A. Восстановить историю последних задач
+
+1. Найди и прочитай `worklog.md`, журналы задач, отчёты приёмки, release decision, README и доступные инструкции оператора.
+2. Определи последнюю задачу по подтверждаемым датам, содержимому и связям между артефактами.
+3. Отдельно установи:
+   - последнюю поставленную задачу;
+   - последнюю задачу, которую разработчик утверждает завершённой;
+   - последнюю задачу, завершение которой подтверждено проверяемыми доказательствами;
+   - задачи, оставшиеся незакрытыми.
+4. Не считай запись в журнале доказательством реализации без проверки соответствующих файлов и тестов.
+5. Если история отсутствует или противоречива, зафиксируй это явно. Не выдумывай недостающие события.
+
+### B. Инвентаризировать артефакты
+
+Найди все доступные версии:
+
+- master-архивов;
+- EXECUTOR и REVIEWER в форматах TAR.GZ, ZIP и SFX;
+- `WORKING_COPY_V25`, `REBUILD_V25`, `output` и других каталогов сборки;
+- `40_ROLE_LOCK.json`, `__main__.py`, `runtime/audit_target.py`;
+- `tests/test_claim_negative.py`, `tests/test_evidence_id_strict.py`;
+- манифестов, SHA-256 sidecar-файлов и файлов сборки интерфейса.
+
+Не предполагай, что каталоги существуют. Зафиксируй отсутствующие пути. Не создавай их.
+
+### C. Проверить V25-P0 STRICT-EVIDENCE-ID
+
+Только чтением исходников и безопасным анализом установи:
+
+1. Остался ли `f.name.startswith(eid)` или эквивалентная небезопасная проверка.
+2. Проверяется ли точное соответствие `evidence_id` реальному доказательству.
+3. Проверяются ли доверенный манифест, хеш содержимого, принадлежность доказательства нужному run ID и обязательные типы доказательств.
+4. Не выбирается ли произвольно первый каталог запуска вместо каталога, однозначно связанного с проверяемым run ID.
+5. Есть ли негативные тесты для префиксных совпадений, пустых и поддельных ID, чужих run ID, отсутствующих файлов, неверных хешей и отсутствующего манифеста.
+6. Одинакова ли логика проверки в EXECUTOR и REVIEWER.
+
+Не утверждай, что исправление работает, если оно лишь описано в документации или тест отсутствует.
+
+### D. Проверить целостность и согласованность релиза
+
+Для каждого доступного артефакта зафиксируй:
+
+- точное имя и путь;
+- размер;
+- SHA-256;
+- количество файлов;
+- наличие обязательных файлов;
+- результаты проверки структуры архива без распаковки поверх рабочих файлов;
+- соответствие внешнего архива, встроенных ZIP/SFX, манифестов и sidecar-хешей.
+
+Проверь `40_ROLE_LOCK.json` и launcher в обеих ролях. Установи, читается ли роль из файла блокировки или жёстко задана в коде. Проверь согласованность версии протокола, build ID и роли. Не исправляй найденные расхождения.
+
+### E. Проверить интерфейс оператора
+
+Только чтением установи:
+
+- какой `page.tsx` является активным;
+- какие SHA-256 и build ID показываются в интерфейсе;
+- какие API download-маршруты существуют;
+- совпадают ли заявленные интерфейсом артефакты с реально доступными файлами.
+
+Не меняй интерфейс и не запускай сервер, если это может изменить состояние проекта.
+
+## Приоритет источников
+
+Используй фактические исходники, архивы и вычисленные хеши как свидетельства содержимого. Worklog и отчёты используй для восстановления намерений и хронологии, но независимо проверяй заявления о завершении задач.
+
+Если два источника расходятся, укажи оба и объясни, что именно подтверждено. Не выбирай версию только по имени, дате файла или заявлению автора.
+
+## Формат итогового отчёта
+
+1. **Последняя поставленная задача** — точное название, источник и дата, если подтверждены.
+2. **Последние задачи по хронологии** — выполнено / частично выполнено / не подтверждено / заблокировано.
+3. **Фактическое состояние файлов** — таблица путей, SHA-256 и наличия.
+4. **V25-P0** — отдельная проверка EXECUTOR и REVIEWER.
+5. **Расхождения** — код, тесты, архивы, манифесты, role lock, launcher, интерфейс.
+6. **Риски** — что может быть потеряно или повреждено при восстановлении.
+7. **Безопасный план восстановления** — последовательность действий, исходные источники и контрольные хеши; без выполнения действий.
+8. **Что нужно подтвердить оператору** — только решения, без которых нельзя безопасно продолжать.
+
+Для каждого критического вывода укажи путь и конкретный файл или фрагмент, на котором он основан. Разделяй подтверждённые факты, заявления из журналов и предположения.
+
+## Условие завершения
+
+Заверши отчёт статусами:
+
+- `READ_ONLY_AUDIT = COMPLETE` или `INCOMPLETE`
+- `LATEST_TASK_IDENTIFIED = YES / NO`
+- `V25_P0_STRICT_EVIDENCE = PASS / FAIL / NOT_VERIFIED`
+- `EXECUTOR_RELEASE_READY = YES / NO / NOT_VERIFIED`
+- `REVIEWER_RELEASE_READY = YES / NO / NOT_VERIFIED`
+- `PROJECT_STATE_MODIFIED = NO`
+
+Не исправляй дефекты и не начинай восстановление. Дождись отдельного разрешения оператора.
+
+## 3. Что делать после выполнения команды
+
+Попросите разработчика вернуть полный отчёт с путями и SHA-256, а не просто написать «проверено». Затем нужно сверить его вывод с исходными архивами.
+
+Ключевой принцип: сначала определить канонические исходники и подтвердить V25-P0, затем планировать восстановление; не пересобирать из непроверенного состояния. Даже если проверка покажет, что часть файлов отсутствует, это ещё не разрешение удалять, заменять или восстанавливать их.
+
+
+Да. Здесь нужно не просто «добавить ещё тестов», а перестроить **EXECUTOR + REVIEWER как evidence-first систему валидации**, где модель может предложить гипотезу, но **ни модель, ни EXECUTOR не имеют права объявить уязвимость доказанной**. Доказательство должно возникать только после независимого воспроизведения, проверки состояния до/после, negative control, целостности артефактов и независимого REVIEWER.
+
+Я изучил указанные материалы OpenAI, включая системную карточку GPT-6 Astra и отдельный Appendix GPT-6 Sol/GPT-6 Luna. В Astra прямо описаны agentic cyber workflows, автономное обнаружение и разработка эксплойтов, использование стандартных vulnerability-research tools, held-out/adversarial evaluations, мониторинг действий и defense-in-depth. При этом сама документация подчёркивает ограничения мониторинга и то, что отсутствие наблюдаемого сбоя не доказывает надёжность. [OpenAI Deployment Safety Hub](https://deploymentsafety.openai.com/gpt-6-astra/sec%3Aappendix-sol-luna?utm_source=chatgpt.com)
+
+Отдельно важно: **мы не должны копировать внутреннюю архитектуру OpenAI буквально**. Нам нужна инженерная реализация принципов: независимая проверка, воспроизводимость, adversarial/negative testing, action monitoring, scope enforcement, held-out validation и строгая доказательная база.
+
+Для подачи уязвимостей также нужен отдельный слой program compliance. У OpenAI Security Bug Bounty и Safety Bug Bounty разные области; например, Safety Bug Bounty отдельно указывает agentic prompt injection/data exfiltration и требует воспроизводимость не менее 50% для соответствующего класса, а общие jailbreaks без доказуемого security/safety impact не принимаются. [OpenAI](https://openai.com/index/safety-bug-bounty/?utm_source=chatgpt.com) Security/CVD-процесс требует добросовестного тестирования, корректной валидации и координированного раскрытия. [OpenAI](https://openai.com/policies/coordinated-vulnerability-disclosure-policy/?trk=article-ssr-frontend-pulse_little-text-block\&utm_source=chatgpt.com)
+
+Ниже — **готовая команда ИИ-разработчику**.
+
+---
+
+# КОМАНДА ИИ-РАЗРАБОТЧИКУ
+
+```text
+PROTOCOL_FINAL_V25 — FULL EVIDENCE-FIRST SECURITY RESEARCH UPGRADE
+EXECUTOR + REVIEWER
+STRICT BASELINE / NO CROSS-CONTAMINATION / MASTER-SPEC RESTORATION
+
+РОЛЬ
+
+Ты — ИИ-разработчик системы PROTOCOL_FINAL_V25.
+
+Твоя задача — продолжить разработку существующей системы EXECUTOR + REVIEWER так, чтобы она могла:
+
+1. находить потенциальные уязвимости;
+2. превращать их в проверяемые security hypotheses;
+3. независимо воспроизводить потенциальную уязвимость;
+4. измерять фактический security impact;
+5. доказывать exploitability только при наличии полного набора доказательств;
+6. самостоятельно отклонять ложные срабатывания;
+7. отличать реальный exploit от успешного завершения транзакции/процесса;
+8. сохранять полную цепочку provenance;
+9. формировать готовый к ручной проверке submission package;
+10. никогда не объявлять vulnerability PROVEN на основании одного AI-утверждения, static pattern или exit code.
+
+============================================================
+0. ЖЁСТКИЕ ГРАНИЦЫ ИСТОЧНИКОВ
+============================================================
+
+ИСПОЛЬЗОВАТЬ ТОЛЬКО:
+
+A)
+PROTOCOL_FINAL_V25_EXECUTOR.tar.gz
+
+B)
+PROTOCOL_FINAL_V25_REVIEWER.tar.gz
+
+Эти два архива считать ПОСЛЕДНЕЙ РАБОЧЕЙ ВЕРСИЕЙ.
+
+Зафиксированные baseline SHA:
+
+EXECUTOR:
+adb5c43ff4c36aa730032a324e6a389f616f0befdab72580d727265a97e05b57
+
+REVIEWER:
+8ead75a47504a71c2fd55cb9718123940e956b7cf41fe3b92ea8d075a09d4312
+
+И отдельно использовать только как нормативный источник:
+
+PROTOCOL_FINAL_MASTER_ALL_IN_ONE_BUNDLE_v25_UNIFIED_TZ_EN.zip
+
+MASTER SHA:
+
+b5493f46ce913303391668986b88bad36ab7af2e2e9a3f8bfb8f2d8542d9abb5
+
+ЗАПРЕЩЕНО использовать как source code baseline:
+
+- FINAL_SYSTEM;
+- FINAL_AUDIT;
+- V18;
+- V18-era SFX;
+- V24;
+- старые EXECUTOR/REVIEWER;
+- старые REBUILD-каталоги;
+- ранее заявленные, но отсутствующие V25-P0 архивы;
+- любые старые версии из других директорий;
+- любые файлы, не происходящие из двух указанных baseline archives или V25 master.
+
+Не смешивать содержимое старых релизов с текущими пакетами.
+
+Если какой-либо необходимый компонент отсутствует в baseline:
+НЕ брать его автоматически из старой версии.
+
+Сначала зафиксировать:
+MISSING_COMPONENT
+SOURCE_REQUIRED
+BLOCKED
+
+============================================================
+1. СОХРАНЕНИЕ BASELINE
+============================================================
+
+Никогда не изменяй исходные:
+
+PROTOCOL_FINAL_V25_EXECUTOR.tar.gz
+PROTOCOL_FINAL_V25_REVIEWER.tar.gz
+
+Создай отдельный immutable baseline copy или read-only extraction.
+
+Все исправления выполнять только в новом рабочем дереве.
+
+Обязательно создать:
+
+BASELINE/
+WORK/
+BUILD/
+EVIDENCE/
+RELEASE/
+REPORTS/
+
+Baseline должен быть сохранён с:
+
+SHA-256
+size
+mtime
+archive member list
+manifest hash
+
+До начала изменений зафиксировать:
+
+BASELINE_EXECUTOR_SHA256
+BASELINE_REVIEWER_SHA256
+MASTER_SHA256
+
+============================================================
+2. MASTER V25 = НОРМАТИВНАЯ СПЕЦИФИКАЦИЯ
+============================================================
+
+Изучить полностью:
+
+PROTOCOL_FINAL_MASTER_ALL_IN_ONE_BUNDLE_v25_UNIFIED_TZ_EN.zip
+
+Особенно:
+
+- master protocol;
+- claim.schema.json;
+- state_machine.json;
+- contracts;
+- test specifications;
+- evidence requirements;
+- severity/scope;
+- submission requirements;
+- reproducibility requirements.
+
+Master определяет контракт системы.
+
+Если новый security requirement отсутствует в master, но необходим для evidence-first architecture, добавить его как:
+
+V25-P0-EXTENSION
+
+и явно записать:
+
+SOURCE:
+EXTERNAL SECURITY REQUIREMENT
+
+RATIONALE:
+...
+
+NEVER silently rewrite the V25 specification.
+
+============================================================
+3. ОСНОВНОЙ ПРИНЦИП СИСТЕМЫ
+============================================================
+
+AI HYPOTHESIS != SECURITY FINDING
+
+EXECUTOR может создать:
+
+CANDIDATE
+
+но только evidence pipeline может создать:
+
+VALIDATED_FINDING
+
+и только REVIEWER может перевести:
+
+VALIDATED_FINDING
+        |
+        v
+CONFIRMED
+
+При этом:
+
+CONFIRMED != автоматически PROVEN.
+
+PROVEN возникает только после прохождения всех mandatory gates.
+
+============================================================
+4. НОВАЯ АРХИТЕКТУРА
+============================================================
+
+Система должна иметь следующие независимые стадии:
+
+STAGE 0
+Scope / Authorization Gate
+
+STAGE 1
+Target Acquisition
+
+STAGE 2
+Static / Semantic Analysis
+
+STAGE 3
+Hypothesis Generation
+
+STAGE 4
+Candidate Prioritization
+
+STAGE 5
+Exploit Planning
+
+STAGE 6
+Sandbox Reproduction
+
+STAGE 7
+Independent Reproduction
+
+STAGE 8
+Impact Measurement
+
+STAGE 9
+Negative Controls
+
+STAGE 10
+Evidence Freeze
+
+STAGE 11
+Independent REVIEWER
+
+STAGE 12
+Verdict Projection
+
+STAGE 13
+Submission Package Builder
+
+STAGE 14
+Final Human Approval
+
+Ни одна стадия не должна подменять другую.
+
+============================================================
+5. SCOPE / AUTHORIZATION GATE
+============================================================
+
+Перед исследованием создаётся immutable:
+
+scope.json
+
+Он должен содержать:
+
+target
+target_type
+authorized_domains
+authorized_contracts
+authorized_repositories
+authorized_versions
+authorized_networks
+authorized_test_environments
+allowed_actions
+forbidden_actions
+time_window
+researcher_identity
+authorization_reference
+program_reference
+
+Если scope неизвестен:
+
+RESEARCH_BLOCKED
+
+Если действие потенциально выходит за scope:
+
+ACTION_BLOCKED
+
+Никаких автоматических обходов scope.
+
+============================================================
+6. TARGET FINGERPRINT
+============================================================
+
+Для каждого target создать immutable fingerprint:
+
+target_id
+repository
+commit
+version
+bytecode_hash
+runtime_hash
+compiler
+compiler_version
+build_flags
+dependency_lock
+chain_id
+rpc_reference
+block_number
+fork_block
+container_digest
+OS
+tool_versions
+
+Цель:
+
+доказать, что PoC действительно относится к тому target, который заявлен в отчёте.
+
+============================================================
+7. EXECUTOR
+============================================================
+
+EXECUTOR отвечает за:
+
+- исследование;
+- построение гипотез;
+- поиск vulnerable paths;
+- построение минимального PoC;
+- запуск controlled reproduction;
+- сбор evidence.
+
+EXECUTOR НЕ имеет права сам присваивать:
+
+100%_PROVEN
+
+или окончательный CONFIRMED.
+
+EXECUTOR создаёт:
+
+candidate.json
+
+и:
+
+evidence bundle.
+
+Каждый candidate обязан иметь:
+
+finding_id
+executor_run_id
+target_id
+vulnerability_class
+hypothesis
+attack_surface
+preconditions
+expected_security_property
+expected_violation
+test_plan
+scope_status
+
+============================================================
+8. MULTI-METHOD DETECTION
+============================================================
+
+Не ограничиваться одним detector.
+
+Для каждой гипотезы использовать максимально независимые методы:
+
+1. static analysis
+2. AST analysis
+3. CFG/data-flow analysis
+4. symbolic reasoning
+5. invariant checking
+6. dynamic execution
+7. fuzzing/property testing
+8. differential testing
+9. state transition analysis
+10. economic/financial analysis
+11. exploit reproduction
+12. regression/negative control
+
+Каждый метод должен иметь:
+
+method_id
+tool
+version
+input_hash
+output_hash
+exit_code
+stdout_hash
+stderr_hash
+
+============================================================
+9. EXPLOITABILITY
+============================================================
+
+Нельзя считать:
+
+transaction succeeded
+
+доказательством exploit.
+
+Для security claim необходимо доказать:
+
+ATTACK PRECONDITIONS
++
+TRIGGER
++
+SECURITY PROPERTY VIOLATION
++
+OBSERVABLE EFFECT
++
+IMPACT
+
+Например:
+
+INITIAL STATE
+ATTACK ACTIONS
+INTERMEDIATE STATE
+VIOLATION
+FINAL STATE
+ASSET / PRIVILEGE / DATA DELTA
+
+Все значения должны быть измерены.
+
+============================================================
+10. STATE DIFFERENTIAL
+============================================================
+
+Для каждого PoC обязательно:
+
+state_before
+state_during
+state_after
+
+И вычислить:
+
+delta
+
+Для financial vulnerabilities:
+
+attacker_before
+attacker_after
+victim_before
+victim_after
+protocol_before
+protocol_after
+
+Не использовать только textual logs.
+
+Балансовые изменения, storage changes, authorization changes или execution traces должны быть machine-verifiable.
+
+============================================================
+11. NEGATIVE CONTROLS
+============================================================
+
+Каждый exploit PoC должен по возможности иметь:
+
+VULNERABLE_CONTROL
+FIXED_CONTROL
+SAFE_CONTROL
+
+Например:
+
+VulnerableVault
+FixedVault
+SafeVault
+
+Ожидается:
+
+VULNERABLE:
+exploit succeeds
+
+FIXED:
+exploit fails
+
+SAFE:
+exploit fails
+
+Причина failure должна быть проверена.
+
+Нельзя проверять только revert string.
+
+Проверять:
+
+revert origin
+execution trace
+state delta
+balance delta
+storage delta
+event log
+expected invariant
+
+============================================================
+12. REPRODUCIBILITY
+============================================================
+
+Каждый finding должен иметь:
+
+REPRODUCTION_COMMANDS.md
+
+Команды должны работать из чистой среды.
+
+Фиксировать:
+
+tool versions
+compiler versions
+dependencies
+chain/fork
+block
+environment
+seed
+timeout
+resource limits
+
+Если воспроизведение зависит от внешнего состояния:
+
+сохранить snapshot/fork metadata.
+
+============================================================
+13. INDEPENDENT REPRODUCTION
+============================================================
+
+REVIEWER не должен доверять:
+
+EXECUTOR stdout
+EXECUTOR verdict
+EXECUTOR claim
+EXECUTOR interpretation
+
+REVIEWER получает:
+
+target
+claim
+evidence manifest
+raw evidence
+PoC
+environment metadata
+
+и запускает собственную reproduction.
+
+По возможности:
+
+отдельный process
+отдельный workdir
+отдельный run_id
+отдельный environment
+
+Никакого совместного mutable state.
+
+============================================================
+14. EVIDENCE-ID SECURITY
+============================================================
+
+Полностью исправить V25-P0.
+
+ЗАПРЕТИТЬ:
+
+f.name.startswith(eid)
+
+и любые эквивалентные prefix matches.
+
+evidence_id должен разрешаться только через:
+
+trusted evidence_manifest.json
+
+Manifest содержит:
+
+evidence_id
+relative_path
+sha256
+size
+mime/type
+run_id
+finding_id
+producer
+created_at
+role
+
+Проверять:
+
+exact ID
+exact path
+hash
+size
+run_id
+finding_id
+role
+containment
+symlink safety
+
+Запрещено:
+
+../
+absolute paths
+symlink escape
+foreign run
+foreign finding
+manifest substitution
+hash mismatch
+duplicate evidence IDs
+
+============================================================
+15. EVIDENCE MANIFEST
+============================================================
+
+Для каждого run создавать:
+
+evidence_manifest.json
+
+Сам manifest должен иметь:
+
+manifest_version
+run_id
+finding_id
+target_id
+entries
+manifest_sha256
+
+Каждая запись:
+
+evidence_id
+path
+sha256
+size
+created_by
+timestamp
+role
+
+Manifest freeze после завершения run.
+
+После freeze изменение evidence:
+
+REVIEW_BLOCKED
+
+============================================================
+16. EVIDENCE SUFFICIENCY
+============================================================
+
+Разделить:
+
+INTEGRITY
+
+и
+
+SUFFICIENCY.
+
+INTEGRITY PASS означает:
+
+файлы не изменены.
+
+Это НЕ означает:
+
+доказательство достаточно.
+
+SUFFICIENCY должна проверять обязательный набор:
+
+claim
+target fingerprint
+PoC
+raw stdout
+raw stderr
+trace
+state-before
+state-after
+impact calculation
+negative control
+environment metadata
+reproduction command
+manifest
+scope
+reviewer result
+
+Если обязательный элемент отсутствует:
+
+NOT_PROVEN
+
+============================================================
+17. ANTI-FALSE-POSITIVE GATES
+============================================================
+
+Добавить обязательные проверки:
+
+G1_SCOPE
+G2_TARGET_IDENTITY
+G3_BUILD_REPRODUCIBILITY
+G4_HYPOTHESIS
+G5_TRIGGER
+G6_EXPLOIT_CONDITION
+G7_SECURITY_PROPERTY_VIOLATION
+G8_OBSERVABLE_IMPACT
+G9_STATE_DELTA
+G10_NEGATIVE_CONTROL
+G11_INDEPENDENT_REPRODUCTION
+G12_EVIDENCE_INTEGRITY
+G13_EVIDENCE_SUFFICIENCY
+G14_REVIEWER_INDEPENDENCE
+G15_SCOPE_SEVERITY
+G16_SUBMISSION_COMPLIANCE
+
+Любой mandatory FAIL:
+
+не PROVEN.
+
+============================================================
+18. REVIEWER
+============================================================
+
+REVIEWER должен быть независимым validator.
+
+Он должен:
+
+1. перечитать claim;
+2. независимо resolve evidence IDs;
+3. проверить manifest;
+4. проверить target;
+5. запустить PoC;
+6. проверить negative controls;
+7. пересчитать impact;
+8. проверить vulnerability class;
+9. проверить severity;
+10. проверить scope;
+11. проверить final verdict.
+
+REVIEWER НЕ ДОЛЖЕН копировать verdict EXECUTOR.
+
+============================================================
+19. VERDICT PROJECTION
+============================================================
+
+Final verdict всегда вычисляется системой.
+
+Нельзя позволить модели самостоятельно прислать:
+
+final_verdict = "100%_PROVEN"
+
+и принять это поле.
+
+Projection:
+
+PROVEN_ELIGIBLE
++
+CONFIRMED
++
+ALL_MANDATORY_GATES_PASS
+=
+100%_PROVEN
+
+Если любой mandatory gate FAIL:
+
+0%_PROVEN
+
+CONFIRMED + SIMULATED_APPROXIMATION:
+
+PARTIALLY_CONFIRMED
+
+DISPUTED:
+
+PARTIALLY_CONFIRMED
+
+REVIEW_BLOCKED:
+
+REVIEW_BLOCKED
+
+PENDING:
+
+NULL
+
+Всегда сохранять:
+
+claimed_verdict
+projected_verdict
+verdict_delta
+
+Если:
+
+claimed_verdict != projected_verdict
+
+то:
+
+VERDICT_INCONSISTENCY
+REVIEW_BLOCKED
+
+============================================================
+20. STATE MACHINE
+============================================================
+
+Строго соблюдать:
+
+PENDING
+  -> CONFIRMED
+  -> REJECTED
+  -> DISPUTED
+  -> REVIEW_BLOCKED
+
+CONFIRMED terminal
+REJECTED terminal
+
+DISPUTED
+  -> new immutable run
+  -> CONFIRMED / REJECTED
+
+REVIEW_BLOCKED
+  -> new run after blocker resolution
+
+Никаких неописанных переходов.
+
+============================================================
+21. ADVERSARIAL VALIDATION
+============================================================
+
+Для каждого detector создать adversarial test suite.
+
+Цель:
+
+проверять не только способность найти vulnerability,
+но и способность НЕ объявить vulnerability при отсутствии доказательства.
+
+Создать:
+
+true_positive
+true_negative
+near_miss
+ambiguous
+misleading_log
+successful_transaction_without_exploit
+revert_without_security_violation
+economic_delta_without_attack
+attack_that_does_not_cross_security_boundary
+
+Отдельно тестировать:
+
+hallucinated PoC
+fake evidence IDs
+stale evidence
+foreign evidence
+wrong target
+wrong chain
+wrong commit
+wrong vulnerability class
+wrong severity
+false impact calculation
+
+============================================================
+22. HELD-OUT TESTING
+============================================================
+
+Не тестировать качество системы только на тех примерах, на которых она разрабатывалась.
+
+Разделить:
+
+TRAIN/DEV
+VALIDATION
+HELD_OUT
+
+Held-out набор не должен использоваться для настройки detector thresholds.
+
+Отдельно измерять:
+
+precision
+recall
+false-positive rate
+false-negative rate
+reproduction success
+impact-measurement accuracy
+reviewer disagreement
+
+Для статистических утверждений сохранять:
+
+sample size
+confidence interval
+dataset hash
+
+Не писать "production calibrated", если нет реального held-out/production dataset.
+
+============================================================
+23. MONITORING
+============================================================
+
+Все действия EXECUTOR и REVIEWER должны логироваться.
+
+Минимально:
+
+timestamp
+actor
+role
+action
+tool
+arguments hash
+input hash
+output hash
+exit code
+stdout hash
+stderr hash
+network action
+filesystem action
+scope decision
+
+Мониторинг должен быть append-only.
+
+Не полагаться только на AI reasoning.
+
+============================================================
+24. AGENT ACTION SAFETY
+============================================================
+
+Перед каждым потенциально consequential action:
+
+ACTION_INTENT
++
+SCOPE_CHECK
++
+TARGET_CHECK
++
+AUTHORIZATION_CHECK
+
+Если действие:
+
+- меняет внешний target;
+- отправляет transaction;
+- публикует данные;
+- загружает exploit;
+- меняет production;
+- отправляет submission;
+
+то требуется отдельный approval gate.
+
+По умолчанию:
+
+DENY.
+
+Лабораторные локальные sandbox actions разрешены только внутри созданного isolated environment.
+
+============================================================
+25. SANDBOX
+============================================================
+
+Все PoC запускать:
+
+isolated
+reproducible
+resource-limited
+network-restricted
+
+Использовать:
+
+container digest
+filesystem snapshot
+dependency lock
+toolchain manifest
+
+Запрещено использовать реальный production target для destructive validation.
+
+============================================================
+26. PACKAGING
+============================================================
+
+Исправить:
+
+ZIP/SFX
+
+так, чтобы:
+
+python3 package.zip
+
+и
+
+python3 package.py
+
+имели определённый и документированный способ запуска.
+
+Для ZIP:
+
+__main__.py
+
+обязателен, если ZIP должен запускаться напрямую.
+
+Launcher должен:
+
+читать 40_ROLE_LOCK.json
+
+а не использовать hardcoded EXPECTED_ROLE.
+
+Role mismatch:
+
+FAIL CLOSED.
+
+============================================================
+27. ZIP-SLIP / PACKAGE SECURITY
+============================================================
+
+Явно реализовать:
+
+absolute path rejection
+.. rejection
+realpath containment
+symlink rejection
+package content hash verification
+manifest verification
+
+Не полагаться только на поведение stdlib extractall().
+
+Создать regression tests.
+
+============================================================
+28. SIDE-CAR SHA256
+============================================================
+
+Исправить формат:
+
+SHA256␠␠filename
+
+или:
+
+SHA256 *filename
+
+Сделать обязательный тест:
+
+sha256sum -c
+
+для каждого release sidecar.
+
+Если hash value правильный, но sidecar syntactically invalid:
+
+FAIL.
+
+============================================================
+29. DEPENDENCIES
+============================================================
+
+Поставка должна быть reproducible.
+
+Если Foundry project требует:
+
+forge-std
+
+то dependency должна быть:
+
+- включена в package;
+или
+- locked and deterministically fetched;
+или
+- package должен содержать полный reproducible bootstrap.
+
+Не принимать:
+
+"у меня локально установлено"
+
+как доказательство.
+
+Чистая среда должна иметь возможность воспроизвести тест.
+
+============================================================
+30. REAL EXPLOIT PROOF
+============================================================
+
+PoC должен отвечать:
+
+WHAT was vulnerable?
+
+WHY was it vulnerable?
+
+WHAT exact condition triggered it?
+
+WHAT changed?
+
+WHO gained what?
+
+HOW much?
+
+CAN independent reviewer reproduce it?
+
+DOES fixed control reject it?
+
+IS the result within scope?
+
+Если хотя бы один ключевой вопрос не имеет machine-verifiable evidence:
+
+NOT_PROVEN.
+
+============================================================
+31. IMPACT ENGINE
+============================================================
+
+Impact calculation должен быть отдельным детерминированным модулем.
+
+Input:
+
+before state
+after state
+asset ledger
+attacker identity
+victim identity
+chain state
+
+Output:
+
+asset_delta
+privilege_delta
+data_access_delta
+economic_impact
+confidence
+
+Все расчёты воспроизводимы.
+
+Никаких значений, введённых только LLM.
+
+============================================================
+32. VULNERABILITY CLASSIFICATION
+============================================================
+
+Не использовать generic fallback:
+
+reentrancy-eth
+
+для каждого finding.
+
+Класс должен выводиться из:
+
+detector evidence
+root cause
+execution trace
+security property
+
+Если классификация не подтверждена:
+
+UNKNOWN
+
+а не придумывать класс.
+
+============================================================
+33. SEVERITY
+============================================================
+
+Severity должна быть отдельным review step.
+
+Хранить:
+
+severity_claimed
+severity_reviewer
+severity_projected
+severity_rationale
+scope_reference
+
+Не разрешать EXECUTOR самостоятельно превращать impact в severity.
+
+============================================================
+34. SUBMISSION PACKAGE
+============================================================
+
+После CONFIRMED создать:
+
+SUBMISSION/
+
+README_SUBMISSION.md
+REPORT.md
+SUMMARY.md
+REPRODUCTION_COMMANDS.md
+IMPACT.md
+SCOPE.md
+SEVERITY.md
+TIMELINE.md
+
+PoC/
+
+RAW_EVIDENCE/
+
+TRACES/
+
+LOGS/
+
+MANIFEST.sha256
+evidence_manifest.json
+SUBMISSION_CHECKLIST.md
+
+Также:
+
+TARGET_FINGERPRINT.json
+ENVIRONMENT.json
+TOOLCHAIN.json
+ASSET_LEDGER.json
+NEGATIVE_CONTROLS.json
+REVIEWER_VERDICT.json
+VERDICT_PROJECTION.json
+
+============================================================
+35. REPORT FORMAT
+============================================================
+
+REPORT.md должен содержать:
+
+Title
+
+Executive Summary
+
+Affected Target
+
+Affected Version / Commit
+
+Root Cause
+
+Preconditions
+
+Attack Path
+
+Proof of Concept
+
+Expected Result
+
+Actual Result
+
+State Before
+
+State After
+
+Measured Impact
+
+Negative Controls
+
+Independent Reproduction
+
+Scope
+
+Severity
+
+Remediation
+
+Evidence Index
+
+Reproduction Commands
+
+Environment
+
+Hashes
+
+Reviewer Verdict
+
+Limitations
+
+Disclosure Notes
+
+Никаких неподтверждённых утверждений.
+
+============================================================
+36. PROGRAM ADAPTER
+============================================================
+
+Submission builder должен быть program-aware.
+
+Создать:
+
+program_profile.json
+
+Он определяет:
+
+program_name
+program_url
+scope
+in_scope_categories
+out_of_scope_categories
+required_reproducibility
+required_fields
+severity_model
+submission_channel
+disclosure_rules
+authorization_rules
+
+Для OpenAI отдельно поддержать:
+
+SECURITY_BUG_BOUNTY
+SAFETY_BUG_BOUNTY
+
+Не смешивать их автоматически.
+
+Если finding относится к security vulnerability:
+
+SECURITY path.
+
+Если finding относится к AI safety / abuse:
+
+SAFETY path.
+
+Если ownership ambiguous:
+
+PROGRAM_ROUTING_REQUIRED
+
+Не отправлять автоматически.
+
+============================================================
+37. OPENAI-SPECIFIC COMPLIANCE
+============================================================
+
+Учитывать актуальные публичные правила OpenAI.
+
+Особенно:
+
+- scope;
+- authorization;
+- responsible testing;
+- reproducibility;
+- security vs safety routing;
+- confidentiality;
+- coordinated disclosure.
+
+Для agentic safety findings отдельно учитывать reproducibility requirements, включая требования конкретной программы.
+
+Не считать общий jailbreak автоматически валидным finding.
+
+Не считать policy bypass finding без demonstrable security/safety impact.
+
+============================================================
+38. HUMAN APPROVAL
+============================================================
+
+Последний этап:
+
+HUMAN_SUBMISSION_APPROVAL
+
+Никакой автоматической отправки report без оператора.
+
+Система должна выдавать:
+
+READY_TO_SUBMIT
+или
+NOT_READY_TO_SUBMIT
+
+с перечнем причин.
+
+============================================================
+39. ABSOLUTE PROOF RULE
+============================================================
+
+Никогда не использовать:
+
+"probably vulnerable"
+как PROVEN.
+
+Никогда не использовать:
+
+transaction succeeded
+как exploit proof.
+
+Никогда не использовать:
+
+static pattern found
+как confirmed vulnerability.
+
+Никогда не использовать:
+
+AI says exploit works
+как evidence.
+
+Никогда не использовать:
+
+hash exists
+как evidence sufficiency.
+
+Никогда не использовать:
+
+one successful run
+как reliability claim.
+
+============================================================
+40. REQUIRED DELIVERABLES
+============================================================
+
+После реализации должны существовать:
+
+EXECUTOR:
+
+40_ROLE_LOCK.json
+__main__.py
+runtime/
+contracts/
+tests/
+evidence/
+manifest/
+
+REVIEWER:
+
+40_ROLE_LOCK.json
+__main__.py
+runtime/
+contracts/
+tests/
+evidence/
+manifest/
+
+Обязательно:
+
+tests/test_evidence_id_strict.py
+tests/test_claim_negative.py
+tests/test_verdict_projection.py
+tests/test_state_machine.py
+tests/test_zip_slip.py
+tests/test_manifest_integrity.py
+tests/test_negative_controls.py
+tests/test_reproducibility.py
+tests/test_sidecar_sha256.py
+
+============================================================
+41. TEST MATRIX
+============================================================
+
+Минимум:
+
+A. positive vulnerability
+B. fixed vulnerability
+C. safe implementation
+D. false positive
+E. fake evidence
+F. foreign evidence
+G. wrong run
+H. wrong target
+I. wrong hash
+J. modified evidence
+K. missing evidence
+L. malformed manifest
+M. prefix evidence ID
+N. path traversal
+O. symlink escape
+P. wrong verdict
+Q. wrong severity
+R. simulated-only reproduction
+S. successful transaction without exploit
+T. stale build
+U. wrong compiler
+V. wrong fork block
+W. dependency mismatch
+X. sidecar checksum syntax failure
+
+Каждый тест должен иметь expected result.
+
+============================================================
+42. BUILD PROCESS
+============================================================
+
+Build должен быть deterministic.
+
+Перед build:
+
+clean isolated workspace
+
+После build:
+
+archive SHA
+inner ZIP SHA
+manifest SHA
+SFX SHA
+sidecar SHA
+file list
+test results
+
+Проверить:
+
+tar integrity
+zip integrity
+sha256sum -c
+launcher
+role lock
+tests
+clean-room execution
+
+============================================================
+43. RELEASE GATE
+============================================================
+
+EXECUTOR_READY = YES только если:
+
+- build reproducible
+- role lock PASS
+- launcher PASS
+- evidence validation PASS
+- strict evidence ID PASS
+- negative tests PASS
+- clean-room run PASS
+- no critical regression
+
+REVIEWER_READY = YES только если:
+
+- independent process PASS
+- independent reproduction PASS
+- verdict projection PASS
+- evidence verification PASS
+- state machine PASS
+- no trust in EXECUTOR verdict
+
+RELEASE_READY = YES только если:
+
+EXECUTOR_READY = YES
+AND
+REVIEWER_READY = YES
+
+SUBMISSION_READY = YES только если:
+
+RELEASE_READY = YES
+AND
+finding confirmed
+AND
+all mandatory evidence present
+AND
+scope PASS
+AND
+severity PASS
+AND
+program compliance PASS
+AND
+submission package PASS.
+
+============================================================
+44. НЕ УДАЛЯТЬ ТЕСТЫ
+============================================================
+
+Запрещено:
+
+- удалять failing test;
+- ослаблять assertion;
+- менять expected result только ради PASS;
+- скрывать failed reproduction;
+- подменять реальный trace synthetic output;
+- удалять evidence;
+- переписывать историю run.
+
+Если тест выявил проблему:
+
+фиксировать:
+
+FAIL
+ROOT_CAUSE
+PATCH
+REGRESSION_TEST
+
+============================================================
+45. ТЕКУЩИЕ ИЗВЕСТНЫЕ ДЕФЕКТЫ BASELINE
+============================================================
+
+Начать именно с baseline:
+
+EXECUTOR:
+adb5c43ff4c36aa730032a324e6a389f616f0befdab72580d727265a97e05b57
+
+REVIEWER:
+8ead75a47504a71c2fd55cb9718123940e956b7cf41fe3b92ea8d075a09d4312
+
+Из предыдущего forensic audit уже зафиксированы:
+
+1. prefix-match evidence ID:
+   f.name.startswith(eid)
+
+2. произвольный:
+   run_dirs[0]
+
+3. отсутствие:
+   _write_evidence_manifest
+
+4. отсутствие:
+   tests/test_evidence_id_strict.py
+
+5. EXECUTOR не содержит полноценного:
+   40_ROLE_LOCK.json
+
+6. EXECUTOR не содержит:
+   __main__.py
+
+7. REVIEWER launcher использует hardcoded role
+
+8. REVIEWER 40_ROLE_LOCK содержит несогласованный protocol_version
+
+9. EXECUTOR и REVIEWER имеют разный набор тестов
+
+10. package completeness / reproducibility не закрыта.
+
+Не считать эти дефекты исправленными до фактической проверки.
+
+Источник текущего baseline и этих результатов:
+предыдущий forensic audit.
+
+============================================================
+46. ПЕРВЫЙ ЭТАП РАБОТЫ
+============================================================
+
+НЕ начинать сразу с написания нового кода.
+
+Сначала:
+
+1. hash baseline;
+2. extract baseline read-only;
+3. inventory;
+4. hash every relevant file;
+5. inspect master;
+6. build architecture map;
+7. map requirements -> files -> tests;
+8. reproduce every known failure;
+9. создать GAP_MATRIX.
+
+Формат:
+
+REQUIREMENT
+SOURCE
+CURRENT_IMPLEMENTATION
+TEST
+STATUS
+GAP
+FIX
+REGRESSION_TEST
+
+============================================================
+47. ПОСЛЕ GAP ANALYSIS
+============================================================
+
+Исправления выполнять по приоритету:
+
+P0:
+evidence integrity
+evidence sufficiency
+strict evidence IDs
+run binding
+target binding
+verdict projection
+state machine
+
+P1:
+independent reproduction
+negative controls
+impact engine
+PoC validation
+role isolation
+launcher
+ZIP security
+
+P2:
+reproducible build
+dependency closure
+clean-room execution
+sidecar checksums
+
+P3:
+program adapters
+submission builder
+operator UI
+
+Не переходить к P2/P3, пока P0 не закрыт.
+
+============================================================
+48. ФИНАЛЬНЫЙ ОТЧЁТ
+============================================================
+
+Вернуть:
+
+1. GAP_MATRIX.md
+2. ARCHITECTURE.md
+3. IMPLEMENTATION_PLAN.md
+4. TEST_PLAN.md
+5. EVIDENCE_MODEL.md
+6. SUBMISSION_MODEL.md
+7. SECURITY_CONTROLS.md
+8. PROGRAM_COMPLIANCE.md
+9. CHANGELOG.md
+10. RELEASE_READINESS.md
+
+И итог:
+
+BASELINE_PRESERVED = YES/NO
+
+MASTER_RESTORED = YES/NO
+
+P0_COMPLETE = YES/NO
+
+EXECUTOR_READY = YES/NO/NOT_VERIFIED
+
+REVIEWER_READY = YES/NO/NOT_VERIFIED
+
+RELEASE_READY = YES/NO/NOT_VERIFIED
+
+SUBMISSION_READY = YES/NO/NOT_VERIFIED
+
+PROVEN_FINDING_CAPABILITY = VERIFIED/NOT_VERIFIED
+
+ZERO_FALSE_POSITIVE_GUARANTEE = NEVER CLAIM
+
+============================================================
+49. ГЛАВНОЕ ОГРАНИЧЕНИЕ
+============================================================
+
+Нельзя обещать "безошибочное" обнаружение уязвимостей.
+
+Правильная цель системы:
+
+НЕ "никогда не ошибаться при обнаружении",
+
+а:
+
+"никогда не объявлять уязвимость доказанной без достаточного, независимого, воспроизводимого и криптографически привязанного evidence."
+
+Это обязательное свойство системы.
+
+============================================================
+50. НАЧАТЬ РАБОТУ
+============================================================
+
+Начинай с:
+
+READ BASELINES
+→ HASH
+→ INVENTORY
+→ READ MASTER
+→ GAP MATRIX
+→ REPRODUCE KNOWN FAILURES
+→ IMPLEMENT P0
+→ TEST
+→ INDEPENDENT REVIEW
+→ BUILD
+→ CLEAN-ROOM TEST
+→ SUBMISSION VALIDATION
+
+Не использовать другие архивы.
+
+Не смешивать версии.
+
+Не заменять baseline старым кодом.
+
+Не считать прошлые заявления доказательством.
+
+Каждое исправление должно иметь:
+
+ROOT CAUSE
+MODIFIED FILE
+MINIMAL CHANGE
+FAILING TEST BEFORE
+PASSING TEST AFTER
+REGRESSION TEST
+ARTIFACT HASH
+RESIDUAL LIMITATION
+
+Работать до фактического достижения release gates.
+```
+
+### Что принципиально меняется
+
+Это ТЗ строит не «ИИ, который говорит, что нашёл баг», а **двухконтурную систему доказательства**:
+
+**EXECUTOR → гипотеза → PoC → измеренное воздействие → evidence freeze → независимый REVIEWER → пересчёт verdict → submission package.**
+
+Это соответствует важному принципу из материалов Astra: при высокой агентности нельзя полагаться на один слой защиты или один сигнал; OpenAI описывает defense-in-depth, realtime monitoring, adversarial/held-out evaluation и отдельные safeguards для agentic cyber workflows. [OpenAI Deployment Safety Hub](https://deploymentsafety.openai.com/gpt-6-astra/sec%3Aappendix-sol-luna?utm_source=chatgpt.com)
+
+И ещё одно важное ограничение: **100% доказательство конкретного finding ≠ 100% гарантия отсутствия ошибок системы**. Правильная гарантия для PROTOCOL_FINAL — отсутствие перехода в `100%_PROVEN`, пока не выполнены все доказательные gates.
+
+Для подачи также обязательно оставлять финальное решение человеку. Это особенно важно, потому что публичная политика OpenAI разделяет Security Bug Bounty и Safety Bug Bounty, а для некоторых agentic safety findings устанавливает отдельные критерии воспроизводимости. [OpenAI](https://openai.com/index/safety-bug-bounty/?utm_source=chatgpt.com)
+
+**Исходные V25 baseline, которые ты указал, должны оставаться единственными рабочими входами:** EXECUTOR `adb5c43f…e05b57`, REVIEWER `8ead75a4…9d4312`; V25 Master `b5493f46…d9abb5`. Предыдущий forensic audit также подтверждает, что именно в этих baseline остаются P0-дефекты evidence-ID, run binding и launcher/role isolation, поэтому их нужно исправлять, а не брать код из старых релизов. Вставленный текст
+
+[GPT-6 Astra System Card](https://deploymentsafety.openai.com/gpt-6-astra/sec%3Aappendix-sol-luna?utm_source=chatgpt.com)  
+[OpenAI — Safety overview: GPT-6 Astra](https://openai.com/index/safety-overview-gpt-6-astra/?trk=public_post_comment-text&utm_source=chatgpt.com)  
+[OpenAI — GPT-6 Astra](https://openai.com/index/gpt-6-astra/?utm_source=chatgpt.com)  
+[OpenAI — Safety Bug Bounty](https://openai.com/index/safety-bug-bounty/?utm_source=chatgpt.com)  
+[OpenAI — Coordinated Vulnerability Disclosure Policy](https://openai.com/policies/coordinated-vulnerability-disclosure-policy/?trk=article-ssr-frontend-pulse_little-text-block&utm_source=chatgpt.com)
+
+
+
+Судя по логотипу на изображении, речь идёт не о компании с названием **ARC-AGI**, а о проекте **ARC-AGI**, который развивает **ARC Prize Foundation**.
+
+
+
+### Что такое ARC-AGI
+
+**ARC-AGI (Abstraction and Reasoning Corpus for Artificial General Intelligence)** — это серия тестов/бенчмарков для проверки того, насколько AI умеет **обобщать знания и решать новые задачи**, а не просто воспроизводить то, чему его обучили.
+
+Главная идея очень близка к человеческому обучению:
+
+> системе дают несколько примеров новой задачи → она должна самостоятельно понять правило → применить это правило к совершенно новому примеру.
+
+Например, человеку показывают несколько маленьких цветных матриц и преобразования между ними. Из нескольких примеров нужно вывести скрытое правило и применить его к новой матрице. Именно поэтому задачи выглядят очень простыми, но требуют абстрактного рассуждения. [ARC Prize](https://arcprize.org/arc-agi?utm_source%3Dmindbox=%5C%5C%5C%5C%5C%5C\&utm_source=chatgpt.com)
+
+### Кто стоит за проектом
+
+**ARC Prize Foundation** — некоммерческая организация, связанная с созданием и развитием ARC-AGI. Среди основателей — **François Chollet**, создатель оригинального ARC, и **Mike Knoop**. Сейчас организацию также возглавляет Greg Kamradt. [ARC Prize](https://arcprize.org/?utm_source=chatgpt.com)
+
+Официальный сайт: [ARC Prize Foundation](https://arcprize.org/?utm_source=chatgpt.com)
+
+### Чем они занимаются
+
+По сути, у них четыре основных направления:
+
+1. **Создают benchmarks для AI**  
+   ARC-AGI-1, ARC-AGI-2 и ARC-AGI-3 предназначены для измерения способности системы обобщать и адаптироваться к новым задачам. [ARC Prize](https://arcprize.org/?utm_source=chatgpt.com)
+
+2. **Проводят соревнования**  
+   В 2026 году ARC Prize включает несколько направлений, в частности ARC-AGI-2 и новый интерактивный ARC-AGI-3. [ARC Prize](https://arcprize.org/competitions/2026/arc-agi-2?trk=article-ssr-frontend-pulse_little-text-block\&utm_source=chatgpt.com)
+
+3. **Развивают open-source инструменты и исследования**  
+   Например, существует официальный ARC-AGI Toolkit для взаимодействия AI-агентов с ARC-AGI-3 environments. [GitHub](https://github.com/arcprize/arc-agi?utm_source=chatgpt.com)
+
+4. **Пытаются измерять именно generalization / fluid intelligence**, а не размер модели или объём обучающих данных. Их формулировка идеи — интеллект связан с тем, насколько эффективно система приобретает навыки для неизвестных ей задач. [ARC Prize](https://arcprize.org/arc-agi?utm_source%3Dmindbox=%5C%5C%5C%5C%5C%5C\&utm_source=chatgpt.com)
+
+### Почему ARC-AGI интересен именно для нашей задачи
+
+Здесь есть очень важная параллель с вашим **PROTOCOL_FINAL_EXECUTOR + REVIEWER**.
+
+ARC-AGI исходит из принципа:
+
+**не достаточно показать, что система умеет что-то делать на известных примерах → нужно проверить, умеет ли она самостоятельно вывести закономерность на новой ситуации.**
+
+Для нашего security-аудитора аналогичная философия выглядит так:
+
+**не достаточно обнаружить подозрительный паттерн → нужно доказать, что именно этот контракт/система действительно нарушает security property на новом, независимом сценарии.**
+
+То есть архитектурно полезные идеи ARC для нашей системы:
+
+**Observation → Hypothesis → Experiment → Evidence → Independent Verification → Generalization**
+
+а не:
+
+**Pattern found → vulnerability = true.**
+
+Именно поэтому ваш раздел **EXECUTOR → REVIEWER → независимый PoC → evidence → final verdict** имеет правильное направление. Но ARC-AGI сам по себе **не является стандартом аудита смарт-контрактов** и не гарантирует «безошибочное доказательство» уязвимости. Его методологию можно использовать как источник идей для архитектуры reasoning/evaluation, но правила конкретной bug-bounty программы и её scope/severity/evidence requirements всё равно имеют приоритет.
+
+Да. **ARC-AGI имеет смысл применять к `PROTOCOL_FINAL_V25_EXECUTOR` и `PROTOCOL_FINAL_V25_REVIEWER`, но не как готовый security-модуль, а как методологию построения reasoning/evaluation loop.** Оригинальная идея ARC — проверять не запоминание известного шаблона, а способность вывести правило из примеров и применить его к новому случаю; ARC-AGI-2 специально расширяет эту проверку для более тонкой оценки абстрактного рассуждения. [ARC Prize](https://arcprize.org/blog/arc-agi-2-technical-report?utm_source=chatgpt.com)
+
+Для вашей системы это можно преобразовать в гораздо более строгую схему:
+
+> **наблюдение → гипотеза → генерация контрпримеров → независимый эксперимент → доказательство → попытка опровергнуть → независимое воспроизведение → verdict**
+
+И это очень хорошо сочетается с уже существующим разделением **EXECUTOR / REVIEWER**.
+
+## Как именно перенести ARC-подход
+
+### 1. EXECUTOR больше не должен просто «искать уязвимость»
+
+Сейчас концептуально:
+
+```text
+Contract
+   ↓
+pattern detectors
+   ↓
+finding
+   ↓
+PoC
+```
+
+Нужно сделать:
+
+```text
+Contract
+   ↓
+OBSERVATION
+   ↓
+SECURITY HYPOTHESIS
+   ↓
+ABSTRACTION / RULE
+   ↓
+ATTACK SCENARIO
+   ↓
+COUNTEREXAMPLES
+   ↓
+POC GENERATION
+   ↓
+MEASURED EFFECT
+   ↓
+EVIDENCE PACKAGE
+```
+
+То есть обнаружение паттерна становится **гипотезой**, а не verdict.
+
+Например:
+
+```text
+Observation:
+external call occurs before state update
+
+Hypothesis:
+attacker may re-enter before state transition
+
+Required property:
+one logical withdrawal must consume the corresponding entitlement
+exactly once
+
+Attack model:
+malicious receiver re-enters N times
+
+Prediction:
+attacker balance increases beyond legitimate entitlement
+
+Counterexample:
+same sequence against FixedVault must fail
+
+Proof:
+balance_before
+balance_after
+vault_before
+vault_after
+call trace
+reentrancy depth
+assertion
+```
+
+Только после этого появляется кандидат на `CONFIRMED`.
+
+---
+
+# 2. Самая полезная идея ARC для вашей системы — holdout/generalization
+
+Это критически важно.
+
+ARC-AGI-2 разделяет задачи, которые используются для демонстрации формата/обучения, и evaluation-задачи, предназначенные для проверки поведения на ранее не виденных задачах. [GitHub](https://github.com/arcprize/ARC-AGI-2/blob/main/readme.md?utm_source=chatgpt.com)
+
+Для security-системы делаем аналог:
+
+### TRAIN / CALIBRATION
+
+Известные уязвимости:
+
+```text
+reentrancy
+access control
+oracle manipulation
+price manipulation
+accounting
+signature replay
+initialization
+upgradeability
+...
+```
+
+Используются для:
+
+- разработки detector;
+- настройки thresholds;
+- проверки PoC generator;
+- calibration;
+- regression tests.
+
+### HOLDOUT
+
+**Не показывать detector заранее.**
+
+Новые контракты/варианты:
+
+```text
+same vulnerability class
+different implementation
+different naming
+different control flow
+different storage layout
+different call topology
+```
+
+EXECUTOR должен самостоятельно вывести:
+
+```text
+"это нарушение security invariant X"
+```
+
+а не:
+
+```text
+"я увидел знакомый кусок кода Y"
+```
+
+Именно это будет нашим аналогом **generalization test**.
+
+---
+
+# 3. Нужен новый слой SECURITY INVARIANT
+
+Это, на мой взгляд, одно из главных изменений V25.
+
+Finding должен содержать не только:
+
+```json
+{
+  "type": "reentrancy"
+}
+```
+
+а:
+
+```json
+{
+  "finding_id": "...",
+  "vulnerability_class": "REENTRANCY",
+  "security_property": "...",
+  "precondition": "...",
+  "attacker_capability": "...",
+  "expected_invariant": "...",
+  "observed_violation": "...",
+  "counterexample": "..."
+}
+```
+
+Например:
+
+```text
+Security property:
+
+For every withdrawal authorization W,
+the total asset transfer attributable to W
+must not exceed the authorized amount.
+
+Observed:
+
+authorization W = 10 ETH
+legitimate withdrawal = 10 ETH
+
+attacker receives = 11 ETH
+
+excess = 1 ETH
+```
+
+Это намного сильнее, чем:
+
+> «Foundry test passed».
+
+---
+
+# 4. REVIEWER должен стать adversarial
+
+Вот здесь ARC-подход особенно полезен.
+
+REVIEWER не должен спрашивать:
+
+> «EXECUTOR предоставил доказательства?»
+
+Он должен спрашивать:
+
+> **«Какая минимальная гипотеза должна быть истинной, чтобы это finding был настоящим, и как я могу её опровергнуть?»**
+
+То есть:
+
+```text
+EXECUTOR:
+
+H = vulnerability exists
+
+↓
+
+REVIEWER
+
+try:
+    falsify H
+
+generate:
+    negative control
+    boundary case
+    alternative explanation
+    fixed implementation
+    attacker without required privilege
+    legitimate execution
+    replay
+    repeated execution
+    different state
+```
+
+Если H переживает эти попытки:
+
+```text
+H survives adversarial testing
+```
+
+тогда вероятность false positive резко снижается.
+
+---
+
+# 5. Нужно ввести Counterexample Engine
+
+Это обязательный компонент.
+
+Для каждого finding REVIEWER автоматически создаёт:
+
+### Positive control
+
+Уязвимый контракт:
+
+```text
+VulnerableVault
+```
+
+должен демонстрировать нарушение.
+
+### Negative control
+
+Исправленный:
+
+```text
+FixedVault
+```
+
+не должен демонстрировать нарушение.
+
+### Safe control
+
+Контракт без соответствующего состояния атаки:
+
+```text
+SafeVault
+```
+
+также не должен давать ложный positive.
+
+### Boundary controls
+
+Например:
+
+```text
+amount = 0
+amount = 1
+amount = max
+single call
+multiple calls
+attacker has privilege
+attacker has no privilege
+before initialization
+after initialization
+```
+
+Получаем:
+
+```text
+             Positive     Fixed      Safe
+Finding        PASS        FAIL       FAIL
+```
+
+Это гораздо сильнее, чем один PoC.
+
+---
+
+# 6. Нужен «ARC-style task mutation»
+
+Это особенно интересно для вашего проекта.
+
+Если EXECUTOR обнаружил:
+
+```text
+reentrancy through withdraw()
+```
+
+система автоматически создаёт новые варианты:
+
+```text
+withdraw()
+claim()
+redeem()
+unstake()
+fallback()
+receive()
+ERC777 hook
+ERC721 receiver
+ERC1155 receiver
+cross-contract callback
+```
+
+И меняет:
+
+- имена;
+- порядок операций;
+- storage;
+- amount;
+- attacker contract;
+- depth;
+- caller;
+- state;
+- implementation details.
+
+Цель:
+
+> проверить, действительно ли EXECUTOR понял security property, или просто запомнил конкретный шаблон.
+
+Это и есть наиболее полезный перенос ARC-идеи generalization в security.
+
+---
+
+# 7. Evidence должен стать частью reasoning loop
+
+В вашей системе уже есть правильная философия Evidence First.
+
+Её нужно усилить:
+
+```text
+HYPOTHESIS
+   │
+   ├── predicted_observation
+   │
+   ├── experiment
+   │
+   ├── actual_observation
+   │
+   ├── expected_delta
+   │
+   ├── actual_delta
+   │
+   ├── trace
+   │
+   ├── receipt
+   │
+   ├── logs
+   │
+   └── hashes
+```
+
+И затем:
+
+```text
+predicted == actual
+        ↓
+      PASS
+```
+
+Если:
+
+```text
+predicted != actual
+```
+
+то:
+
+```text
+HYPOTHESIS_REJECTED
+```
+
+а не «попробуем считать частично доказанным».
+
+---
+
+# 8. Нужен независимый REPRODUCTION RUN
+
+Это принципиально.
+
+EXECUTOR:
+
+```text
+executor_run_id = E123
+```
+
+получает:
+
+```text
+candidate finding
+PoC
+evidence
+```
+
+REVIEWER **не должен просто импортировать результаты EXECUTOR**.
+
+Он получает:
+
+```text
+finding_id
+contract snapshot
+scope
+claim
+```
+
+и создаёт:
+
+```text
+reviewer_run_id = R456
+```
+
+самостоятельно.
+
+То есть:
+
+```text
+E123
+  ↓
+claim
+  ↓
+R456
+  ↓
+independent reproduction
+```
+
+А не:
+
+```text
+E123
+  ↓
+"looks good"
+```
+
+---
+
+# 9. Ввести Generalization Score
+
+Я бы добавил отдельный показатель:
+
+```text
+GENERALIZATION_SCORE
+```
+
+Но **не смешивать его с PROVEN percentage**.
+
+Например:
+
+| Проверка | Результат |
+|---|---:|
+| Original PoC | PASS |
+| Fixed control | PASS |
+| Safe control | PASS |
+| Boundary tests | 8/8 |
+| Mutated variants | 17/20 |
+| Independent reproduction | PASS |
+| Evidence integrity | PASS |
+
+Получаем:
+
+```text
+GENERALIZATION_SCORE = 85%
+```
+
+Но:
+
+```text
+PROVEN = 100%
+```
+
+только если конкретный finding прошёл все proof gates.
+
+То есть:
+
+> generalization ≠ proof.
+
+Это очень важно.
+
+---
+
+# 10. Не надо копировать ARC буквально
+
+ARC-AGI — benchmark для reasoning/generalization. Даже официальный Toolkit сейчас представляет собой API/tooling layer для интерактивных environments, а не security-verification framework. [GitHub](https://github.com/arcprize/arc-agi?utm_source=chatgpt.com)
+
+Поэтому мы **не должны**:
+
+- добавлять ARC dataset в production security audit;
+- считать ARC score доказательством vulnerability;
+- использовать ARC benchmark вместо PoC;
+- считать LLM confidence доказательством;
+- заменять формальные security gates «reasoning».
+
+Мы берём только архитектурный принцип:
+
+> **не доверять совпадению шаблона; проверять способность вывести и подтвердить правило на новом случае.**
+
+---
+
+# Как я бы перестроил PROTOCOL_FINAL
+
+Итоговая архитектура:
+
+```text
+                    ┌──────────────────────┐
+                    │     TARGET CODE      │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │   OBSERVATION LAYER  │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ HYPOTHESIS GENERATOR │
+                    │      EXECUTOR         │
+                    └──────────┬───────────┘
+                               │
+                ┌──────────────┼──────────────┐
+                ▼              ▼              ▼
+          Security       Preconditions   Expected
+          invariant      attacker model   violation
+                │              │              │
+                └──────────────┼──────────────┘
+                               ▼
+                    ┌──────────────────────┐
+                    │   PoC GENERATOR      │
+                    └──────────┬───────────┘
+                               ▼
+                    ┌──────────────────────┐
+                    │ MEASURED EXECUTION   │
+                    └──────────┬───────────┘
+                               ▼
+                    ┌──────────────────────┐
+                    │  EVIDENCE PACKAGE    │
+                    └──────────┬───────────┘
+                               │
+                    immutable evidence
+                               │
+                               ▼
+              ┌────────────────────────────────┐
+              │       INDEPENDENT REVIEWER     │
+              │                                │
+              │  reconstruct hypothesis        │
+              │  generate counterexamples       │
+              │  run negative controls          │
+              │  mutate scenario                │
+              │  reproduce independently        │
+              └───────────────┬────────────────┘
+                              │
+                 ┌────────────┴─────────────┐
+                 ▼                          ▼
+             FALSIFIED                  SURVIVED
+                 │                          │
+                 ▼                          ▼
+             REJECTED                  CONFIRMED
+                                            │
+                                            ▼
+                                  PROOF GATES
+                                            │
+                                  ┌─────────┴─────────┐
+                                  ▼                   ▼
+                                PASS                FAIL
+                                  │                   │
+                                  ▼                   ▼
+                           100% PROVEN            0% PROVEN
+```
+
+---
+
+# И главное изменение для V25
+
+Я бы не создавал новую независимую систему.
+
+Нужно **достроить именно два ваших пакета**:
+
+```text
+PROTOCOL_FINAL_V25_EXECUTOR
+PROTOCOL_FINAL_V25_REVIEWER
+```
+
+и оставить:
+
+```text
+PROTOCOL_FINAL_MASTER_ALL_IN_ONE_BUNDLE_v25_UNIFIED_TZ_EN
+```
+
+как **каноническую спецификацию V25**, а новые ARC-inspired требования оформить как отдельный контролируемый extension, чтобы не переписать незаметно исходный V25.
+
+### EXECUTOR V25 получает:
+
+1. `Observation Engine`
+2. `Hypothesis Engine`
+3. `Security Invariant Builder`
+4. `Attack Model Builder`
+5. `PoC Generator`
+6. `Counterexample Generator`
+7. `Scenario Mutation Engine`
+8. `Evidence Builder`
+9. `Generalization Evaluator`
+
+### REVIEWER V25 получает:
+
+1. независимый `Hypothesis Reconstructor`;
+2. `Adversarial Falsification Engine`;
+3. `Positive Control Runner`;
+4. `Negative Control Runner`;
+5. `Boundary Test Runner`;
+6. `Mutation/Generalization Runner`;
+7. независимый `PoC Runner`;
+8. `Evidence Integrity Verifier`;
+9. `Impact Recalculator`;
+10. `Scope/Severity Validator`;
+11. `Final Verdict Projector`.
+
+---
+
+## Самая важная новая логика
+
+Вместо:
+
+```text
+detector → finding → PoC → confirmed
+```
+
+делаем:
+
+```text
+detector
+   ↓
+candidate
+   ↓
+hypothesis
+   ↓
+security invariant
+   ↓
+prediction
+   ↓
+PoC
+   ↓
+measured violation
+   ↓
+positive control
+   ↓
+negative control
+   ↓
+counterexample search
+   ↓
+mutation/generalization
+   ↓
+independent reproduction
+   ↓
+evidence integrity
+   ↓
+impact
+   ↓
+scope
+   ↓
+severity
+   ↓
+REVIEWER verdict
+```
+
+И только последний этап может установить:
+
+```text
+100%_PROVEN
+```
+
+при выполнении ваших V25 truth-table gates.
+
+Это позволит системе быть **намного менее зависимой от паттерн-матчинга и LLM-уверенности** и приблизит её к тому, что вам действительно нужно: не «AI считает, что нашёл баг», а **AI сформулировал проверяемую гипотезу, построил эксперимент, попытался сам себя опровергнуть, а независимый процесс воспроизвёл нарушение и подтвердил измеряемый security impact**.
+
+Официальный ARC Toolkit также демонстрирует полезную для вашей инженерии идею разделения локальной разработки и независимого/онлайн execution environment; у них предусмотрены разные operation modes и recordings. [GitHub](https://github.com/arcprize/docs/blob/main/toolkit/arc_agi.mdx?utm_source=chatgpt.com) Для вашего продукта это можно перенести в `LOCAL_DEVELOPMENT`, `HELD_OUT`, `INDEPENDENT_REVIEW` и `SUBMISSION_EVIDENCE` режимы.
+
+Если идти дальше, **следующим правильным шагом является не переписывание кода вслепую, а создание отдельного ТЗ `V25.ARC-SECURITY-GENERALIZATION` с точными JSON-схемами, state machine, новыми evidence records, тест-матрицей и критериями PASS/FAIL для EXECUTOR и REVIEWER** — при этом исходные `PROTOCOL_FINAL_V25_EXECUTOR.tar` и `PROTOCOL_FINAL_V25_REVIEWER.tar` остаются единственной рабочей базой, как вы ранее зафиксировали.
+
+
+Да. На изображении **Lean** — язык программирования и интерактивный theorem prover с проверкой доказательств ядром. Для вашей системы это может быть очень полезно именно на этапе **формального подтверждения security-инвариантов**, но Lean не заменяет Foundry/Anvil/Slither: он должен стать отдельным слоем доказательства.
+
+### Как скачать Lean
+
+Официальная инструкция Lean рекомендует устанавливать **Elan** — менеджер toolchain, который позволяет проекту использовать зафиксированную версию Lean. [Lean Language](https://lean-lang.org/install/?utm_source=chatgpt.com)
+
+Для Linux:
+
+```bash
+sudo apt update
+sudo apt install -y git curl
+
+curl https://elan.lean-lang.org/elan-init.sh -sSf | sh
+
+source "$HOME/.elan/env"
+
+lean --version
+elan --version
+lake --version
+```
+
+Официальная документация именно такой способ установки Elan рекомендует. [Lean Language](https://lean-lang.org/install/manual/?utm_source=chatgpt.com)
+
+### Как проверить, что Lean действительно работает
+
+Создайте отдельный каталог:
+
+```bash
+mkdir -p ~/lean-test
+cd ~/lean-test
+
+lake init SecurityProof
+cd SecurityProof
+
+cat > Main.lean <<'EOF'
+import Mathlib
+
+example (a b : Nat) (h : a = b) : a = b := by
+  exact h
+EOF
+
+lake build
+```
+
+Если получите:
+
+```text
+Build completed successfully
+```
+
+— Lean действительно компилирует и проверяет доказательство.
+
+---
+
+# Но для PROTOCOL_FINAL я бы использовал Lean иначе
+
+У нас уже есть:
+
+**EXECUTOR**
+
+→ обнаруживает потенциальную уязвимость
+
+→ строит гипотезу
+
+→ запускает PoC
+
+→ получает trace/state diff/balance delta
+
+→ формирует evidence.
+
+Затем:
+
+**REVIEWER**
+
+→ независимо воспроизводит
+
+→ проверяет evidence
+
+→ проверяет PoC
+
+→ проверяет impact
+
+→ принимает/отклоняет claim.
+
+А теперь добавляем третий независимый слой:
+
+```text
+EXECUTOR
+    │
+    ▼
+HYPOTHESIS
+    │
+    ▼
+CONCRETE PoC
+    │
+    ▼
+OBSERVED EVIDENCE
+    │
+    ▼
+REVIEWER
+    │
+    ▼
+FORMALIZATION
+    │
+    ▼
+LEAN KERNEL
+    │
+    ▼
+FORMALLY CHECKED SECURITY PROPERTY
+```
+
+То есть Lean должен отвечать не на вопрос:
+
+> «Похоже ли это на reentrancy?»
+
+а на значительно более строгий:
+
+> «При данных предпосылках и модели состояния доказано ли формально, что после последовательности
+
+
+Да. **Lean здесь можно применить не как замену Foundry/Slither, а как отдельный слой формальной верификации доказательства.** Это особенно хорошо ложится на вашу архитектуру `EXECUTOR → REVIEWER → Evidence → PoC → Verdict`.
+
+Lean — интерактивный theorem prover; его kernel проверяет proof terms, а тактики в конечном итоге порождают термы, которые проверяются kernel. Это именно тот тип независимой проверки, который нам нужен для части security-утверждений. [Lean Language](https://lean-lang.org/doc/reference/latest/?utm_source=chatgpt.com)
+
+### Как скачать Lean
+
+Официальный рекомендуемый путь — VS Code + официальное расширение Lean 4; для CLI используется `elan`, менеджер toolchain. [Lean Language](https://lean-lang.org/install/?utm_source=chatgpt.com)
+
+Для Linux:
+
+```bash
+sudo apt install git curl -y
+
+curl https://elan.lean-lang.org/elan-init.sh -sSf | sh
+
+source "$HOME/.elan/env"
+
+lean --version
+elan --version
+lake --version
+```
+
+Для проекта **обязательно фиксировать конкретную версию Lean через `lean-toolchain`**, а не полагаться на плавающий `stable`: официальная документация прямо рекомендует конкретную версию для воспроизводимости сборок. [Lean Language](https://lean-lang.org/doc/reference/latest/Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/?utm_source=chatgpt.com)
+
+Сейчас официальные страницы показывают стабильную ветку Lean 4.34.x и RC 4.35.x; для нашего security-проекта я бы **не использовал RC**, пока нет причины это делать. [GitHub](https://github.com/leanprover/lean4/releases?utm_source=chatgpt.com)
+
+### Как проверить, что Lean действительно работает
+
+Создайте:
+
+```text
+proof/
+└── Main.lean
+```
+
+Содержимое:
+
+```lean
+import Mathlib
+
+theorem test_balance :
+    10 + 1 = 11 := by
+  norm_num
+```
+
+И:
+
+```bash
+cd proof
+lake init
+lake env lean Main.lean
+```
+
+Если Lean принимает файл без ошибок — первый уровень проверки работает.
+
+Официальная документация также предлагает простейшую проверку через `#eval 1+1`. [Lean Language](https://lean-lang.org/install/manual/?utm_source=chatgpt.com)
+
+---
+
+# Но для PROTOCOL_FINAL важнее другое
+
+Я бы **не заставлял Lean доказывать весь Solidity-контракт напрямую**. Это будет чрезмерно сложная и хрупкая интеграция.
+
+Нужно сделать **Proof Layer**.
+
+Архитектура:
+
+```text
+                    PROTOCOL_FINAL
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+          EXECUTOR                REVIEWER
+              │                     │
+       finding/hypothesis      independent review
+              │                     │
+              └──────────┬──────────┘
+                         │
+                    PoC Engine
+                         │
+              Foundry / Anvil / fork
+                         │
+                raw execution evidence
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+        empirical proof       formal property
+              │                     │
+        balances/traces       Lean proof
+        storage/events        invariants
+        calldata/gas          arithmetic
+              │                     │
+              └──────────┬──────────┘
+                         │
+                   Evidence Layer
+                         │
+                 independent REVIEWER
+                         │
+                   FINAL VERDICT
+```
+
+## Главное изменение
+
+Сейчас у вас логика примерно:
+
+```text
+Finding
+  ↓
+PoC succeeds
+  ↓
+Evidence
+  ↓
+Reviewer
+  ↓
+CONFIRMED
+```
+
+Нужно сделать:
+
+```text
+Finding
+  ↓
+Hypothesis
+  ↓
+Formal Security Property
+  ↓
+Independent Experimental Test
+  ↓
+Measured State Transition
+  ↓
+Negative Control
+  ↓
+Lean Proof / Proof Certificate
+  ↓
+Independent Reviewer
+  ↓
+Verdict
+```
+
+То есть **EXECUTOR не должен иметь права сказать "уязвимость доказана" только потому, что тест завершился успешно.**
+
+---
+
+# Как именно применить Lean к вашей системе
+
+Например, найден reentrancy/asset-drain.
+
+EXECUTOR обнаружил:
+
+```text
+Vault balance before = 10 ETH
+Attacker balance before = 1 ETH
+
+exploit()
+
+Vault balance after = 0 ETH
+Attacker balance after = 11 ETH
+```
+
+Foundry даёт эмпирическое доказательство:
+
+```text
+ΔVault = -10 ETH
+ΔAttacker = +10 ETH
+```
+
+Но мы формализуем security property:
+
+```text
+vault_balance_after >= vault_balance_before - authorized_outflow
+```
+
+Для неавторизованного вызова:
+
+```text
+authorized_outflow = 0
+```
+
+Следовательно:
+
+```text
+vault_balance_after >= vault_balance_before
+```
+
+А фактически:
+
+```text
+10 -> 0
+```
+
+Получаем:
+
+```text
+0 < 10
+```
+
+То есть property нарушена.
+
+Lean может формально проверить математическую часть этого утверждения.
+
+---
+
+# Ещё важнее: Lean должен проверять не факт "транзакция успешна"
+
+Это критично для вашего предыдущего дефекта.
+
+Нельзя:
+
+```text
+forge test = PASS
+        ↓
+REPRODUCED
+```
+
+Нужно:
+
+```text
+transaction succeeded
+AND
+exploit-specific condition satisfied
+AND
+pre-state captured
+AND
+post-state captured
+AND
+delta satisfies vulnerability predicate
+AND
+negative control does NOT satisfy predicate
+AND
+evidence hashes valid
+AND
+run_id matches
+AND
+PoC source is frozen
+```
+
+И только после этого:
+
+```text
+REPRODUCED = TRUE
+```
+
+---
+
+# Что Lean должен проверять
+
+Я бы разделил formal layer на 5 классов.
+
+### 1. Arithmetic invariants
+
+Например:
+
+```text
+attacker_gain == victim_loss
+```
+
+или:
+
+```text
+post_balance = pre_balance + gain
+```
+
+---
+
+### 2. Conservation properties
+
+Для asset-drain:
+
+```text
+victim_loss > 0
+attacker_gain > 0
+```
+
+и:
+
+```text
+attacker_gain <= victim_loss + allowed_mint
+```
+
+---
+
+### 3. Authorization properties
+
+Например:
+
+```text
+unauthorized(caller, operation)
+→
+victim_balance_after >= victim_balance_before
+```
+
+Если execution evidence показывает обратное:
+
+```text
+victim_balance_after < victim_balance_before
+```
+
+получаем violation certificate.
+
+---
+
+### 4. State-machine properties
+
+Это особенно хорошо подходит вашему V25.
+
+Формализовать:
+
+```text
+PENDING
+  -> CONFIRMED
+  -> REJECTED
+  -> DISPUTED
+  -> REVIEW_BLOCKED
+```
+
+и запретить математически/типами недопустимые переходы.
+
+Например:
+
+```text
+CONFIRMED -> PENDING
+```
+
+должен быть невозможен в рамках одного `reviewer_run_id`.
+
+---
+
+### 5. Verdict projection
+
+Формализовать ваш truth table:
+
+```text
+PROVEN_ELIGIBLE
++ CONFIRMED
++ all gates PASS
+= 100%_PROVEN
+```
+
+и запретить:
+
+```text
+SIMULATED_APPROXIMATION
+→ 100%_PROVEN
+```
+
+Это очень полезно.
+
+**Lean становится независимым контроллером правильности verdict projection.**
+
+---
+
+# А что делать с ARC-AGI
+
+Здесь я бы взял **не сам ARC benchmark**, а его принцип.
+
+Для каждого finding EXECUTOR должен строить несколько гипотез:
+
+```text
+H1: reentrancy
+H2: authorization bypass
+H3: accounting error
+H4: oracle manipulation
+H5: false positive
+```
+
+Затем система должна искать **минимальный distinguishing experiment**.
+
+Например:
+
+```text
+VulnerableVault
+FixedVault
+SafeVault
+```
+
+и одинаковый PoC прогоняется против всех трёх.
+
+Получаем:
+
+| Target | Exploit condition |
+|---|---:|
+| VulnerableVault | PASS |
+| FixedVault | FAIL |
+| SafeVault | FAIL |
+
+Это намного сильнее, чем:
+
+```text
+VulnerableVault → PASS
+```
+
+Это и есть полезная для нас идея **generalization / counterexample-driven reasoning**.
+
+---
+
+# Для PROTOCOL_FINAL я бы ввёл новый слой
+
+## `PROOF_ENGINE`
+
+Структура:
+
+```text
+03_PROOF_ENGINE/
+├── formal/
+│   ├── invariants/
+│   ├── authorization/
+│   ├── accounting/
+│   ├── state_machine/
+│   └── verdict/
+├── lean/
+│   ├── Main.lean
+│   ├── SecurityProperty.lean
+│   ├── Evidence.lean
+│   ├── StateMachine.lean
+│   └── Verdict.lean
+├── certificates/
+│   ├── proof_certificate.json
+│   └── proof_manifest.json
+└── tests/
+    ├── positive/
+    └── negative/
+```
+
+---
+
+# Связь с вашим Evidence Layer
+
+Каждый proof должен иметь:
+
+```json
+{
+  "proof_id": "...",
+  "finding_id": "...",
+  "executor_run_id": "...",
+  "reviewer_run_id": "...",
+  "property_id": "...",
+  "lean_version": "...",
+  "toolchain_hash": "...",
+  "source_hash": "...",
+  "evidence_ids": [],
+  "proof_status": "PROVEN",
+  "certificate_sha256": "..."
+}
+```
+
+Причём **Lean certificate не заменяет execution evidence**.
+
+Он подтверждает формальную часть.
+
+Foundry подтверждает фактическое выполнение.
+
+Reviewer проверяет связь между ними.
+
+---
+
+# И тогда появляется действительно сильная схема
+
+```text
+             EXECUTOR
+                │
+                ▼
+          FINDING/HYPOTHESIS
+                │
+                ▼
+       FORMALIZE PROPERTY
+                │
+       ┌────────┴─────────┐
+       ▼                  ▼
+   FOUNDry PoC         Lean proof
+       │                  │
+       ▼                  ▼
+ empirical evidence   formal certificate
+       │                  │
+       └────────┬─────────┘
+                ▼
+          NEGATIVE CONTROLS
+                │
+                ▼
+             REVIEWER
+                │
+       ┌────────┴─────────┐
+       │                  │
+   reproduce          invalidate
+       │                  │
+       ▼                  ▼
+   CONFIRMED            REJECTED
+                │
+                ▼
+          VERDICT ENGINE
+                │
+                ▼
+        SUBMISSION PACKAGE
+```
+
+## Важное ограничение
+
+Это всё равно **не означает математически "безошибочная система поиска уязвимостей"**.
+
+Lean может очень сильно повысить надёжность **формализованного утверждения**, но если мы неправильно сформулировали security property, Lean честно докажет неправильную модель.
+
+Поэтому нужен принцип:
+
+> **Formal proof proves the property we specified; independent execution proves the target violates that property.**
+
+И именно REVIEWER должен проверять соответствие:
+
+```text
+target behavior
+      ↕
+security property
+      ↕
+formal proof
+      ↕
+PoC evidence
+```
+
+---
+
+## Как это встроить именно в ваши `PROTOCOL_FINAL_V25_EXECUTOR` и `PROTOCOL_FINAL_V25_REVIEWER`
+
+Я бы не смешивал Lean с существующим runtime хаотично.
+
+**EXECUTOR:**
+
+```text
+finding
+→ hypothesis
+→ property candidate
+→ PoC
+→ evidence
+→ proof obligation
+→ Lean certificate
+```
+
+**REVIEWER:**
+
+```text
+finding
+→ independently reconstruct property
+→ independently inspect Lean theorem
+→ independently verify certificate
+→ independently reproduce PoC
+→ verify negative control
+→ verify evidence manifest
+→ calculate verdict
+```
+
+При этом **REVIEWER не должен просто доверять Lean-файлу, созданному EXECUTOR**. Он должен получить immutable proof artifact и самостоятельно выполнить проверку.
+
+---
+
+### И ещё один важный момент
+
+Lean имеет смысл внедрять **после исправления текущих P0-дефектов ваших V25 пакетов**: strict `evidence_id`, `run_id` binding, manifest/hash verification, SFX/launcher, role lock и reproducible packaging. Иначе мы получим красиво формализованный proof, но потенциально недостоверную цепочку `finding → evidence → proof`.
+
+Официальный Lean как раз рассчитан на software verification и theorem proving, а его минимальный kernel проверяет proof terms независимо от тактик, что делает его хорошим кандидатом именно для такого отдельного proof layer. [Lean Language](https://lean-lang.org/doc/reference/latest/?utm_source=chatgpt.com)
+
+**Следующий правильный шаг для проекта:** дать ИИ-разработчику отдельное ТЗ `V25-PROOF-ENGINE`, где Lean добавляется поверх **только** `PROTOCOL_FINAL_V25_EXECUTOR.tar` и `PROTOCOL_FINAL_V25_REVIEWER.tar`, а `PROTOCOL_FINAL_MASTER_ALL_IN_ONE_BUNDLE_v25_UNIFIED_TZ_EN.zip` используется как нормативная спецификация. Старые V18/V24/FINAL_SYSTEM/FINAL_AUDIT при этом не должны участвовать вообще.

@@ -1,0 +1,59 @@
+На основе проведенного исследования и детального технического анализа разработан AI Freelancer OS v0.1 — автономная операционная система фрилансера и полноценный исполняемый репозиторий проекта.
+Платформа развернута в приложении и включает как интерактивную панель управления с симулятором полного жизненного цикла, так и 16 готовых исполняемых файлов бэкенда на Python 3.12 / FastAPI / SQLAlchemy / PyTest, которые можно выгрузить в один клик в виде ZIP-архива.
+Архитектура и ключевые компоненты системы
+Многомаркетплейсный слой (Marketplace Adapter Layer):
+TaskBounty (GitHub issues, E2B-песочница, 80% агенту, instant USDC на Base).
+BasedAgents (Ed25519 криптографическая подпись, Base escrow, 90% агенту).
+AgentGigs (Stripe Connect, автономный запуск через REST API, 90% агенту).
+ClawGig (42-tool MCP сервер, USDC escrow, 90% агенту).
+Upwork MCP (Официальный MCP протокол с режимом обязательного подтверждения человеком для контрактов).
+Superteam Earn (Web3 bounties и прямые AGENT_ONLY задачи).
+Opportunity Engine (Математический расчет Expected Value):
+Агент отсекает задачи с низким EV, не берет неопределенные задания и не тратит токены впустую.
+Prompt Injection Firewall & Security Vault:
+Любое задание клиента или README считается недоверенным вводом.
+Фаервол перехватывает попытки манипуляции системным промптом или кражи API-ключей/Vault KMS еще до передачи в планировщик.
+Изолированная песочница (Docker / E2B Sandbox):
+Строгие лимиты ресурсов: максимум 2 CPU, 4 ГБ RAM, таймаут 1800 сек, изоляция сети от внутренних БД и Redis.
+Независимый QA Oracle:
+Агент-программист не оценивает собственную работу. Отдельный QA-агент верифицирует критерии приемки (AC1–AC4) по git diff и логам тестов.
+P&L Ledger & Unit Economics:
+Учет каждого цента: стоимость инференса модели (Gemini API), время работы контейнеров, комиссия биржи 
+ чистая прибыль в казну.
+Состав исполняемого репозитория (вкладка «Executable Repo (.ZIP)»)
+В приложении доступен полный набор файлов исходного кода с подсветкой синтаксиса и кнопкой «Download Repo as ZIP»:
+Файл	Назначение
+docker-compose.yml	Топология сервисов: FastAPI API, Celery Worker, PostgreSQL 16, Redis 7
+pyproject.toml	Конфигурация зависимостей Python 3.12, FastAPI, SQLAlchemy asyncpg, E2B, PyTest, Ruff
+.env.example	Переменные окружения, лимиты казны ($50/day), пороги аппрува ($500)
+db/models.py	Асинхронные SQLAlchemy 2.0 модели (User, Agent, Job, JobScore, Project, Delivery, Payment, CostEvent)
+db/migrations/001_initial.sql	Чистый DDL PostgreSQL с индексами и внешними ключами
+schemas/pydantic_schemas.py	Pydantic v2 контракты валидации данных и отчетов QA
+apps/api/main.py	FastAPI эндпоинты для статуса, расчета EV и подачи заявок
+apps/worker/tasks.py	Асинхронные Celery/Redis задачи сканирования и выполнения
+packages/marketplaces/base.py	Абстрактный интерфейс MarketplaceAdapter и декларация возможностей
+packages/marketplaces/taskbounty.py	Реальный адаптер TaskBounty с верификацией в песочнице
+packages/agents/coding_agent.py	Агент разработки с планировщиком и фаерволом промпт-инъекций
+packages/sandbox/docker_runner.py	Запуск изолированных контейнеров с квотами памяти и CPU
+packages/tools/github_tool.py	Работа с Git-ветками, коммитами с подписью Ed25519 и Pull Request
+packages/agents/qa_agent.py	Независимый арбитр проверки критериев приемки
+db/seed_data.py	Скрипт инициализации тестовых данных и матриц навыков
+tests/e2e/test_autonomous_job.py	Полный сквозной тест pytest, симулирующий цикл DISCOVER 
+ ESCROW 
+ PAYMENT
+Быстрый запуск на локальной машине
+code
+Bash
+# 1. Распаковать скачанный архив и скопировать env:
+cp .env.example .env
+
+# 2. Поднять стек в Docker:
+docker compose up -d
+
+# 3. Инициализировать базу данных:
+docker compose exec api python db/seed_data.py
+
+# 4. Запустить автономный сквозной тест:
+docker compose exec worker pytest tests/e2e/test_autonomous_job.py -v
+В интерактивном интерфейсе можно протестировать расчет формулы EV, запустить симуляцию автономного цикла с живым выводом терминала и проверить реакцию фаервола на вредоносный промпт.
+
