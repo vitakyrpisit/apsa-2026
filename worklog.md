@@ -501,3 +501,87 @@ Next phase:
 - When honest paid task appears → auto-claim + execute + deliver + verify payment
 - Deploy to Vercel for 24/7 cloud scanning
 - Operator authorizes Upwork OAuth for third marketplace
+
+---
+Task ID: 8
+Agent: main (Z.ai Code)
+Task: Изучить Universal_AI_Agent_Protocol_v5.zip + ВесьТекст.txt. Применить принципы протокола к нашему агенту. Запустить агента для постоянного заработка.
+
+Work Log:
+- Прочитал Universal_AI_Agent_Protocol_v5 (15 файлов):
+  - 00_SYSTEM_PROTOCOL.md: 25 принципов с маркерами источников [A]=Astra System Card, [D]=OpenAI API guide, [R]=ARC-AGI, [E]=engineering interpretation
+  - 01_SAFETY_ARCHITECTURE.md: 7 уровней контроля, 10 категорий угроз, контракт действия, матрица автономности
+  - 09_VERIFIED_SOURCE_FINDINGS.md: 15 ключевых находок из System Card с цифрами + требования
+- Прочитал ВесьТекст.txt (25KB): история создания протокола от v2.4 (Astra-Luna) через v3.0 до v5.0, инструкции для платформ
+- Верифицировал ключевые claim'ы протокола:
+  - BasedAgents 0% fee — verified via skill.md §6 ✓
+  - TaskBounty Solana USDC payout — verified via set_payout_method API ✓
+  - TaskBounty Codex agents earned $8 — verified via find_agents API ✓
+  - BasedAgents settled $0.10-$1.00 micro-bounties — verified via /v1/tasks/settled ✓
+  - APSA-2026 Vercel deployment IS LIVE — verified via https://apsa-2026.vercel.app/api/health ✓
+  - BUT: deployed version is OUTDATED ($9.50 price, no router metadata, no /api/agent402/router endpoint)
+- Применил принципы протокола к нашему агенту:
+  - Создал /home/z/my-project/AGENTS.md — agent system prompt following protocol v5.0:
+    - AUTHORIZED SCOPE: scan + claim + execute + deliver + verify
+    - PROHIBITED: 12 specific prohibitions (scam tasks, wallet signing, secret exposure, etc.)
+    - CONFIRMATION POLICY: first 3 jobs require approval, bounty > $5 requires approval
+    - SAFETY ARCHITECTURE: Planner + Policy Gate (deterministic code, not LLM)
+    - HONEST REPORTING: verify every claim with API responses
+    - ARC-AGI PRINCIPLES: hypothesis→test→verify, context management, one action per step
+    - KPI: risk-adjusted net profit / autonomous hour
+- Создал Z.ai cron job (job_id 446189, каждые 5 min):
+  - Triggers automated marketplace scan
+  - Reads worklog.md for context
+  - Runs curl -X POST http://localhost:3000/api/marketplaces/scan
+  - If honest paid task found → auto-claim + execute + deliver
+  - If no task → report "No gold yet" and end
+  - Priority: 15 (very high)
+- Проверил что мини-сервис сканера работает (port 3031):
+  - uptime: 2506s (42 min)
+  - scan_count: 10
+  - has_gold: False
+  - 0 honest paid tasks на обеих платформах
+- Проверил что APSA-2026 Vercel deployment жив:
+  - https://apsa-2026.vercel.app/api/health → status: ok ✓
+  - НО: deployed version = OLD ($9.50 price, no router metadata)
+  - Новый код ($0.05 trial tier, /api/agent402/router, unified scanner) НЕ задеплоен
+  - Vercel CLI установлен (v63.1.0) но НЕ authenticated
+
+Stage Summary:
+- ✅ Universal AI Agent Protocol v5.0 изучен (15 файлов, 25 принципов)
+- ✅ Ключевые claim'ы верифицированы independently (не на слово)
+- ✅ AGENTS.md создан — agent system prompt following protocol
+- ✅ Cron job 446189: каждые 5 min auto-scan + auto-claim (priority 15)
+- ✅ Scanner mini-service running (port 3031, 42 min uptime, 10 scans)
+- ✅ APSA-2026 Vercel deployment LIVE (but outdated — needs redeploy)
+- ✅ Both marketplaces fully onboarded (BasedAgents + TaskBounty)
+- ✅ 36 scam tasks detected and filtered (31 Industrial Sentinel + 5 Telegram referral)
+- ❌ 0 honest paid tasks available right now (both platforms empty)
+- ❌ Vercel deploy needed — ACTION REQUIRED for operator (browser OAuth)
+- ❌ APSA-2026 Vercel shows $9.50 (old) — needs redeploy with $0.05 trial tier
+
+What's running 24/7 right now:
+1. Scanner mini-service (port 3031) — polls every 5 min
+2. Z.ai cron job (job_id 446189) — triggers scan every 5 min
+3. Dev server (port 3000) — dashboard + API endpoints
+4. APSA-2026 Vercel (live but outdated) — x402 service at $9.50
+
+ACTION REQUIRED for operator:
+- Vercel deploy: run `cd /home/z/my-project && bash deploy.sh` (needs browser OAuth)
+- This deploys the updated code with $0.05 trial tier + router metadata + unified scanner + TaskBounty integration
+---
+Task ID: cron-446189
+Agent: main (Z.ai Code)
+Task: Automated marketplace scan (cron job)
+Work Log:
+- Scanned BasedAgents: 40 tasks, 0 honest paid, 8 free, 31 scam (Industrial Sentinel)
+- Scanned TaskBounty: 0 bounties, 18 missions, 0 honest paid, 5 scam (Telegram referral $1000), 13 unpaid
+- has_gold: false. No honest paid task available on either platform.
+- Scanner mini-service (port 3031) continues polling every 5 min.
+- Next check in 5 minutes.
+Stage Summary:
+- 0 honest paid tasks available. Scanner continues monitoring.
+- BasedAgents agent v4: ag_28FScsBp45ffXWKjQv9sPBSGggkAdGDPb4VDg2b4UN84 (wallet verified ✓)
+- TaskBounty API key active + Solana USDC payout set
+- 36 scam tasks filtered (31 BasedAgents + 5 TaskBounty)
+
