@@ -1,0 +1,8 @@
+{
+  "created_at": "2026-10-09T06:21:10.834Z",
+  "state": "bb6n1slsVDpaCdkpzZ0QIMwgFAC_EbOU",
+  "verifier": "llZWaSmHKOY8sHDQTTggRPqXKL4M0SS1upHl3VvKUnC3hdtivDMIVkpXzP-w1SWm",
+  "redirect_uri": "http://localhost:3000/api/oauth/upwork/callback",
+  "client_id": "http://localhost:3000/api/oauth/upwork/client-metadata",
+  "used": false
+}

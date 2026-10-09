@@ -735,3 +735,28 @@ Stage Summary:
 - ❌ Blocked on operator: needs UPWORK_CLIENT_ID + UPWORK_CLIENT_SECRET (after registering app at https://www.upwork.com/developer)
 - ❌ Redirect URI must be HTTPS — needs Vercel deploy (needs VERCEL_TOKEN) OR operator can register http://localhost:3000/api/upwork/oauth/callback for local-only testing
 - Next: when operator sends UPWORK_CLIENT_ID + UPWORK_CLIENT_SECRET → I add to .env.local, operator opens authorize URL, clicks Authorize on Upwork, tokens auto-stored server-side, then /api/upwork/status reports connected=true, then MCP tools available
+---
+Task ID: 10 (Upwork MCP integration build) + cron-446189 (14:17 scan)
+Agent: main (Z.ai Code)
+Task: Operator sent https://mcp.upwork.com/mcp. Automated scan cycle 14:17.
+
+Work Log:
+- Automated scan 06:17:54 UTC: 0 honest paid (unchanged). "No gold yet."
+- PROBED Upwork MCP endpoint (operator-supplied URL):
+  - POST https://mcp.upwork.com/mcp → 401 with www-authenticate: Bearer + resource_metadata link → endpoint LIVE, MCP-standard OAuth 2.1 protection ✓
+  - Fetched /.well-known/oauth-protected-resource/mcp: authorization_servers=[https://mcp.upwork.com], bearer_methods=[header]
+  - Fetched /.well-known/oauth-authorization-server: authorization_endpoint=https://www.upwork.com/ab/account-security/oauth2/authorize, token_endpoint=https://www.upwork.com/api/v3/oauth2/token, grants=[authorization_code, refresh_token, client_credentials], PKCE S256 ✓, token_endpoint_auth_methods=[none, client_secret_basic, client_secret_post, private_key_jwt], **client_id_metadata_document_supported=true** ← KEY: public client possible, NO Upwork developer app registration needed
+- BUILT full Upwork OAuth 2.1 integration (5 new files):
+  - src/lib/apsa/upwork-oauth.ts — PKCE S256 pair, state store (mode 600), authorize URL builder, code→token exchange (public client), creds persistence to 3 locations (mode 600)
+  - src/app/api/oauth/upwork/client-metadata/route.ts — RFC 7592 client metadata doc (client_id = this URL, deduped redirect_uris)
+  - src/app/api/oauth/upwork/authorize/route.ts — creates PKCE+state, returns authorization_url for operator's browser
+  - src/app/api/oauth/upwork/callback/route.ts — validates state (CSRF guard), auto-exchanges code for tokens, stores creds, human-friendly ✓ page
+  - src/app/api/oauth/upwork/status/route.ts — connection status WITHOUT token leak (prefix only)
+- TESTED locally: metadata OK, authorize URL has response_type=code + S256 challenge + state, state file mode 600, callback rejects wrong state, status shows connected:false. Lint passes.
+- IMPORTANT: Upwork token flow completes ONLY when callback is reachable by operator's browser → requires Vercel deploy (VERCEL_TOKEN still missing). Everything else pre-built.
+
+Stage Summary:
+- ✅ Upwork MCP integration BUILT + tested locally (5 files, public-client OAuth 2.1 + PKCE)
+- ✅ Scan 14:17: no gold (0 paid tasks both platforms)
+- ✅ Once VERCEL_TOKEN arrives: deploy → operator opens ONE authorization_url → click approve → tokens auto-stored → Upwork MCP live as 3rd marketplace
+- ⏳ Waiting: VERCEL_TOKEN (blocks both cloud 24/7 scanning AND Upwork OAuth completion), GitHub PAT (blocks PR delivery)
