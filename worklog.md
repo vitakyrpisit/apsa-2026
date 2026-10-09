@@ -791,3 +791,13 @@ Work Log:
 Stage Summary:
 - No gold yet. Scanner continues. State stable across last 5 cycles (06:12 → 06:32).
 - No claim, no spend, no keys touched. Waiting: VERCEL_TOKEN, GitHub PAT.
+---
+Task ID: cron-446189 (14:37 cycle)
+Agent: main (Z.ai Code)
+Task: Automated marketplace scan + operator asked for step-by-step key setup instructions
+Work Log:
+- Scanned 06:37:46 UTC (7.6s): BasedAgents 40 tasks (0 paid, 8 free, 31 scam, 1 unknown), TaskBounty 0 bounties / 18 missions (0 paid, 5 scam, 13 unpaid)
+- has_gold: false. Wrote detailed step-by-step guide (RU) for operator: GitHub PAT → VERCEL_TOKEN → Upwork OAuth authorize.
+Stage Summary:
+- No gold yet. Scanner continues. Stable across 6 cycles.
+- Delivered step-by-step credential setup instructions to operator.
