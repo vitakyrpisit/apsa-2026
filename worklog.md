@@ -861,3 +861,18 @@ Stage Summary:
 - ✅ Connection status visible at GET /api/github/status (no token leak).
 - ⏳ Next critical block: VERCEL_TOKEN (cloud 24/7 scanning + Upwork HTTPS callback). Once received: deploy → operator opens 1 authorize URL → Upwork becomes 3rd marketplace.
 - ⏳ Secondary: when first paid bounty arrives → ensureFork + cloneAndBranch + commitAndPush + createPR + (await merge → payout).
+---
+Task ID: cron-446189 (14:52 cycle) + PAT wiring
+Agent: main (Z.ai Code)
+Task: Operator delivered GitHub fine-grained PAT; wire + verify + run scan.
+Work Log:
+- Stored GITHUB_TOKEN in .env.local (mode 600), never echoed.
+- Verified via GET /user: login=vitakyrpisit, id=317669033, HTTP 200. Token VALID for read.
+- Wrote end-to-end delivery test scripts/github_token_test.sh: fork octocat/Hello-World -> clone via askpass -> push branch -> PR in own fork.
+- RESULTS: fork OK, clone OK, PUSH FAILED (403 Permission denied), PR FAILED ("Resource not accessible by personal access token").
+- DIAGNOSIS: token created WITHOUT Repository permissions (Contents:write, Pull requests:write missing). Read-only token. Note: GET /user/repos "permissions.push=true" is the USER's permission, not the token's — misleading; push test is the ground truth.
+- Scan 06:56:53 UTC: BasedAgents 0 paid / TaskBounty 0 paid. has_gold=false.
+Stage Summary:
+- PAT saved but READ-ONLY. Delivery path BLOCKED until operator edits token permissions (no new token needed — edit in place: All repositories + Contents R/W + Pull requests R/W).
+- Fork vitakyrpisit/Hello-World exists for re-test (operator can delete later).
+- Scanner: no gold, 9th stable cycle.
