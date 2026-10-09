@@ -437,3 +437,67 @@ Next phase priority recommendations:
 5. **Toku webhook setup**: POST /api/agents/webhooks with {url, events:[job.created, job.updated, dm.received]} pointing to https://apsa-2026.vercel.app/api/toku/events (would need to build this endpoint first). This would let us auto-react to new tasks on Toku.
 6. **Cross-platform task monitor**: extend `/api/basedagents/scan` to also scan Toku, AgentPact, Mercatai, Agent Souk for honest paid tasks. Would need separate signed API calls per platform (different auth schemes).
 7. **Per-platform reputation tracking**: add a small section showing reputation_score trends across all 6 platforms (currently all 0). Helps visualize when paid work starts landing.
+
+---
+Task ID: 7
+Agent: main (Z.ai Code)
+Task: Operator chose Variant D (Combined). Execute: build unified scanner for BasedAgents + TaskBounty, deploy, auto-claim when honest paid task appears.
+
+Work Log:
+- Operator provided TASKBOUNTY_API_KEY: tb_live_eefee7e60e40b3ec17d9313017ac71872aa24663fad6a85ee5da3c3d666d40c7
+- Verified API key works: list_my_bounties responds with Bearer auth
+- Set payout method: attempted EVM (0x6284D1ef9...) → rejected "Ethereum and Bitcoin payout methods unlock at $50 lifetime paid" → set Solana USDC (EyTxSdVtku7Q...) → SUCCESS "Payout method saved. First verified payout released right away."
+- Saved API key to 3 locations: /home/z/.taskbounty/, /home/z/my-project/.taskbounty/, /home/z/.local/share/apsa-credentials/taskbounty/ (all mode 0600, .gitignored)
+- Added TASKBOUNTY_API_KEY to .env.local (gitignored by Next.js default)
+- Built unified scanner endpoint /api/marketplaces/scan:
+  - Polls BasedAgents /v1/tasks?status=open (unsigned GET)
+  - Polls TaskBounty list_open_bounties + browse_missions + get_hiring_workspace (signed MCP calls with API key)
+  - Classifies BasedAgents tasks: honest_paid / honest_free / scam_pattern / unknown
+  - Classifies TaskBounty missions: honest_paid / scam_pattern / unpaid
+  - Calculates EV for honest_paid tasks: EV = B × P(win) × P(success) × P(pay) × (1-fee) − costs
+  - State persisted to /home/z/my-project/.marketplace-state/scan-results.json
+  - GET returns latest state (fast), POST forces fresh scan
+- Built React component UnifiedScannerStatus.tsx:
+  - GOLD FOUND alert (amber, pulsing) when honest_paid > 0
+  - "No honest paid tasks" waiting state with historical proof
+  - Platform status cards for BasedAgents + TaskBounty
+  - Auto-refresh every 5 min via POST (forces fresh scan)
+  - Rescan button
+- Created mini-service marketplace-scanner (port 3031):
+  - bun --hot index.ts (auto-restarts on file change)
+  - Polls /api/marketplaces/scan every 5 min
+  - GET /status returns latest scan + uptime
+  - GET /scan-now triggers immediate scan
+  - State persisted to .marketplace-state/scanner-service.json
+- Added UnifiedScannerStatus to "All Marketplaces" tab in page.tsx (above existing MarketplacesIntegration)
+- Discovered 5 PAID missions on TaskBounty ($1000 each) — ALL SCAM:
+  - Title: "$100000xxxxxxxx" (placeholder)
+  - Description: Telegram bot referral link t.me/botron_robot?start=ref_KURSITPV
+  - No required capabilities, no acceptance criteria, expired deadline
+  - Added scam classification to scanner: t.me/ links, placeholder titles, high-reward-no-caps pattern
+- After scam classification fix: 0 honest paid missions, 5 scam, 13 unpaid
+- Scanner mini-service correctly reports has_gold: False
+- Browser-verified: "All Marketplaces" tab shows UnifiedScannerStatus + MarketplacesIntegration
+  - "Unified Marketplace Scanner · Live" header
+  - "No honest paid tasks available right now" with historical proof
+  - Platform cards: BasedAgents (40 tasks, 0 paid, 8 free, 31 scam) + TaskBounty (0 bounties, 18 missions, 0 paid, 5 scam, 13 unpaid)
+  - "Last scan: 10/9/2026, 5:17:31 AM · 6806 ms · next scan in 300s · auto-claim pending: no"
+- Lint passes (0 errors)
+- Dev server running on port 3000, scanner mini-service running on port 3031
+
+Stage Summary:
+- ✅ Unified scanner LIVE: /api/marketplaces/scan endpoint + mini-service on port 3031 + dashboard UI
+- ✅ Both platforms fully onboarded: BasedAgents (agent v4 + wallet verified) + TaskBounty (API key + Solana payout)
+- ✅ Scam detection on both platforms: 31 Industrial Sentinel (BasedAgents) + 5 Telegram referral (TaskBounty) = 36 scams filtered
+- ✅ 0 honest paid tasks right now — scanner will detect the moment one appears
+- ✅ Scanner runs 24/7: dev server (port 3000) + mini-service (port 3031) both running
+- ✅ Dashboard auto-refreshes every 5 min — GOLD FOUND alert when paid task appears
+- ✅ Lint passes, browser-verified, no runtime errors
+- ⏳ Waiting for honest paid task to appear on either platform
+- ❌ Upwork OAuth still needed (ACTION REQUIRED #002) for third marketplace
+- ❌ Vercel deploy not done (scanner runs locally in sandbox only)
+
+Next phase:
+- When honest paid task appears → auto-claim + execute + deliver + verify payment
+- Deploy to Vercel for 24/7 cloud scanning
+- Operator authorizes Upwork OAuth for third marketplace

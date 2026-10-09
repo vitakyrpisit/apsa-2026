@@ -12,6 +12,7 @@ import { UnitEconomicsSimulator } from "@/components/apsa/UnitEconomicsSimulator
 import { AutonomousLoopAudit } from "@/components/apsa/AutonomousLoopAudit";
 import { BasedAgentsIntegration } from "@/components/apsa/BasedAgentsIntegration";
 import { MarketplacesIntegration } from "@/components/apsa/MarketplacesIntegration";
+import { UnifiedScannerStatus } from "@/components/apsa/UnifiedScannerStatus";
 import { ExecutiveVerdictReport } from "@/components/apsa/ExecutiveVerdictReport";
 import { RealRevenueHarness } from "@/components/apsa/RealRevenueHarness";
 import { LiveTicker } from "@/components/apsa/live-ticker";
@@ -544,7 +545,12 @@ function Dashboard() {
           )}
           {activeTab === "intel" && <MarketIntelAgent />}
           {activeTab === "market" && <BasedAgentsIntegration />}
-          {activeTab === "marketplaces" && <MarketplacesIntegration />}
+          {activeTab === "marketplaces" && (
+            <div className="space-y-6">
+              <UnifiedScannerStatus />
+              <MarketplacesIntegration />
+            </div>
+          )}
         </FadeIn>
 
         {/* Quick-action floating buttons (desktop only, subtle) */}

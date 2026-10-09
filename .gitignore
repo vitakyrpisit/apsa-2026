@@ -70,3 +70,6 @@ server.log
 
 # TaskBounty API key (NEVER commit)
 .taskbounty/
+
+# Marketplace scan state (NEVER commit)
+.marketplace-state/
