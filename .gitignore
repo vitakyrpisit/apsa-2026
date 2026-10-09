@@ -67,3 +67,6 @@ server.log
 
 # Mercatai credentials (NEVER commit)
 .mercatai/
+
+# TaskBounty API key (NEVER commit)
+.taskbounty/
