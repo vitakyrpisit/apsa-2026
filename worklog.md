@@ -702,3 +702,36 @@ Work Log:
 - has_gold: false
 Stage Summary:
 - No gold yet. Scanner continues. State unchanged from 06:12 cycle (5 min earlier).
+---
+Task ID: 10
+Agent: main (Z.ai Code)
+Task: Operator sent screenshot of https://mcp.upwork.com/mcp showing HTTP 401. Investigate + build proper OAuth flow.
+
+Work Log:
+- VLM analyzed screenshot: HTTP ERROR 401 + "Сейчас эта страница не работает" (Russian). Operator visited API endpoint directly.
+- Probed OAuth discovery:
+  - GET /mcp returns 401 with WWW-Authenticate: Bearer resource_metadata=https://mcp.upwork.com/.well-known/oauth-protected-resource/mcp
+  - /.well-known/oauth-authorization-server returns JSON with real endpoints:
+    - authorization_endpoint: https://www.upwork.com/ab/account-security/oauth2/authorize
+    - token_endpoint:          https://www.upwork.com/api/v3/oauth2/token
+    - revocation_endpoint:     https://www.upwork.com/api/v3/oauth2/token/revoke
+    - code_challenge_methods_supported: ["S256"] (PKCE required)
+    - grant_types_supported: ["authorization_code","refresh_token","client_credentials"]
+- web_search confirmed: operator must register API app at https://www.upwork.com/developer → Create New App → get client_id + client_secret + set redirect_uri
+- BUILT full OAuth 2.1 + MCP integration:
+  - src/lib/apsa/upwork-oauth.ts: PKCE pair generation (RFC 7636, S256), token storage (mode 0600), token refresh, MCP JSON-RPC call helper with Bearer auth + mcp-protocol-version header
+  - src/app/api/upwork/oauth/authorize/route.ts: GET → generates verifier+state+challenge, persists, returns authorize_url
+  - src/app/api/upwork/oauth/callback/route.ts: GET ?code=&state= → exchanges code+verifier for tokens, stores, redirects to ?next=
+  - src/app/api/upwork/status/route.ts: GET → reports OAuth state + TTL + refresh status
+- Verified endpoints respond correctly:
+  - /api/upwork/oauth/authorize → {"ok":false,"error":"missing_env","message":"Set UPWORK_CLIENT_ID..."} (correct until env set)
+  - /api/upwork/status → {"ok":false,"connected":false,"reason":"no_tokens"} (correct)
+- Lint passes (0 errors)
+
+Stage Summary:
+- ✅ Upwork OAuth 2.1 + MCP infrastructure BUILT and TESTED (state: missing_env, by design)
+- ✅ Discovery metadata verified from live server (not on word) — real authorize URL is https://www.upwork.com/ab/account-security/oauth2/authorize, NOT /mcp
+- ✅ Ready for operator to register Upwork app + set env vars + complete one-time browser authorize
+- ❌ Blocked on operator: needs UPWORK_CLIENT_ID + UPWORK_CLIENT_SECRET (after registering app at https://www.upwork.com/developer)
+- ❌ Redirect URI must be HTTPS — needs Vercel deploy (needs VERCEL_TOKEN) OR operator can register http://localhost:3000/api/upwork/oauth/callback for local-only testing
+- Next: when operator sends UPWORK_CLIENT_ID + UPWORK_CLIENT_SECRET → I add to .env.local, operator opens authorize URL, clicks Authorize on Upwork, tokens auto-stored server-side, then /api/upwork/status reports connected=true, then MCP tools available
