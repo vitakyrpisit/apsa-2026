@@ -585,3 +585,70 @@ Stage Summary:
 - TaskBounty API key active + Solana USDC payout set
 - 36 scam tasks filtered (31 BasedAgents + 5 TaskBounty)
 
+
+---
+Task ID: 9
+Agent: main (Z.ai Code)
+Task: Operator asked: "look at what you can do, study everything again, verify everything, what APIs do you still need to do everything"
+
+Work Log:
+- Read worklog.md (last 200 lines) - full context loaded
+- Read /home/z/my-project/dev.log - server running clean on port 3000 (EADDRINUSE from previous instance resolved after restart)
+- Verified /api/health endpoint: returns 200 with router-dispatch metadata, 5 paid services, 5 free services
+- Verified /api/marketplaces/scan endpoint POST (fresh scan): 0 honest paid tasks, 36 scam filtered
+- Verified /api/marketplaces/identities endpoint: shows 18 platforms, 1 registered (BountyBook), 1 auth-only (Agent402 router), 16 not_attempted (because credentials wiped)
+- Verified scanner mini-service on port 3031: uptime 2834s, scan_count 12, has_gold=false
+- Verified TaskBounty API key STILL WORKS: list_my_bounties returned {data:[]} (zero bounties owned by us)
+- Verified BasedAgents agent v4 STILL ALIVE on platform: ag_28FScsBp45ffXWKjQv9sPBSGggkAdGDPb4VDg2b4UN84 returns full profile with wallet_verified=true, status=active
+- BUT: Verified BasedAgents local keypair WIPED from sandbox:
+  - /home/z/my-project/.basedagents/keys/ does NOT exist
+  - /home/z/.basedagents/keys/ does NOT exist
+  - /home/z/.local/share/apsa-credentials/ only contains taskbounty/ subdir
+- Other platform credentials also wiped: .agentsouk, .agentpact, .toku, .mercatai all gone from sandbox
+- TaskBounty credentials PRESERVED at: /home/z/.taskbounty/credentials.json, /home/z/my-project/.taskbounty/credentials.json, /home/z/.local/share/apsa-credentials/taskbounty/credentials.json (all mode 0600)
+- .env.local has TASKBOUNTY_API_KEY=tb_live_eefee7e60e40b3ec17d9313017ac71872aa24663fad6a85ee5da3c3d666d40c7
+- Browser-verified dashboard renders correctly via agent-browser:
+  - / shows full 12-test verification matrix (11 PASS, 1 FAIL on test 11 - $0.09 wallet balance below $0.05 trial tier threshold)
+  - "All Marketplaces" tab loads UnifiedScannerStatus + MarketplacesIntegration components correctly
+  - UnifiedScannerStatus shows: "No honest paid tasks available right now"
+  - BasedAgents card: 40 tasks, 0 paid, 8 free, 31 scam, agent ag_28FScsBp45..., wallet 0x6284D1ef9...
+  - TaskBounty card: 0 bounties, 18 missions, 0 paid, 5 scam, 13 unpaid, actor 1b86882f-...
+  - MarketplacesIntegration: 18 platforms explored, 2 live registrations (BountyBook + Agent402 router)
+  - Sticky footer at bottom works: "402APSA-2026.4 · Autonomous Money Hunter·Base L2 USDC Protocol·Receive-Only: 0x829f...2BDA"
+
+Stage Summary:
+- ✅ Dev server running clean on port 3000 (no errors, scans every 5 min)
+- ✅ Scanner mini-service running on port 3031 (12 scans, has_gold: false)
+- ✅ /api/marketplaces/scan works (no keypair needed for scanning - uses unsigned GET)
+- ✅ TaskBounty API key still active (verified via direct MCP call)
+- ✅ BasedAgents agent v4 still alive on platform (verified via public GET)
+- ✅ Dashboard renders correctly: 12-test matrix, scanner status, marketplace registry, sticky footer
+- ❌ BasedAgents local Ed25519 keypair WIPED from sandbox — cannot SIGN authenticated requests (claim, deliver)
+- ❌ Other platform credentials wiped (.agentsouk, .agentpact, .toku, .mercatai) — those marketplace identities are orphaned
+- ❌ Cron job 446189 not running (cron jobs are session-scoped, new session = new cron)
+- ❌ 0 honest paid tasks available right now on either platform
+- ❌ Vercel deployment is LIVE but OUTDATED (still shows $9.50 price, no unified scanner)
+
+What WORKS right now:
+1. Scanning — every 5 min polls both platforms (BasedAgents unsigned GET + TaskBounty signed MCP)
+2. Scam detection — 36 scams filtered (31 Industrial Sentinel + 5 Telegram referral)
+3. Dashboard — renders all tabs, scanner status, marketplace registry
+4. x402 protocol — SentinelShield endpoint, manifest, 12-test suite
+5. TaskBounty payouts — set to Solana USDC (EyTxSdVtku7Q...)
+6. APSA-2026 Vercel deployment — live (but outdated)
+
+What DOESN'T work right now:
+1. BasedAgents signing — can't claim tasks (no keypair)
+2. Other marketplace interactions — credentials wiped
+3. Upwork — never attempted (needs OAuth)
+4. Cron auto-scan — job 446189 expired with previous session
+5. Real revenue — still $0.00 (no honest paid task appeared yet)
+
+What APIs/credentials the operator needs to provide:
+1. NOTHING REQUIRED if operator only wants monitoring — scanner runs as-is, detects paid tasks the moment they appear, dashboard shows everything live
+2. OPTIONAL: paste back the BasedAgents v4 keypair JSON (if operator saved it offline) to restore claiming ability on BasedAgents
+3. OPTIONAL: Telegram bot token from @BotFather for realtime alerts when scanner finds paid task
+4. OPTIONAL: Vercel CLI auth (browser) to deploy updated code to cloud for 24/7 scanning
+5. REQUIRED for Upwork: operator must complete OAuth at https://mcp.upwork.com/mcp in browser (ACTION REQUIRED #002, still pending since previous session)
+6. NOTHING ELSE NEEDED for TaskBounty — API key works, payout method set
+
