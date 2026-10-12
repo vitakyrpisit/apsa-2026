@@ -1,0 +1,42 @@
+{
+  "poll_interval_seconds": 60,
+  "timeout_seconds": 15,
+  "data_file": "data/observed_transactions.jsonl",
+  "wallets": [
+    {
+      "network": "ethereum",
+      "asset": "ETH",
+      "address": "0x829f877daAb94D766BB2b8511ad486C40f2C2BDA",
+      "explorer": "https://etherscan.io/address/0x829f877daAb94D766BB2b8511ad486C40f2C2BDA",
+      "api_base": "https://eth.blockscout.com/api/v2"
+    },
+    {
+      "network": "arbitrum",
+      "asset": "ETH",
+      "address": "0x829f877daAb94D766BB2b8511ad486C40f2C2BDA",
+      "explorer": "https://arbiscan.io/address/0x829f877daAb94D766BB2b8511ad486C40f2C2BDA",
+      "api_base": "https://arbitrum.blockscout.com/api/v2"
+    },
+    {
+      "network": "bitcoin",
+      "asset": "BTC",
+      "address": "bc1qaedy7cmqujxlmkezlxlytkrecv0ufku970tk9c",
+      "explorer": "https://mempool.space/address/bc1qaedy7cmqujxlmkezlxlytkrecv0ufku970tk9c",
+      "api_base": "https://mempool.space/api"
+    },
+    {
+      "network": "solana",
+      "asset": "SOL",
+      "address": "EyTxSdVtku7QtbwgntLvUwyxMvraJyAxoPoZ8ALdG6qL",
+      "explorer": "https://solscan.io/account/EyTxSdVtku7QtbwgntLvUwyxMvraJyAxoPoZ8ALdG6qL",
+      "rpc_url": "https://api.mainnet-beta.solana.com"
+    },
+    {
+      "network": "tron",
+      "asset": "TRX",
+      "address": "TVVhpdHEg1ZgvPjJNSe2P28bhUDE4m85ZX",
+      "explorer": "https://tronscan.org/#/address/TVVhpdHEg1ZgvPjJNSe2P28bhUDE4m85ZX",
+      "api_base": "https://api.trongrid.io"
+    }
+  ]
+}
