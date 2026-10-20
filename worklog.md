@@ -7031,3 +7031,24 @@ Stage Summary:
 - Cumulative: 1710 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Standing operator items unchanged: (o) WURK pilot decision pending; (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
 - Next: c1711 expected ~12:26:50.
+---
+Task ID: 446189-c1711
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min market scan cycle c1711 (trigger 2026-10-20 12:26:58 +08:00)
+
+Work Log:
+- Pre-check: no duplicate c1711 entry (rg exit 1); worklog tail confirmed c1710 closed with "Next: c1711"; c1710 artifacts healthy.
+- Scan: HTTP 200, 5247ms (SLOW band — first slow-band scan of the post-rollback-#7 era), raw 32376B — OUT OF baseline band (40360, 40361), -7984B. scanned_at 2026-10-20T04:27:14.486Z, scan_duration_ms=5237.
+- DRIFT EVENT #14 DETECTED: composition (24,3,1,17,3) vs baseline (25,4,1,17,3) — total_tasks 25->24, honest_paid 4->3. Task task_tCnB8RqX3b3iOrNjXBHVW (WURK onboarding pilot 5/5, 0.10 USDC, prior best_paid_task) REMOVED from market. Cause NOT determinable from payload (API returns only open tasks; claimed-vs-delisted indistinguishable) — recorded honestly as unknown.
+- Old-baseline probe (validate_cycle1710.py logic vs c1711 payload, scratch run, artifacts cleaned): ASSERTION_FAILURES: 5 — size band, baseline_match, all_honest_paid_len, expected_paid_ids (tCnB8RqX missing), best_paid_task. All per-task assertions for surviving slots PASSED (escrow funded / open / unclaimed x3).
+- recursive_diff c1710 vs c1711 (correct arg order <new> <old>): MARKET_CHANGED (stripped canonical 41116 -> 32975). Note: an initial mixed-format invocation had args reversed; tool source re-read (args are <new> <old>), corrected interpretation and re-run — historical UNCHANGED results unaffected (both inputs were same-baseline data, order-independent equality).
+- Drift-#14 rebase: NEW ROOT validator validate_cycle1711.py written (not sed-rebased — baseline constants changed): (24,3,1,17,3) @ band (32376,32377), BEST_PAID=task_8zjlRRChZW7kWIb0Oy6Ai, EXPECTED_PAID_IDS=[8zjlRRCh, qKxsDuYZ, 5yzaOsv8]. Run: ALL_ASSERTIONS_PASSED, baseline_match_c1711=true, real exit 0. Drift-#14 stripped-canonical constant: 32975B (confirmed via raw and pretty paths).
+- Surviving market facets: 3 WURK slots (4/5, 3/5, 2/5) all bounty=100000 raw (0.10 USDC) escrow=funded open unclaimed; honest_free=1; scam=17; unknown=3; taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300.
+- Judgment: honest_paid=3 -> step 5 branch; EV = 0.10 x 1.0 x 0.5 x 0.95 - 0.11 = -0.0625 <= 0 -> rule 5e NO CLAIM (EV is per-unit-price driven; slot count 4->3 does not change EV). Blocker standing: .basedagents/ dir entirely absent since rollback #7.
+
+Stage Summary:
+- c1711 CLOSED. Verdict: DRIFT #14 (one WURK paid slot removed, 4->3), re-based; paid slots present but EV <= 0 -> no claim, scanner continues.
+- Streaks: MARKET_UNCHANGED streak RESET to 0 by drift-#14; validator clean streak = 1 (drift-#14 era root).
+- Cumulative: 1711 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Operator-relevant: WURK pilot inventory shrank 5->4 listed-of-5? No — 3 of the 5 pilot slots (2/5,3/5,4/5) remain; slot 5/5 gone (reason unknown). (o) WURK pilot decision still pending; (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
+- Next: c1712 expected ~12:31:50; validator chain now rooted at validate_cycle1711.py (sed-rebase forward from here).
