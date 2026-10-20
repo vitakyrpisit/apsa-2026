@@ -6837,3 +6837,23 @@ Stage Summary:
 - Cumulative (including pre-rollback era from context): 1700 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Standing operator items (updated): (o) WURK pilot decision pending; (a) keypair restore — CRITICAL, worsened by rollback (dir gone); (h) off-node backup — CRITICAL HIGHEST (7 rollbacks now, off-node backup still absent); (g) midnight-rollback watch — MANIFESTED #7; (k) honest_free erosion (1 remaining).
 - Next: c1701 expected ~11:36:50.
+
+---
+Task ID: 446189-c1701
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min market scan cycle c1701 (trigger 2026-10-20 11:36:58 +08:00)
+
+Work Log:
+- Pre-check: no duplicate c1701 entry (rg exit 1); c1700 era-root artifacts healthy (raw 40360B / normalized 44543B / validator 5536B).
+- Scan: HTTP 200, 2637ms (fast band), raw size 40360B — within BASELINE_SIZE_BAND (40360, 40361).
+- Normalized -> scan_cycle1701.json (44543B); sed-rebased validate_cycle1700.py -> validate_cycle1701.py (post-rollback-#7 baseline inherited).
+- Validator: ALL_ASSERTIONS_PASSED, real exit 0. Composition (25,4,1,17,3) = baseline; 4 WURK slots all bounty=100000 raw units (0.10 USDC), escrow=funded, status=open, claimed_by=None; taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300.
+- recursive_diff.py REBUILT (erased in rollback #7): reconstruction testing found volatile fields (scanned_at/scan_duration_ms) must be stripped or every cycle false-positives MARKET_CHANGED; stripped+sort_keys+default-sep constant = 41116B. Pre-rollback era constant 41087 UNRECOVERABLE (tested 41184 no-strip / 40435 compact-sep; neither matches). Corrected tool applied: c1700 vs c1701 -> MARKET_UNCHANGED (41116 = 41116).
+- Judgment: honest_paid=4 -> step 5 branch; EV = 0.10 x 1.0 x 0.5 x 0.95 - 0.11 = -0.0625 <= 0 -> rule 5e NO CLAIM. Blocker standing: .basedagents/ dir entirely absent since rollback #7.
+
+Stage Summary:
+- c1701 CLOSED. Verdict: paid slots present but EV <= 0 -> no claim, scanner continues.
+- Streaks: post-rollback-#7 era MARKET_UNCHANGED = 1; validator clean streak = 2; era normalization constant rebased to 41116 (stripped canonical).
+- Cumulative: 1701 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Standing operator items unchanged: (o) WURK pilot decision pending; (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
+- Next: c1702 expected ~11:41:50.
