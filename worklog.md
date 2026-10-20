@@ -6896,3 +6896,22 @@ Stage Summary:
 - Cumulative: 1703 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Standing operator items unchanged: (o) WURK pilot decision pending; (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
 - Next: c1704 expected ~11:51:50.
+---
+Task ID: 446189-c1704
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min market scan cycle c1704 (trigger 2026-10-20 11:51:58 +08:00)
+
+Work Log:
+- Pre-check: no duplicate c1704 entry (rg exit 1); worklog tail confirmed c1703 closed with "Next: c1704" (trigger match); c1703 artifacts healthy (raw 40360B / normalized 44543B / validator / recursive_diff present).
+- Scan: HTTP 200, 1938ms (fast band), raw 40360B in BASELINE_SIZE_BAND (40360, 40361); scanned_at 2026-10-20T03:52:30.606Z, scan_duration_ms=1927. HTTP code capture restored as committed last cycle.
+- Validator: sed-rebased validate_cycle1703.py -> validate_cycle1704.py using corrected anchor pattern (unescaped '$' end-anchor, per fix documented in c1703); CYCLE=1704 verified via rg before run. ALL_ASSERTIONS_PASSED, baseline_match_c1704=true, real exit 0.
+- Composition (25,4,1,17,3) = post-rollback-#7 baseline; 4 WURK slots all bounty=100000 raw units (0.10 USDC), escrow=funded, status=open, claimed_by=None (IDs tCnB8RqX/8zjlRRCh/qKxsDuYZ/5yzaOsv8); taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300.
+- recursive_diff c1703 vs c1704: MARKET_UNCHANGED (stripped canonical 41116 = 41116).
+- Judgment: honest_paid=4 -> step 5 branch; EV = 0.10 x 1.0 x 0.5 x 0.95 - 0.11 = -0.0625 <= 0 -> rule 5e NO CLAIM. Blocker standing: .basedagents/ dir entirely absent since rollback #7.
+
+Stage Summary:
+- c1704 CLOSED. Verdict: paid slots present but EV <= 0 -> no claim, scanner continues.
+- Streaks: post-rollback-#7 era MARKET_UNCHANGED = 4; validator clean streak = 5.
+- Cumulative: 1704 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Standing operator items unchanged: (o) WURK pilot decision pending; (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
+- Next: c1705 expected ~11:56:50 (every-5 milestone, (o) re-report due).
