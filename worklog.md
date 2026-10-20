@@ -6954,3 +6954,22 @@ Stage Summary:
 - Cumulative: 1706 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Standing operator items unchanged: (o) WURK pilot decision pending; (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
 - Next: c1707 expected ~12:06:50.
+---
+Task ID: 446189-c1707
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min market scan cycle c1707 (trigger 2026-10-20 12:06:58 +08:00)
+
+Work Log:
+- Pre-check: no duplicate c1707 entry (rg exit 1); worklog tail confirmed c1706 closed with "Next: c1707"; c1706 artifacts healthy (raw 40360B / normalized 44543B / validator / recursive_diff present).
+- Scan: HTTP 200, 2622ms (fast band), raw 40360B in BASELINE_SIZE_BAND (40360, 40361); scanned_at 2026-10-20T04:07:12.109Z, scan_duration_ms=2612.
+- Validator: sed-rebased validate_cycle1706.py -> validate_cycle1707.py (corrected anchor pattern, CYCLE=1707 verified pre-run). ALL_ASSERTIONS_PASSED, baseline_match_c1707=true, real exit 0.
+- Composition (25,4,1,17,3) = post-rollback-#7 baseline; 4 WURK slots all bounty=100000 raw units (0.10 USDC), escrow=funded, status=open, claimed_by=None (IDs tCnB8RqX/8zjlRRCh/qKxsDuYZ/5yzaOsv8); taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300.
+- recursive_diff c1706 vs c1707: MARKET_UNCHANGED (stripped canonical 41116 = 41116).
+- Judgment: honest_paid=4 -> step 5 branch; EV = 0.10 x 1.0 x 0.5 x 0.95 - 0.11 = -0.0625 <= 0 -> rule 5e NO CLAIM. Blocker standing: .basedagents/ dir entirely absent since rollback #7.
+
+Stage Summary:
+- c1707 CLOSED. Verdict: paid slots present but EV <= 0 -> no claim, scanner continues.
+- Streaks: post-rollback-#7 era MARKET_UNCHANGED = 7; validator clean streak = 8.
+- Cumulative: 1707 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Standing operator items unchanged: (o) WURK pilot decision pending; (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
+- Next: c1708 expected ~12:11:50.
