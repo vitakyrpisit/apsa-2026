@@ -6814,3 +6814,26 @@ Work Log:
 Stage Summary:
 - Cycle 664 complete: HTTP 200, composition unchanged (1 paid / 9 free / 30 scam / 0 unknown). Only paid task remains the self-cancelled $1.00 test task → EV −$0.11 ≤ 0 → no claim. Cumulative: 664 cycles, zero spend, zero claims, zero violations. No gold yet. Scanner continues.
 - Operator blockers unchanged: (a) restore v4 claim keypair (ABSENT), (b) restore Clawlancer retry script/endpoint, (c) decide claim/cancel on the $1.00 test task, (d) provide TaskBounty API key, (e) provide Clawlancer escrow gas.
+
+---
+Task ID: 446189-rollback7+c1700
+Agent: market-scanner (Job 446189)
+Task: Rollback event #7 detection + cycle c1700 execution (trigger 2026-10-20 11:31:58 +08:00; batched with undelivered c1695 trigger 11:06:57)
+
+Work Log:
+- ROLLBACK EVENT #7 DETECTED (7th occurrence of item (g)): pre-check for c1695 found worklog tail foreign to era; investigation showed worklog.md mtime 2026-10-13 04:29:31 UTC, 578927B — restored to SAME Oct 13 snapshot as rollback #6.
+- Outage window ~11:07 -> ~11:31 (~24 min): triggers c1695..c1699 undelivered/not executed; c1695 + c1700 arrived batched at ~11:32. c1695..c1699 recorded as NOT EXECUTED (no scans performed, no market observation missed beyond outage).
+- Damage (identical to rollback #6): scripts/ validate_cycle16*.py + scan_cycle16*.json ERASED (only cycle-210-era clawlancer files survive); tool-results/ era artifacts erased; .basedagents/ tree ENTIRELY GONE (keypair item (a) absent along with dir).
+- Drift-#13 era record preserved ONLY in conversation context: 1694 cumulative scans, 0 claims, 0 violations, 0 spend, 0 revenue; validator clean streak 46 final; era MARKET_UNCHANGED streak 45 final; baseline (25,4,1,17,3) @ 40360B / normalized 41087.
+- c1700 scan: HTTP 200, 2473ms (fast band), raw 40360B in band. Composition (25,4,1,17,3) IDENTICAL to pre-rollback drift-#13 baseline -> MARKET_CARRIED_ACROSS_ROLLBACK (identity verified: same 4 WURK IDs, bounty=100000, escrow=funded, status=open, claimed_by=None; taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300).
+- Era-root validator REBUILT from scratch (era artifacts erased): scripts/validate_cycle1700.py (5536B, header documents rollback #7); ALL_ASSERTIONS_PASSED, real exit 0; normalized -> scan_cycle1700.json (44543B).
+- recursive_diff NOT RUN (no prior-cycle artifact survives rollback) — composition-equality from context is the drift sensor this cycle.
+- Judgment: honest_paid=4 -> step 5 branch; EV = 0.10 x 1.0 x 0.5 x 0.95 - 0.11 = -0.0625 <= 0 -> rule 5e NO CLAIM. Blocker worsened: .basedagents/ dir now ENTIRELY ABSENT (keypair item (a) cannot even be restored without dir + keypair file).
+
+Stage Summary:
+- c1700 CLOSED under post-rollback-#7 era root. Verdict: paid slots present (carried across rollback) but EV <= 0 -> no claim, scanner continues.
+- EVERY-5 MILESTONE (c1700): operator item (o) re-report issued — WURK pilot (4 x 0.10 USDC) still pending decision; now ALSO requires .basedagents/ dir + keypair restoration post-rollback.
+- Streaks reset: post-rollback-#7 era validator clean streak = 1; era diff streak = n/a (no prior artifact).
+- Cumulative (including pre-rollback era from context): 1700 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Standing operator items (updated): (o) WURK pilot decision pending; (a) keypair restore — CRITICAL, worsened by rollback (dir gone); (h) off-node backup — CRITICAL HIGHEST (7 rollbacks now, off-node backup still absent); (g) midnight-rollback watch — MANIFESTED #7; (k) honest_free erosion (1 remaining).
+- Next: c1701 expected ~11:36:50.
