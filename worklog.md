@@ -7052,3 +7052,22 @@ Stage Summary:
 - Cumulative: 1711 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Operator-relevant: WURK pilot inventory shrank 5->4 listed-of-5? No — 3 of the 5 pilot slots (2/5,3/5,4/5) remain; slot 5/5 gone (reason unknown). (o) WURK pilot decision still pending; (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
 - Next: c1712 expected ~12:31:50; validator chain now rooted at validate_cycle1711.py (sed-rebase forward from here).
+---
+Task ID: 446189-c1712
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min market scan cycle c1712 (trigger 2026-10-20 12:31:58 +08:00)
+
+Work Log:
+- Pre-check: no duplicate c1712 entry (rg exit 1); worklog tail confirmed c1711 (drift-#14) closed with "Next: c1712"; c1711 artifacts healthy (raw 32376B / normalized 35716B / validator ROOT / recursive_diff present).
+- Scan: HTTP 200, 2902ms (fast band, latency recovered from drift-cycle slow band), raw 32376B in drift-#14 BASELINE_SIZE_BAND (32376, 32377); scanned_at 2026-10-20T04:32:17.534Z, scan_duration_ms=2892.
+- Validator: sed-rebased drift-#14 ROOT validate_cycle1711.py -> validate_cycle1712.py (corrected anchor pattern, CYCLE=1712 verified pre-run). ALL_ASSERTIONS_PASSED, baseline_match_c1712=true, real exit 0.
+- Composition (24,3,1,17,3) = drift-#14 baseline held; 3 surviving WURK slots (4/5, 3/5, 2/5) all bounty=100000 raw units (0.10 USDC), escrow=funded, status=open, claimed_by=None; taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300.
+- recursive_diff c1711 vs c1712: MARKET_UNCHANGED (stripped canonical 32975 = 32975) — drift-#14 era streak (1).
+- Judgment: honest_paid=3 -> step 5 branch; EV = 0.10 x 1.0 x 0.5 x 0.95 - 0.11 = -0.0625 <= 0 -> rule 5e NO CLAIM. Blocker standing: .basedagents/ dir entirely absent since rollback #7.
+
+Stage Summary:
+- c1712 CLOSED. Verdict: drift-#14 baseline held; paid slots present but EV <= 0 -> no claim, scanner continues.
+- Streaks: drift-#14 era MARKET_UNCHANGED = 1; validator clean streak = 2 (sed-forward chain rooted at validate_cycle1711.py).
+- Cumulative: 1712 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Standing operator items unchanged: (o) WURK pilot decision pending (pilot inventory now 3 visible slots); (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
+- Next: c1713 expected ~12:36:50.
