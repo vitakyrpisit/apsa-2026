@@ -7358,3 +7358,23 @@ Stage Summary:
 - Cumulative: 1836 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Operator items: (k) honest_free=4 (baseline since c1832); (h) off-node backup (loss manifested #9, escalation standing); (a) keypair restore (CRITICAL); (g) rollback watch (#9 confirmed); (o) moot-slot guidance pending since c1817.
 - Next: c1836 expected ~10:42 (rebase source: validate_cycle1835.py) — regular cycle.
+
+---
+Task ID: 446189-c1836
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min market scan cycle c1836 (trigger 2026-10-21 10:37:23 +08:00) — regular cycle, next-window after verified c1835 closure
+
+Work Log:
+- Pre-check: c1835 duplicate-detected (rg) -> per c1820 precedent, verified c1835 artifacts genuine (raw 446B / pretty / validator, mtime 02:32Z) and entry complete (streak 3) -> this trigger advanced to c1836 window; no re-scan of c1835 (single-call hardening held).
+- Scan: SINGLE call per hardening (direct -o), HTTP 200, wall 1.97s (fast band), raw 446B inside BASELINE_SIZE_BAND (446, 447); scanned_at 2026-10-21T02:39:26.278Z, scan_duration_ms=1961. NO drift.
+- Rebase: hardened 4-pattern sed validate_cycle1835.py -> validate_cycle1836.py; 4 sites hit; zero remnants; recursive diff REBASE_DIFF_CLEAN.
+- Validator: first-pass ALL_ASSERTIONS_PASSED, exit 0, archive scan_cycle1836.json written. Zero defects. Composition (27,0,4,20,3) = DRIFT-#19 baseline held; NO paid task (all_honest_paid=[], best_paid_task=null); taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300.
+- recursive_diff c1836 vs c1835 (arg order <new> <old>): MARKET_UNCHANGED (419 = 419 byte-identical) — DRIFT-#19 era streak advances to 4.
+- Judgment: honest_paid=0 -> step 4 branch (NO paid task found); EV not computable — zero-claim posture holds trivially; no claim, no spend. Blocker re-verified standing: .basedagents/ absent (ls exit 2).
+
+Stage Summary:
+- c1836 CLOSED. Verdict: DRIFT-#19 baseline held; NO paid task on market -> step 4, scanner continues.
+- Streaks: DRIFT-#19 era MARKET_UNCHANGED = 4; validator clean streak (era) = 4.
+- Cumulative: 1837 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Operator items: (k) honest_free=4 (baseline since c1832); (h) off-node backup (loss manifested #9, escalation standing); (a) keypair restore (CRITICAL); (g) rollback watch (#9 confirmed); (o) moot-slot guidance pending since c1817.
+- Next: c1837 expected ~10:42 (rebase source: validate_cycle1836.py) — regular cycle.
