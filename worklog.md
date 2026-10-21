@@ -7801,3 +7801,26 @@ Stage Summary:
 - Cumulative: 1858 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Operator items: (k) honest_free=4 (baseline since c1832); (h) off-node backup (loss manifested #9, escalation standing); (a) keypair restore (CRITICAL); (g) rollback watch (#9 confirmed); (o) moot-slot guidance pending since c1817.
 - Next: c1858 expected ~12:27 (rebase source: validate_cycle1857.py) — regular cycle.
+
+---
+Task ID: 446189-c1858
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min market scan cycle c1858 (trigger 2026-10-21 12:27:26 +08:00) — DRIFT-#20 EVENT cycle (honest_free 4->3)
+
+Work Log:
+- Pre-check: no duplicate c1858 entry (rg guarded); c1857 closed with "Next: c1858"; artifacts healthy.
+- Scan: SINGLE call per hardening (direct -o), HTTP 200, wall 2.56s (fast band — latency normal, NOT a latency confound), raw 446B inside old BASELINE_SIZE_BAND (446, 447); scanned_at 2026-10-21T04:27:38.138Z, scan_duration_ms=2547.
+- DRIFT DETECTED in raw: BA composition (26, 0, 3, 20, 3) vs DRIFT-#19 baseline (27, 0, 4, 20, 3) — total 27->26, honest_free 4->3; scam 20, unknown 3, honest_paid 0 all UNCHANGED; taskbounty unchanged (no key, paid_missions=0); clawlancer absent; auto_claim_pending=False; next_scan=300. Composition self-consistent (26 = 0+3+20+3) -> non-API-fault, genuine market-state change. Single-task disappearance in honest_free class; claimed-vs-delisted indistinguishable from this response shape (same as DRIFT-#19).
+- Old-baseline validator confirmation (per c1832 precedent): rebased validate_cycle1857.py -> validate_cycle1858.py (4 sites, zero remnants) then ran -> signature 1 FAIL (baseline_match) / 12 PASS, exit 1, archive REFUSED (no scan_cycle1858.json written pre-manual) — failure signature exactly matches DRIFT-#19 (c1832), confirming true drift not flake.
+- Archive chain preserved: manual pretty write scan_cycle1858.json (json.dumps indent=2, 574B) marked MANUAL-DRIFT-OVERRIDE; raw remains fact source.
+- recursive_diff c1858 vs c1857 pretty (arg order <new> <old>): MARKET_CHANGED (normalized same-length different-bytes) — DRIFT-#19 era MARKET_UNCHANGED streak CLOSES at 20 (era all-time record run c1833..c1852->20, extended to 25 through c1857); validator clean streak CLOSES at 25.
+- Numbering: recorded as DRIFT-#20 — next in session-verifiable sequence (#19 = c1832); standing caveat: lost cycles c1713..c1821 (rollback #9) may contain unrecorded drifts, actual global sequence may be higher.
+- Judgment: honest_paid=0, best_paid_task=null -> NO paid task on market; step 4 branch holds (drift affects free class only); EV not computable — zero-claim posture holds trivially; no claim, no spend. Blocker re-verified standing: .basedagents/ absent (ls exit 2).
+- Era root plan: c1859 to build DRIFT-#20 era root validator with baseline (26, 0, 3, 20, 3) @ band (446, 447) (composition shapes produce 446-447B; size delta driven by scan_duration_ms digit count, structure identical). From c1860 onward rebase from c1859 root. Root cycle counts toward streak (c1818 precedent).
+
+Stage Summary:
+- c1858 CLOSED as DRIFT-#20 event cycle. Verdict: honest_free eroded 4->3 (second erosion this market epoch: 5->4 @ c1832 #19, now 4->3); NO paid task -> scanner continues under zero-claim posture.
+- (k) LINKAGE: honest_free erosion watch UPDATED — 4->3; if trend continues toward 0, flag to operator as free-pool exhaustion signal (potential precursor to paid-task appearance OR market decay; indistinguishable a priori).
+- Cumulative: 1859 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Operator items: (k) honest_free=3 (NEW, erosion 2nd event); (h) off-node backup (loss manifested #9, escalation standing); (a) keypair restore (CRITICAL); (g) rollback watch (#9 confirmed); (o) moot-slot guidance pending since c1817.
+- Next: c1859 expected ~12:32 — DRIFT-#20 ERA ROOT build (rebase source: none; construct from validate_cycle1857.py structure with new baseline), then regular cycles rebase from c1859.
