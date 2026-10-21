@@ -7661,3 +7661,23 @@ Stage Summary:
 - Cumulative: 1851 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Operator items: (k) honest_free=4 (baseline since c1832); (h) off-node backup (loss manifested #9, escalation standing); (a) keypair restore (CRITICAL); (g) rollback watch (#9 confirmed); (o) moot-slot guidance pending since c1817.
 - Next: c1851 expected ~11:52 (rebase source: validate_cycle1850.py) — regular cycle.
+
+---
+Task ID: 446189-c1851
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min market scan cycle c1851 (trigger 2026-10-21 11:52:25 +08:00) — regular cycle
+
+Work Log:
+- Pre-check: no duplicate c1851 entry (rg guarded); c1850 closed with "Next: c1851"; artifacts healthy.
+- Scan: SINGLE call per hardening (direct -o), HTTP 200, wall 2.85s (fast band), raw 446B inside BASELINE_SIZE_BAND (446, 447); scanned_at 2026-10-21T03:52:33.950Z, scan_duration_ms=2841. NO drift.
+- Rebase: hardened 4-pattern sed validate_cycle1850.py -> validate_cycle1851.py; 4 sites hit; zero remnants; recursive diff REBASE_DIFF_CLEAN.
+- Validator: first-pass ALL_ASSERTIONS_PASSED, exit 0, archive scan_cycle1851.json written. Zero defects. Composition (27,0,4,20,3) = DRIFT-#19 baseline held; NO paid task (all_honest_paid=[], best_paid_task=null); taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300.
+- recursive_diff c1851 vs c1850 (arg order <new> <old>): MARKET_UNCHANGED (419 = 419 byte-identical) — DRIFT-#19 era streak advances to 19.
+- Judgment: honest_paid=0 -> step 4 branch (NO paid task found); EV not computable — zero-claim posture holds trivially; no claim, no spend. Blocker re-verified standing: .basedagents/ absent (ls exit 2).
+
+Stage Summary:
+- c1851 CLOSED. Verdict: DRIFT-#19 baseline held; NO paid task on market -> step 4, scanner continues.
+- Streaks: DRIFT-#19 era MARKET_UNCHANGED = 19; validator clean streak (era) = 19.
+- Cumulative: 1852 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Operator items: (k) honest_free=4 (baseline since c1832); (h) off-node backup (loss manifested #9, escalation standing); (a) keypair restore (CRITICAL); (g) rollback watch (#9 confirmed); (o) moot-slot guidance pending since c1817.
+- Next: c1852 expected ~11:57 (rebase source: validate_cycle1851.py) — regular cycle.
