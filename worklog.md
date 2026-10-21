@@ -7071,3 +7071,25 @@ Stage Summary:
 - Cumulative: 1712 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Standing operator items unchanged: (o) WURK pilot decision pending (pilot inventory now 3 visible slots); (a) keypair restore (CRITICAL — dir absent); (h) off-node backup (CRITICAL HIGHEST); (g) midnight-rollback watch (manifested #7); (k) honest_free erosion (1 remaining).
 - Next: c1713 expected ~12:36:50.
+
+---
+Task ID: 446189-c1822
+Agent: market-scanner (Job 446189)
+Task: Automated 5-min scan + ROLLBACK #9 event response (trigger 2026-10-21 09:22:22 +08:00) — RECOVERY cycle, new era root
+
+Work Log:
+- ROLLBACK #9 DETECTED at pre-check: worklog.md shrank 9184 -> 7074 lines; mtime = 2026-10-20T04:32:44Z (= c1712 close instant); tail entry = c1712. Node filesystem reverted ~21h.
+- Damage assessment: LOST = worklog entries c1713..c1821 (109), archives scan_cycle{1713..1821}(.raw/.json), validators validate_cycle{1713..1821}.py, drift-#17 & drift-#18 era artifacts (root validate_cycle1818.py). SURVIVED = worklog through c1712, 13 raw archives c1700..c1712 (post-#7 chain), validate_cycle{1700..1712}.py, scan_cycle1712.json. Off-node backups: ZERO existed ((h) item had stood CRITICAL HIGHEST — loss now materialized).
+- Cross-cycle pre-checks this session (pre-rollback work, also lost from disk but preserved in session context): c1820 closed (milestone, slot-vanished report), c1821 scanned+validated clean (streak 4). Chain numbering continues globally from session memory: 1822 scans cumulative through c1821.
+- Scan c1822: SINGLE call (direct -o), HTTP 200, wall 2.18s (fast band), raw 446B; scanned_at 2026-10-21T01:35:52.384Z, scan_duration_ms=2175. Market NOT rolled back (external API): composition (28,0,5,20,3) = drift-#18 baseline held exactly as last measured at c1821.
+- Era root rebuilt: validate_cycle1822.py written fresh (structure isomorphic to surviving validate_cycle1712.py; constants = measured c1822 baseline (28,0,5,20,3) @ band (446,447); docstring records full ROLLBACK #9 event + loss inventory). NOT a sed rebase (110-cycle gap makes rebase meaningless) — precedent: c1712 was itself a post-#7 era root.
+- Validator: first-pass ALL_ASSERTIONS_PASSED, exit 0, archive scan_cycle1822.json written. Zero defects. NO paid task (all_honest_paid=[], best_paid_task=null); taskbounty api_key=False paid_missions=0; clawlancer absent; auto_claim_pending=False; next_scan=300.
+- recursive_diff c1822 vs c1712 (arg order <new> <old>): MARKET_CHANGED (normalized 32975 -> 419) — ROLLBACK-GAP comparison across 21h (NOT adjacent-cycle; drift-#14 3-slot 32KB era vs current empty-paid 446B era). Gap streak resets: ROLLBACK-#9 era MARKET_UNCHANGED streak = 0; validator clean streak (era) = 1.
+- Judgment: honest_paid=0 -> step 4 branch (NO paid task found); EV not computable — zero-claim posture holds trivially; no claim, no spend. Blocker re-verified standing: .basedagents/ absent (rollback #7 origin, persists through #9).
+
+Stage Summary:
+- c1822 CLOSED (ROLLBACK #9 recovery). Verdict: new era root established; market state preserved across node rollback; NO paid task -> step 4, scanner continues.
+- Damage: 109 cycles of logs/archives/validators unrecoverable on-node; session context holds key facts (drift-#17 era, drift-#18 root c1818, slot vanish c1817, streaks to 4, milestone (o) slot-vanished report at c1820) — recorded here as the only surviving memory.
+- Cumulative: 1823 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
+- Operator items UPDATED: (h) off-node backup — now MANIFESTED as loss, escalate: without off-node copies the c1713..c1821 record is gone and any future rollback repeats this; (a) keypair restore (CRITICAL, standing); (g) midnight watch — rollback #9 confirmed (was: #8 ruled out), pattern now #7/#9 both large; (k) honest_free=5; (o) moot-slot guidance pending since c1817 (slot still absent at c1822).
+- Next: c1823 (rebase source: validate_cycle1822.py) — regular cycle, standard 4-pattern sed rebase resumes.
