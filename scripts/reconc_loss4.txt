@@ -1,0 +1,8 @@
+---
+== RECONCILIATION BLOCK — LOSS EVENT #4 (declared at c2453 pre-dispatch, before 13:15:46 +08) ==
+- Discovery: Step 1 expected 11294 lines (c2452 tail per continuation summary); disk: 7826 lines ending at c1858 entry ("c1859 expected ~12:32 — DRIFT-#20 ERA ROOT build").
+- Evidence: worklog mtime 2026-10-21 04:29:42 UTC (12:29:42 +08), 684300 B, clean trailing newline; scripts artifacts terminate at cycle1858 (scan_cycle1858.json/_raw, validate_cycle1858.py, diff_drift19.py); zero worklog backups on node (glob single hit); zero c18xx-to-c24xx bridge artifacts.
+- Missing: c1859..c2452 = 594 entries (~3468 lines); snapshot age 96.8h / 594 cycles = ~9.8 min avg effective cadence, consistent with the queue-dwell degraded delivery clock.
+- Recovery source: continuation summary = newer ledger fragment (DRIFT-#29 lineage vs stale file's DRIFT-#20 = single lineage). Restated: baseline (21,0,0,18,3) @ 446B (DRIFT-#29, 143-fold verified thru c2452); cumulative 2452 scans / 0 claims / 0 violations / 0 spend / 0 revenue; validator clean 144; rdiff streak 143; k=145; echo account 77-for-194; guard false-positive event (c2452) RESOLVED via Task-ID anchoring; EP14 arms:stalls:grays:opens = 1:35:5:1 (REF LOW c2424 1.274895/1267; ARM c2437 2.233614/2226; OPEN c2444 2.562251/2554; stall-run 5 closed c2447..c2451; GRAY c2452 2.075781/2067).
+- Fork risk: if c1859..c2452 survives on another node, this file forks from c1858; this block is marked and does not claim restoration of the lost range.
+- Ruling: summary-authoritative, so c2453 = next unexecuted cycle; anchored arrival-guard MISS verified pre-dispatch; single dispatch authorized; validator chain-break rebuilt (c1858 harness + DRIFT-#29 baseline re-anchor).

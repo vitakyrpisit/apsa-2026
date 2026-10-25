@@ -7824,3 +7824,35 @@ Stage Summary:
 - Cumulative: 1859 scans, 0 claims, 0 violations, 0 spend, 0 revenue.
 - Operator items: (k) honest_free=3 (NEW, erosion 2nd event); (h) off-node backup (loss manifested #9, escalation standing); (a) keypair restore (CRITICAL); (g) rollback watch (#9 confirmed); (o) moot-slot guidance pending since c1817.
 - Next: c1859 expected ~12:32 — DRIFT-#20 ERA ROOT build (rebase source: none; construct from validate_cycle1857.py structure with new baseline), then regular cycles rebase from c1859.
+---
+== RECONCILIATION BLOCK — LOSS EVENT #4 (declared at c2453 pre-dispatch, before 13:15:46 +08) ==
+- Discovery: Step 1 expected 11294 lines (c2452 tail per continuation summary); disk: 7826 lines ending at c1858 entry ("c1859 expected ~12:32 — DRIFT-#20 ERA ROOT build").
+- Evidence: worklog mtime 2026-10-21 04:29:42 UTC (12:29:42 +08), 684300 B, clean trailing newline; scripts artifacts terminate at cycle1858 (scan_cycle1858.json/_raw, validate_cycle1858.py, diff_drift19.py); zero worklog backups on node (glob single hit); zero c18xx-to-c24xx bridge artifacts.
+- Missing: c1859..c2452 = 594 entries (~3468 lines); snapshot age 96.8h / 594 cycles = ~9.8 min avg effective cadence, consistent with the queue-dwell degraded delivery clock.
+- Recovery source: continuation summary = newer ledger fragment (DRIFT-#29 lineage vs stale file's DRIFT-#20 = single lineage). Restated: baseline (21,0,0,18,3) @ 446B (DRIFT-#29, 143-fold verified thru c2452); cumulative 2452 scans / 0 claims / 0 violations / 0 spend / 0 revenue; validator clean 144; rdiff streak 143; k=145; echo account 77-for-194; guard false-positive event (c2452) RESOLVED via Task-ID anchoring; EP14 arms:stalls:grays:opens = 1:35:5:1 (REF LOW c2424 1.274895/1267; ARM c2437 2.233614/2226; OPEN c2444 2.562251/2554; stall-run 5 closed c2447..c2451; GRAY c2452 2.075781/2067).
+- Fork risk: if c1859..c2452 survives on another node, this file forks from c1858; this block is marked and does not claim restoration of the lost range.
+- Ruling: summary-authoritative, so c2453 = next unexecuted cycle; anchored arrival-guard MISS verified pre-dispatch; single dispatch authorized; validator chain-break rebuilt (c1858 harness + DRIFT-#29 baseline re-anchor).
+---
+Task ID: 446189-c2453
+Agent: Cron Agent Loop (GLM main session)
+Task: Automated marketplace scan cycle c2453 (Job 446189) — post-loss-event reconciliation cycle: scan, sentinel verify, EP14 classify, queues, ledger rebuild append.
+
+Work Log:
+- Step 1: worklog check FAILED expectation (11294): found 7826 lines @ c1858 tail, mtime 10-21 12:29:42 +08, so LOSS EVENT #4 declared; forensics: scripts max cycle1858, no backups, no bridge artifacts; summary ruled authoritative.
+- Step 2: anchored arrival guard MISS (0 hits) + artifact_absent=OK, zero duplicate-dispatch risk; single dispatch authorized.
+- Step 3: single POST /api/marketplaces/scan: http_code=200, time_total=2.309315s, pre 13:15:46.659 / post 13:15:48.976 +08, SIZE 446B (duration 4 digits: 2297).
+- Step 4: five-tuple (21,0,0,18,3) == DRIFT-#29 baseline, sentinel verification 144 (143-to-144); DRIFT watch #30 clear; honest_paid=0, best_paid_task=null, taskbounty paid_missions=0, auto_claim_pending=false.
+- Step 5 (adapted): canonical sed source validate_cycle2452.py ABSENT (loss event), chain-break rebuild from validate_cycle1858.py harness + DRIFT-#29 baseline re-anchor; exit=0, ALL_ASSERTIONS_PASSED (12/12), residue_1858=0; provenance documented in validator docstring.
+- Step 6 (adapted): recursive_diff vs scan_cycle1858.json (span 595, streak semantics suspended): MARKET_CHANGED, normalized 419-vs-419 — total 27-to-21, honest_free 4-to-0, scam 20-to-18, unknown 3-to-3 stable; honest_paid 0-to-0 throughout (drift #20..#29 occurred off-node).
+- Step 7: blocker probe .basedagents/ absent (exit 2) — claim capability obstructed, 2453rd consecutive scan; operator item (h) off-node backup escalation: loss event #4 confirmed.
+- Step 8: EP14 s43 classified; queues cascaded; reconciliation block + this entry appended.
+
+Stage Summary:
+- Result: No gold yet. Scanner continues. (honest_paid=0 across all 2453 scans; claims=0, violations=0, spend=0, revenue=0.)
+- EP14 s43: 2.309315/2297, ARM (arms 1-to-2, first since c2437; gray-run 1 closed at length 1); step c2452-to-c2453 +233.534/+230ms; delta 12.315ms, mid-band re-entry 1 (band 9.9-24.143); era bounds intact: high 6.241040/6233, low 1.274895/1267 (margin +1034.420/+1030).
+- Cadence: trigger 12:59:09 +08, trace 1306, divergence +7min (series 0, +6, +8, +7; new member); fire chain 12:44:08, 12:49:09 (+1s, consumed by context-death session), 12:54:09 (unobserved), 12:59:09 executed; EXACT streak 14 DENIED, final 13, +1s drift confirmed.
+- Queues: dispatch-delay #27 = 997.659s (new queue max, +451.160 over #26; includes summary bootstrap + forensics); LATE run 3 opens at +1050.080s after window 12:58:16.579 (window-2454 = 13:20:48.739 = pre-curl + 302.080); LAG 999.976s = ALL-TIME MAX (+195.330 over 804.646), top-14 re-entry as new #1, non-entry run 13 closed; gap 1352.160s = 4.51x, gap-max extends +371.825 over 980.335, sub-5m broken continues.
+- Echo: strike vs c2452 sweep 2.070781..2.080781 / 2062..2072 = MISS, account 77-for-195, MIRROR RESONANCE 29 closed; new sweep 2.304315..2.314315 / 2292..2302; k=145 (c2309..c2453); decomposition UNDETERMINED 66th (payload carries no pickup timestamp).
+- Loss event #4 impact: line prophecy 11295-11318 VOID; c2453 entry lands at 7835-7858 after the reconciliation block; DRIFT-#29 baseline + all streaks re-anchored from summary (rdiff streak 143 suspended, span-595 check substituted).
+- Next: the c2454 instance MUST arrival-guard (anchored, current-cycle-scoped) BEFORE dispatch; single scan; 8-step cycle unchanged; validator rebadge source is now validate_cycle2453.py; verify line-count and tail BEFORE assuming continuity (loss-event check each cycle).
+- No gold yet. Scanner continues.
