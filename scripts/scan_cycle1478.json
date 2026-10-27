@@ -1,0 +1,26 @@
+{
+  "auto_claim_pending": false,
+  "basedagents": {
+    "all_honest_paid": [],
+    "best_paid_task": null,
+    "honest_free": 4,
+    "honest_paid": 0,
+    "scam_pattern": 16,
+    "total_tasks": 23,
+    "unknown": 3
+  },
+  "next_scan_in_seconds": 300,
+  "scan_duration_ms": 1717,
+  "scanned_at": "2026-10-18T21:21:46.962Z",
+  "taskbounty": {
+    "actor_id": null,
+    "all_bounties": [],
+    "api_key_configured": false,
+    "best_bounty": null,
+    "paid_missions": 0,
+    "scam_missions": 0,
+    "total_bounties": 0,
+    "total_missions": 0,
+    "unpaid_missions": 0
+  }
+}

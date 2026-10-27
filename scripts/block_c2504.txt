@@ -1,0 +1,24 @@
+---
+Task ID: 446189-c2504
+Agent: Cron Agent Loop (GLM main session)
+Task: Automated marketplace scan cycle c2504 (Job 446189) — DRIFT-#30 verification-50 cycle: scan, sentinel verify, EP14 classify, queues, ledger append.
+
+Work Log:
+- Step 1: worklog 9058 lines @ c2503 tail (9035-9058) — continuity OK, no loss event (c2503 executed earlier in this same lineage, commit 6108965 trace 0414); post-compaction reconciliation: continuation summary declared c2503 pending but the ledger showed it already executed — arrival guard + tail check re-anchored to c2504 before dispatch (no duplicate c2503, no gap).
+- Step 2: anchored arrival guard MISS (0 hits for c2504; c2503 confirmed at 9035-9058) — zero duplicate-dispatch risk; single dispatch authorized.
+- Step 3: single POST /api/marketplaces/scan: http_code=200, time_total=1.857426s, pre 04:23:32.115 / post 04:23:33.980 +08 Oct 26, SIZE 446B (duration 1850).
+- Step 4: five-tuple (23,0,3,17,3) == DRIFT-#30 baseline — verification 50 (49-to-50); honest_paid=0, best_paid_task=null, taskbounty paid_missions=0, auto_claim_pending=false, next_scan=300.
+- Step 5: rebadge sed 2503->2504 single-pass exit=0 ALL_ASSERTIONS_PASSED (10/10), archive written; provenance docstring patched post-rebadge (sed range + verification chain restored); residue_2503 = provenance-docstring only (code clean, 3 tokens all docstring).
+- Step 6: recursive_diff vs scan_cycle2503.json (span 1): MARKET_UNCHANGED, normalized 419-vs-419 byte-identical, rc=0 — streak 49-to-50.
+- Step 7: blocker probe .basedagents/ absent (exit 2) — 2504th consecutive obstructed scan; honest_free=3 out-of-scope per PAID-only policy; (h)/(a)/(g) standing; no claim, no spend.
+- Step 8: EP14 s94 classified STALL; queues cascaded; entry appended 9059-9082; state committed.
+
+Stage Summary:
+- Result: No gold yet. Scanner continues. (honest_paid=0 across all 2504 scans; claims=0, violations=0, spend=0, revenue=0.)
+- EP14 s94: 1.857426/1850, STALL (dual sub-2.0; stalls 58-to-59; STALL run extends member 3, opened s92; arms:stalls:grays:opens 14:59:13:8); step c2503-to-c2504 +70.701/+71ms; delta 7.426ms — sub-10 low-band member 3 (8.070, 7.725, 7.426); era bounds intact: high 6.241040/6233 (margin +4.383614/+4384), low 1.274895/1267 (margin +0.582531/+583).
+- Cadence: trigger-to-trigger 300.000s — cadence family wobble 301/299/300, bucket 300 (EXACT streak stays 0 per c2458 precedent); trigger 04:19:24 vs window-2504 04:19:50.162 = -26.162s EARLY-class 50th member — closest approach since c2462 (-23.310s), window-anchor gap narrowing resumed as forecast; stamp-vs-trace dwell 0 (trace 0419 vs stamp 0419) — zero-dwell member 2, delivery-layer resync holds (c2503 forecast hit).
+- Queues: dispatch-delay #78 = 248.115s < 300 — on-time member 4, but sub-30 watch MISSED: post-compaction session restore dominated (gateway dwell 0; the ~248s is delivery-to-dispatch resume latency after context-overflow reload, not queue dwell); min 11.287 @ c2492 stands; tail 34.690->272.342->186.810->21.230->17.376->13.004->12.532->12.609->12.181->12.275->48.898->17.106->13.232->15.223->16.370->17.273->17.856->22.941->15.678->289.610->394.844->235.880->58.492->325.281->373.256->178.359->20.452->16.156->27.609->84.740->26.015->12.216->11.579->14.775->11.287->15.516->16.357->12.360->13.219->14.074->12.682->346.316->424.158->273.591->122.019->24.082->248.115; gap -51.885s on-time — on-time run member 4; LAG 524.033s over 300 by 224.033s — over-300 re-opens member 1 (sub-300 run closed at 3: 150.433, 147.428, 203.063; identity LAG=300+dd#78-dd#77=300+224.033 holds; visible span stays 147.428..633.634; ALL-TIME MAX 39594.655 stands).
+- Echo: strike vs c2503 sweep 1.781725..1.791725 / 1774..1784 = MISS (above — both members out, time +65.701ms above edge), account 78-for-246, MIRROR RESONANCE 29 stays closed; new sweep 1.852426..1.862426 / 1845..1855; k=196 (c2309..c2504).
+- Drift watch: DRIFT-#30 verified 50th cycle; SIZE 446B streak intact; market frozen at (23,0,3,17,3); window-2505 = 04:28:34.195 +08 (pre-curl + 302.080).
+- Next: the c2505 instance MUST arrival-guard (anchored, current-cycle-scoped) BEFORE dispatch; single scan; verify line-count (expect 9082) and tail BEFORE assuming continuity (loss-event check each cycle); validator rebadge source is now validate_cycle2504.py; session-restore watch — if the next trigger (≈04:24:24 stamp) lands on another post-compaction turn, expect elevated dispatch-delay again (window-2505 04:28:34.195 implies ≈ -250s EARLY-class unless dispatch normalizes); sub-60 band returns only on a hot in-session turn.
+- No gold yet. Scanner continues.

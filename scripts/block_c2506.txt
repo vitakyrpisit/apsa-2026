@@ -1,0 +1,24 @@
+---
+Task ID: 446189-c2506
+Agent: Cron Agent Loop (GLM main session)
+Task: Automated marketplace scan cycle c2506 (Job 446189) — DRIFT-#30 verification-52 cycle: scan, sentinel verify, EP14 classify, queues, ledger append.
+
+Work Log:
+- Step 1: worklog 9106 lines @ c2505 tail (9083-9106) — continuity OK, no loss event (c2505 executed earlier in this same lineage, commit 9524ae7 trace 0428).
+- Step 2: anchored arrival guard MISS (0 hits for c2506; c2505 confirmed at 9083-9106) — zero duplicate-dispatch risk; single dispatch authorized.
+- Step 3: single POST /api/marketplaces/scan: http_code=200, time_total=1.730379s, pre 04:32:06.278 / post 04:32:08.016 +08 Oct 26, SIZE 446B (duration 1721).
+- Step 4: five-tuple (23,0,3,17,3) == DRIFT-#30 baseline — verification 52 (51-to-52); honest_paid=0, best_paid_task=null, taskbounty paid_missions=0, auto_claim_pending=false, next_scan=300.
+- Step 5: rebadge sed 2505->2506 single-pass exit=0 ALL_ASSERTIONS_PASSED (10/10), archive written; lineage-aware provenance patch applied first pass (surviving-token patterns per the c2505 correction: rebadged-from, sed range, chain head+insertion); residue_2505 = provenance-docstring only (3 tokens all docstring, code clean).
+- Step 6: recursive_diff vs scan_cycle2505.json (span 1): MARKET_UNCHANGED, normalized 419-vs-419 byte-identical, rc=0 — streak 51-to-52.
+- Step 7: blocker probe .basedagents/ absent (exit 2) — 2506th consecutive obstructed scan; honest_free=3 out-of-scope per PAID-only policy; (h)/(a)/(g) standing; no claim, no spend.
+- Step 8: EP14 s96 classified STALL; queues cascaded; entry appended 9107-9130; state committed.
+
+Stage Summary:
+- Result: No gold yet. Scanner continues. (honest_paid=0 across all 2506 scans; claims=0, violations=0, spend=0, revenue=0.)
+- EP14 s96: 1.730379/1721, STALL (dual sub-2.0; stalls 59-to-60; GRAY run closed at length 1 (s95), STALL run opens member 1; arms:stalls:grays:opens 14:60:14:8); step c2505-to-c2506 -271.055/-273ms; delta 9.379ms — sub-10 low-band member 5 (8.070, 7.725, 7.426, 7.434, 9.379); era bounds intact: high 6.241040/6233 (margin +4.510661/+4511), low 1.274895/1267 (margin +0.455484/+455).
+- Cadence: trigger-to-trigger 300.000s — cadence family wobble 301/299/300, bucket 300 (EXACT streak stays 0 per c2458 precedent); trigger 04:29:24 vs window-2506 04:34:38.705 = -314.705s EARLY-class 52nd member (c2505 forecast ≈-315s hit); stamp-vs-trace dwell +120s (trace 0431 vs stamp 0429) — queue dwell shrinking 240->120, convergence resumed (zero-dwell pair 0,0 at c2503-c2504 preceded the +240 spike).
+- Queues: dispatch-delay #80 = 162.278s < 300 — on-time re-opens member 1 (over-300 run closed at 1: 312.625; split: ~120s stamp-to-delivery queue dwell + ~42.278s delivery-to-dispatch resume); min 11.287 @ c2492 stands; tail 34.690->272.342->186.810->21.230->17.376->13.004->12.532->12.609->12.181->12.275->48.898->17.106->13.232->15.223->16.370->17.273->17.856->22.941->15.678->289.610->394.844->235.880->58.492->325.281->373.256->178.359->20.452->16.156->27.609->84.740->26.015->12.216->11.579->14.775->11.287->15.516->16.357->12.360->13.219->14.074->12.682->346.316->424.158->273.591->122.019->24.082->248.115->312.625->162.278; gap -137.722s on-time; LAG 149.653s under 300 by 150.347s — sub-300 re-opens member 1 (over-300 run closed at 2: 524.033, 364.510; identity LAG=300+dd#80-dd#79 holds; visible span 147.428..633.634; ALL-TIME MAX 39594.655 stands).
+- Echo: strike vs c2505 sweep 1.996434..2.006434 / 1989..1999 = MISS (below — both members out, time -266.055ms below edge), account 78-for-248, MIRROR RESONANCE 29 stays closed; new sweep 1.725379..1.735379 / 1716..1726; k=198 (c2309..c2506).
+- Drift watch: DRIFT-#30 verified 52nd cycle; SIZE 446B streak intact; market frozen at (23,0,3,17,3); window-2507 = 04:37:08.358 +08 (pre-curl + 302.080).
+- Next: the c2507 instance MUST arrival-guard (anchored, current-cycle-scoped) BEFORE dispatch; single scan; verify line-count (expect 9130) and tail BEFORE assuming continuity (loss-event check each cycle); validator rebadge source is now validate_cycle2506.py (lineage-aware patch patterns stand); dwell watch — +240->+120 shrinking suggests zero-dwell within 1-2 triggers if the session stays hot; next trigger ≈04:34:24 stamp vs window-2507 04:37:08.358 implies ≈ -164s EARLY-class.
+- No gold yet. Scanner continues.

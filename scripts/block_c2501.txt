@@ -1,0 +1,24 @@
+---
+Task ID: 446189-c2501
+Agent: Cron Agent Loop (GLM main session)
+Task: Automated marketplace scan cycle c2501 (Job 446189) — DRIFT-#30 verification-47 cycle: scan, sentinel verify, EP14 classify, queues, ledger append.
+
+Work Log:
+- Step 1: worklog 8986 lines @ c2500 tail (8963-8986) — continuity OK, no loss event (c2500 executed earlier in this same session, commit ef8dcb8 trace 0405).
+- Step 2: anchored arrival guard MISS (0 hits; c2500 confirmed at 8963-8986) — zero duplicate-dispatch risk; single dispatch authorized.
+- Step 3: single POST /api/marketplaces/scan: http_code=200, time_total=2.099709s, pre 04:08:57.591 / post 04:08:59.727 +08 Oct 26, SIZE 446B (duration 2089).
+- Step 4: five-tuple (23,0,3,17,3) == DRIFT-#30 baseline — verification 47 (46-to-47); honest_paid=0, best_paid_task=null, taskbounty paid_missions=0, auto_claim_pending=false, next_scan=300.
+- Step 5: rebadge sed 2500->2501 single-pass exit=0 ALL_ASSERTIONS_PASSED (10/10), archive written; provenance docstring patched post-rebadge (sed range + verification chain restored); residue_2500 = provenance-docstring only (code clean, 3 tokens all docstring).
+- Step 6: recursive_diff vs scan_cycle2500.json (span 1): MARKET_UNCHANGED, normalized 419-vs-419 byte-identical, rc=0 — streak 46-to-47.
+- Step 7: blocker probe .basedagents/ absent (exit 2) — 2501st consecutive obstructed scan; honest_free=3 out-of-scope per PAID-only policy; (h)/(a)/(g) standing; no claim, no spend.
+- Step 8: EP14 s91 classified GRAY; queues cascaded; entry appended 8987-9010; state committed.
+
+Stage Summary:
+- Result: No gold yet. Scanner continues. (honest_paid=0 across all 2501 scans; claims=0, violations=0, spend=0, revenue=0.)
+- EP14 s91: 2.099709/2089, GRAY (dual 2.0-2.1; grays 12-to-13; STALL run 3 closed at length 3, GRAY run opens member 1; arms:stalls:grays:opens 14:56:13:8); step c2500-to-c2501 +342.380/+339ms; delta 10.709ms — sub-10 low-band closed at 4 (s87-s90), above-10 band re-opens member 1; era bounds intact: high 6.241040/6233 (margin +4.141331/+4141), low 1.274895/1267 (margin +0.824814/+825).
+- Cadence: trigger-to-trigger 301.000s — cadence family wobble 301/299/300, bucket 301 (first 301-bucket member of the visible era window, c2495-c2500 all bucket 300; EXACT streak stays 0); trigger 04:04:24 vs window-2501 04:11:29.238 = -425.238s EARLY-class 47th member (window anchor drift continues: +302.080s recurrence vs ~300s trigger grid); stamp-vs-trace dwell +240s (trace 0408 vs stamp 0404) — non-zero dwell member 2 (queued behind c2500 turn, delivered on the 04:08 sweep — c2500 forecast hit).
+- Queues: dispatch-delay #75 = 273.591s < 300 — re-entry re-opens member 1 (over-300 run closed at 2: 346.316, 424.158; split: stamp-to-delivery queue dwell ~240s + delivery-to-dispatch ~33.591s); min 11.287 @ c2492 stands; tail 34.690->272.342->186.810->21.230->17.376->13.004->12.532->12.609->12.181->12.275->48.898->17.106->13.232->15.223->16.370->17.273->17.856->22.941->15.678->289.610->394.844->235.880->58.492->325.281->373.256->178.359->20.452->16.156->27.609->84.740->26.015->12.216->11.579->14.775->11.287->15.516->16.357->12.360->13.219->14.074->12.682->346.316->424.158->273.591; gap -151.647s on-time — LATE run closed at 2, on-time re-opens member 1; LAG 150.433s under 300 by 149.567s — sub-300 re-opens member 1 (era-window low vs visible c2495-c2500 span 296.003..633.634; ALL-TIME MAX 39594.655 stands).
+- Echo: strike vs c2500 sweep 1.752329..1.762329 / 1745..1755 = MISS (above — both members out, time +337.380ms above edge), account 78-for-243, MIRROR RESONANCE 29 stays closed; new sweep 2.094709..2.104709 / 2084..2094; k=193 (c2309..c2501).
+- Drift watch: DRIFT-#30 verified 47th cycle; SIZE 446B streak intact; market frozen at (23,0,3,17,3); window-2502 = 04:13:59.671 +08 (pre-curl + 302.080).
+- Next: the c2502 instance MUST arrival-guard (anchored, current-cycle-scoped) BEFORE dispatch; single scan; verify line-count (expect 9010) and tail BEFORE assuming continuity (loss-event check each cycle); validator rebadge source is now validate_cycle2501.py; queue-dwell watch — next trigger (≈04:09:24 stamp) likely arrives queued mid-c2501-execution; dwell split now ~240s delivery + ~34s resume — watch for re-synchronization if the session stays hot.
+- No gold yet. Scanner continues.

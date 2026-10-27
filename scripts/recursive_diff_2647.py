@@ -1,48 +1,64 @@
 #!/usr/bin/env python3
-"""recursive_diff c2647: scan_cycle2646.json vs scan_cycle2647.json (span 1).
+"""Recursive market diff for cycle 2647 (span 1 — normal adjacency resumed post-LOSS-#6).
 
-Volatile fields (scanned_at, scan_duration_ms) stripped; normalized (sorted-keys)
-canonical JSON compared. rc=0 MARKET_UNCHANGED / rc=1 MARKET_CHANGED with the exact
-field-level moves printed.
-
-c2647 RESULT (DRIFT-#45 verification-25 candidate, on-disk): PENDING — filled at run
-time. MARKET_UNCHANGED extends the DRIFT-#45-root on-disk streak 24 -> 25; any move
-= DRIFT-#46 declaration (two-pass).
+Compares scan_cycle2647.json (fresh capture) against scan_cycle2646.json (the
+post-loss reconstruction archive). Volatile fields (scanned_at, scan_duration_ms)
+stripped; sorted-keys normalization; recursive path-level reporting.
+rc=0 iff market composition identical.
 """
 import json
 import sys
 
+A_PATH = "/home/z/my-project/scripts/scan_cycle2647_raw.json"
+B_PATH = "/home/z/my-project/scripts/scan_cycle2646.json"
 VOLATILE = {"scanned_at", "scan_duration_ms"}
 
-def strip_norm(path):
-    d = json.load(open(path))
-    def walk(o):
-        if isinstance(o, dict):
-            return {k: walk(v) for k, v in sorted(o.items()) if k not in VOLATILE}
-        if isinstance(o, list):
-            return [walk(v) for v in o]
-        return o
-    return walk(d)
 
-a = strip_norm("/home/z/my-project/scripts/scan_cycle2646.json")
-b = strip_norm("/home/z/my-project/scripts/scan_cycle2647.json")
-sa = json.dumps(a, sort_keys=True, separators=(",", ":"))
-sb = json.dumps(b, sort_keys=True, separators=(",", ":"))
-print(f"volatile-stripped normalized lengths: {len(sa)}-vs-{len(sb)}")
+def strip_volatile(node):
+    if isinstance(node, dict):
+        return {k: strip_volatile(v) for k, v in sorted(node.items()) if k not in VOLATILE}
+    if isinstance(node, list):
+        return [strip_volatile(v) for v in node]
+    return node
 
-moves = []
-def diff(x, y, path=""):
-    if isinstance(x, dict) and isinstance(y, dict):
-        for k in sorted(set(x) | set(y)):
-            diff(x.get(k), y.get(k), f"{path}.{k}" if path else k)
-    elif x != y:
-        moves.append((path, x, y))
 
-diff(a, b)
-if not moves:
-    print("MARKET_UNCHANGED (zero field-level moves)")
+def diff_paths(a, b, prefix=""):
+    out = []
+    if isinstance(a, dict) and isinstance(b, dict):
+        for k in sorted(set(a) | set(b)):
+            p = f"{prefix}.{k}" if prefix else k
+            if k not in a:
+                out.append(("ADDED", p, b[k]))
+            elif k not in b:
+                out.append(("REMOVED", p, a[k]))
+            else:
+                out.extend(diff_paths(a[k], b[k], p))
+    elif isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            out.append(("LEN", prefix, f"{len(a)} vs {len(b)}"))
+        for i, (x, y) in enumerate(zip(a, b)):
+            out.extend(diff_paths(x, y, f"{prefix}[{i}]"))
+    else:
+        if a != b:
+            out.append(("CHANGED", prefix, f"{a!r} -> {b!r}"))
+    return out
+
+
+with open(A_PATH, "rb") as f:
+    a_raw = f.read()
+a = json.loads(a_raw)
+with open(B_PATH, "rb") as f:
+    b = json.loads(f.read())
+
+na, nb = strip_volatile(a), strip_volatile(b)
+print(f"normalized_bytes: c2647={len(json.dumps(na, sort_keys=True))} "
+      f"c2646={len(json.dumps(nb, sort_keys=True))}")
+diffs = diff_paths(na, nb)
+if not diffs:
+    print("MARKET_UNCHANGED (span 1)")
     sys.exit(0)
-print(f"MARKET_CHANGED rc=1 — {len(moves)} field-level move(s):")
-for p, x, y in moves:
-    print(f"  {p}: {x} -> {y}")
+
+print(f"DIFF_COUNT={len(diffs)} (c2646 -> c2647, span 1)")
+for kind, path, detail in diffs:
+    print(f"  {kind}: {path} = {detail}")
 sys.exit(1)

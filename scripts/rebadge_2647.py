@@ -1,107 +1,101 @@
 #!/usr/bin/env python3
 """Rebadge validate_cycle2646.py -> validate_cycle2647.py (DRIFT-#45 verification-25 CARRY).
 
-PROACTIVE lesson applied (twenty-third cycle running): all anchors pre-verified against the
-ACTUAL validate_cycle2646.py bytes BEFORE this script was written:
-  - sed source: 6 literal '2646' tokens (docstring + line-8 + chain head + CYCLE +
-    RAW + PRETTY); the f-string baseline_match_c{CYCLE} is a TEMPLATE and NOT counted.
-    VERIFIED count == 6.
-  - P1 anchor 'verification-24 CARRY (root declared 2026-10-27 ~06:04 +08): rebadged
-    from validate_cycle2645.py' VERIFIED count == 1.
-  - line-8 anchor 'root; c2646 = DRIFT-#45 verification 24' VERIFIED count == 1
-    (the 'root; ' disambiguator; bare head appears 2x with the chain '(' form).
-  - chain anchor '(c2646 = DRIFT-#45 verification 24; c2645 = DRIFT-#45 verification 23'
-    VERIFIED count == 1 (the '(' disambiguator).
-Post-sed ambiguity notes: the bare head string appears 2x post-sed (line-8 'root; '
-form + chain '(' form) — both patches use their disambiguators; expected order:
-P1 FIRST (before line-8/chain bumps renumber verification levels), then line-8 bump,
-then chain insert (anchors do not collide).
+First sed-rebadge of the post-LOSS-#6 lineage. Patch order:
+  sed 2646->2647 (assert 7 literal tokens pre-patch)
+  P1  docstring verification-24->25 bump (self-verification line)
+  L8  "; c2647 = verification 24" -> "; c2647 = verification 25"
+  CHAIN insert "c2646 = verification 24; " before the c2645 citation
+  HIST restore the two LOSS-#6 narrative citations (c2646 executing session /
+       fresh c2646 capture) that the sed corrupts — history keeps, declared
+  SRC rebadged-from: ancestor citation validate_cycle2576.py -> validate_cycle2646.py
+P-HIST WATCH (c2573 LESSON): verify token table post-rebadge; lineage citations
+(provenance + chain) == 2; total '2646' == 4 (2 lineage + 2 history keeps).
+py_compile gate; exits non-zero on any assertion failure.
 """
 import py_compile
-import shutil
+import sys
 
 SRC = "/home/z/my-project/scripts/validate_cycle2646.py"
 DST = "/home/z/my-project/scripts/validate_cycle2647.py"
 
-shutil.copyfile(SRC, DST)
-with open(DST, "r") as f:
-    txt = f.read()
+s = open(SRC).read()
 
-def assert_count(s, sub, n, label):
-    c = s.count(sub)
-    assert c == n, f"{label}: expected {n}, got {c}"
+# --- pre-patch P-HIST (ACTUAL bytes) ---
+expected_pre = {"2646": 7, "2645": 7, "2644": 1, "2643": 1, "2624": 1, "2623": 2,
+                "2576": 5, "2577": 3, "2647": 0, "2648": 0}
+pre = {t: s.count(t) for t in expected_pre}
+bad = {t: (pre[t], exp) for t, exp in expected_pre.items() if pre[t] != exp}
+if bad:
+    print(f"PRE-PATCH P-HIST MISMATCH (c2573-lesson abort): {bad}")
+    sys.exit(1)
+print("pre-patch P-HIST OK:", pre)
 
-# --- Stage 1: sed 2646 -> 2647 (assert exactly 6 replacements) ---
-assert_count(txt, "2646", 6, "sed source literal '2646' tokens")
-txt = txt.replace("2646", "2647")
-assert_count(txt, "2647", 6, "post-sed literal '2647' tokens")
+# --- sed 2646->2647 (all 7 literal tokens) ---
+assert s.count("2646") == 7
+s = s.replace("2646", "2647")
+assert s.count("2647") == 7 and s.count("2646") == 0
 
-# --- Stage 2: P1 header patch (verification-24 -> verification-25 CARRY, pointer 2645 -> 2646) ---
-P1_OLD = ("verification-24 CARRY (root declared 2026-10-27 ~06:04 +08): "
-          "rebadged from validate_cycle2645.py")
-P1_NEW = ("verification-25 CARRY (root declared 2026-10-27 ~06:04 +08): "
-          "rebadged from validate_cycle2646.py")
-assert_count(txt, P1_OLD, 1, "P1 anchor")
-txt = txt.replace(P1_OLD, P1_NEW)
-assert_count(txt, P1_NEW, 1, "P1 patched")
+patches = []
 
-# --- Stage 3: line-8 bump (root; disambiguator) ---
-L8_OLD = "root; c2647 = DRIFT-#45 verification 24"
-L8_NEW = "root; c2647 = DRIFT-#45 verification 25"
-assert_count(txt, L8_OLD, 1, "line-8 anchor ('root; ' form)")
-txt = txt.replace(L8_OLD, L8_NEW)
+def patch(name, old, new, expect=1):
+    global s
+    n = s.count(old)
+    if n != expect:
+        print(f"PATCH {name} FAILED: found {n} occurrences (expect {expect}) of: {old[:70]!r}")
+        sys.exit(1)
+    s = s.replace(old, new)
+    patches.append(name)
+    print(f"patch {name}: OK")
 
-# --- Stage 4: chain insert ('(' disambiguator) — restore the c2646 line, head 24 -> 25 ---
-CH_OLD = ("(c2647 = DRIFT-#45 verification 24; "
-          "c2645 = DRIFT-#45 verification 23")
-CH_NEW = ("(c2647 = DRIFT-#45 verification 25; "
-          "c2646 = DRIFT-#45 verification 24; "
-          "c2645 = DRIFT-#45 verification 23")
-assert_count(txt, CH_OLD, 1, "chain anchor ('(' form)")
-txt = txt.replace(CH_OLD, CH_NEW)
+# P1a docstring class bump
+patch("P1a-verclass",
+      "DRIFT-#45 verification-24 CARRY (context-carried post-LOSS-#6 rebadge lineage): rebuilt from the",
+      "DRIFT-#45 verification-25 CARRY (post-LOSS-#6 rebadge lineage, first sed-carry): rebuilt from the")
 
-# --- P-HIST spot checks (steady-state rule) ---
-CHECKS = [
-    ("2647", 6),   # self (docstring + line-8 + chain head + CYCLE + RAW + PRETTY)
-    ("2646", 2),   # rebadged-from pointer + restored chain line
-    ("2645", 1),   # chain verification line only (pointer moved off)
-    ("2644", 1),   # chain
-    ("2643", 1),   # chain
-    ("2642", 1),   # chain
-    ("2641", 1),   # chain
-    ("2640", 1),   # chain
-    ("2639", 1),   # chain
-    ("2638", 1),   # chain
-    ("2637", 1),   # chain
-    ("2636", 1),   # chain
-    ("2635", 1),   # chain
-    ("2634", 1),   # chain
-    ("2633", 1),   # chain
-    ("2632", 1),   # chain
-    ("2631", 1),   # chain
-    ("2630", 1),   # chain
-    ("2629", 1),   # chain
-    ("2628", 1),   # chain
-    ("2627", 1),   # chain
-    ("2626", 1),   # chain
-    ("2625", 1),   # chain
-    ("2624", 1),   # chain
-    ("2623", 1),   # chain ROOT line only
-    ("2622", 1),   # DRIFT-#44 chain line
-    ("2621", 1),   # DRIFT-#44 chain line
-    ("2620", 1),   # DRIFT-#44 chain line
-    ("2619", 2),   # chain ROOT line + DRIFT-#44 closure cite
-    ("2618", 2),   # chain line + DRIFT-#43 closure cite
-    ("2606", 2),   # chain root line + DRIFT-#42 closure cite
-    ("2594", 2),   # chain root line + DRIFT-#41 closure cite
-]
-for tok, n in CHECKS:
-    c = txt.count(tok)
-    assert c == n, f"P-HIST {tok}: expected {n}, got {c}"
-print("P-HIST spot checks PASSED:", ", ".join(f"{t}=={n}" for t, n in CHECKS))
+# P1b self-verification bump (post-sed line 8 still says verification 24)
+patch("P1b-selfver",
+      "@ 446B DRIFT-#45 root; c2647 = verification 24",
+      "@ 446B DRIFT-#45 root; c2647 = verification 25")
+
+# CHAIN insert c2646 = verification 24 before the c2645 citation
+patch("CHAIN-insert",
+      "(c2645 = verification 23;",
+      "(c2646 = verification 24; c2645 = verification 23;")
+
+# HIST restores (sed corrupted two historical citations)
+patch("HIST-session",
+      "LOSS EVENT #6 (declared 2026-10-27 ~09:00 +08 by the c2647 executing session)",
+      "LOSS EVENT #6 (declared 2026-10-27 ~09:00 +08 by the c2646 executing session)")
+patch("HIST-capture",
+      "the fresh c2647 capture returned (18,0,0,18,0) @ 446B",
+      "the fresh c2646 capture returned (18,0,0,18,0) @ 446B")
+
+# SRC rebadged-from: ancestor citation now validate_cycle2646.py
+patch("SRC-rebadgedfrom",
+      "disk-recoverable ancestor validate_cycle2576.py (LOSS-#5 precedent class — lineage restart, honest",
+      "post-loss reconstruction validate_cycle2646.py (LOSS-#6 carry class — first sed-rebadge, honest")
+
+# --- post-patch P-HIST ---
+expected_post = {"2647": 5, "2646": 4, "2645": 7, "2644": 1, "2643": 1, "2624": 1,
+                 "2623": 2, "2576": 4, "2577": 3, "2648": 0}
+post = {t: s.count(t) for t in expected_post}
+bad = {t: (post[t], exp) for t, exp in expected_post.items() if post[t] != exp}
+if bad:
+    print(f"POST-PATCH P-HIST MISMATCH: {bad}")
+    sys.exit(1)
+print("post-patch P-HIST OK:", post)
+
+# P-HIST WATCH: lineage citations == 2 (provenance + chain node)
+lineage = s.count("validate_cycle2646.py") + s.count("c2646 = verification 24")
+print(f"P-HIST WATCH rebadged-from lineage citations: {lineage} (expect 2)")
+if lineage != 2:
+    print("P-HIST WATCH FAILED")
+    sys.exit(1)
 
 with open(DST, "w") as f:
-    f.write(txt)
-
+    f.write(s)
 py_compile.compile(DST, doraise=True)
-print(f"rebadge OK: {DST} (py_compile OK)")
+print(f"py_compile OK -> {DST}")
+print("PATCHES APPLIED:", patches)
+print("REBADGE COMPLETE: verification-25 CARRY (c2647 = v25; c2646 = v24; c2645 = v23; ...)")
