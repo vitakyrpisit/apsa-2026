@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+"""Span-1 diff for cycle 2759 — the post-pass-7 comparison.
+
+Compares scan_cycle2759_raw.json (the fresh official capture) against
+scan_cycle2758.json (the immediately-preceding archive, on disk and
+commit-verified). Volatile fields (scanned_at, scan_duration_ms) stripped;
+sorted-keys normalization; recursive path-level reporting. rc=0 iff market
+composition identical (MARKET_UNCHANGED).
+Movement classes per the DRIFT-#49 pass-8 spec (the c2758 Next-block): a
+repeat (18,0,0,18,0) prints MARKET_UNCHANGED (rc=0, pass-8 repeat-class); a
+return to (20,0,2,18,0) prints the reverse DIFF_COUNT=2 chain (RESTORATION —
+the root stands, the pass-1 excursion closes as a transient); any other
+composition prints the full delta chain (newest-observation evidence).
+"""
+import json
+import sys
+
+A_PATH = "/home/z/my-project/scripts/scan_cycle2759_raw.json"
+B_PATH = "/home/z/my-project/scripts/scan_cycle2758.json"
+VOLATILE = {"scanned_at", "scan_duration_ms"}
+
+
+def strip_volatile(node):
+    if isinstance(node, dict):
+        return {k: strip_volatile(v) for k, v in sorted(node.items()) if k not in VOLATILE}
+    if isinstance(node, list):
+        return [strip_volatile(v) for v in node]
+    return node
+
+
+def diff_paths(a, b, prefix=""):
+    out = []
+    if isinstance(a, dict) and isinstance(b, dict):
+        for k in sorted(set(a) | set(b)):
+            p = f"{prefix}.{k}" if prefix else k
+            if k not in a:
+                out.append(("ADDED", p, b[k]))
+            elif k not in b:
+                out.append(("REMOVED", p, a[k]))
+            else:
+                out.extend(diff_paths(a[k], b[k], p))
+    elif isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            out.append(("LEN", prefix, f"{len(a)} vs {len(b)}"))
+        for i, (x, y) in enumerate(zip(a, b)):
+            out.extend(diff_paths(x, y, f"{prefix}[{i}]"))
+    else:
+        if a != b:
+            out.append(("CHANGED", prefix, f"{a!r} -> {b!r}"))
+    return out
+
+
+with open(A_PATH, "rb") as f:
+    a_raw = f.read()
+a = json.loads(a_raw)
+with open(B_PATH, "rb") as f:
+    b = json.loads(f.read())
+
+na, nb = strip_volatile(a), strip_volatile(b)
+print(f"normalized_bytes: c2759={len(json.dumps(na, sort_keys=True))} "
+      f"c2758={len(json.dumps(nb, sort_keys=True))}")
+diffs = diff_paths(na, nb)
+if not diffs:
+    print("MARKET_UNCHANGED (span 1, baseline c2758 — the pass-7 observation repeats)")
+    sys.exit(0)
+
+print(f"DIFF_COUNT={len(diffs)} (c2758 -> c2759, span 1)")
+for kind, path, detail in diffs:
+    print(f"  {kind}: {path} = {detail}")
+sys.exit(1)
