@@ -1,0 +1,6 @@
+changed lines: 20 removed + 22 added = 42 total
+removed=[2, 3, 4, 5, 6, 51, 56, 57, 61, 64, 107, 116, 126, 127, 128, 129, 227, 231, 236, 238]
+added=[2, 3, 4, 5, 6, 51, 52, 57, 58, 62, 65, 108, 109, 118, 128, 129, 130, 131, 229, 233, 238, 240]
+hunks=12 spans=[(2, 6), (51, 52), (57, 58), (62, 62), (65, 65), (108, 109), (118, 118), (128, 131), (229, 229), (233, 233), (238, 238), (240, 240)]
+measured regions: CYCLE=128 RAW=129 PRETTY=130 SIZE_BAND=131 contract=118 SOFT=229 gate=233 block=237+239
+CONTAINMENT_OK: every changed line inside the expected patch regions

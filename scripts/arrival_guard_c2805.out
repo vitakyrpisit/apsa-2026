@@ -1,0 +1,98 @@
+guard_run_epoch=1793322472.221659422
+ok: worklog_lines==9388 (got=9388)
+ok: single_trailing_newline (b'olicy).\n')
+ok: tail_is_c2805_next_bullet ('- Next: the c2805 instance (446189-c2805) re')
+ok: anchor_TaskID==482 (got=482)
+ok: anchor_nogold==415 (got=415)
+ok: anchor_LOSS6_occ==60 (got=60)
+ok: anchor_LOSS15_occ==28 (got=28)
+ok: dup_check_zero_serviced_c2805 (got=0)
+ok: c2805_mention_accounting_pre (total=13 c2806=4 per-line={9374: 2, 9376: 2, 9380: 4, 9386: 1, 9388: 4} c2806_per-line={9386: 2, 9388: 2} (expect 13 = 2 in the c2803 Step-7 twin-print (line 9374) + 2 in the c2803 Next-block (line 9376) + 4 in the c2804 Step-1 (line 9380) + 1 in the c2804 Step-7 'the c2805 pre-count is 4' (line 9386) + 4 in the c2804 Next-block (line 9388: the instance + the 446189-c2805 id + the 'c2805/c2806' guard phrase + the measure_c2805 tool-path surface, the bare-c-token accounting); c2806 = 4 — 2 births in the c2804 Step-7 line 9386 (the rehearsal pre-count print 'the c2806 pre==0 expectation' AND the census-time print 'c2806_pre = 0' — the Step-7 twin-print class REPEATS) + 2 FORWARD-token births TWICE inside the c2804 Next-block guard phrase AND census-tuple sentence, both on line 9388 (the forward-token lesson: measured, never assumed unborn — the c2804 append prophecy 'c2806 = 4 block births' held EXACTLY, the born-FOUR class REPEATS)))
+ok: c2804_mention_census_pre (total=36 per-line={9362: 2, 9364: 2, 9368: 5, 9374: 1, 9376: 4, 9379: 1, 9380: 3, 9381: 4, 9386: 4, 9388: 10} (the pre-block 14 on lines 9362/9364/9368/9374/9376 + 22 births inside the c2804 block itself; the Step-4 surface 'scan_cycle2804_raw.json'/'validate_cycle2804.py'/'scan_cycle2804.json' carries 'cycle2804'/'e2804' on its path tokens — the c2760 E-TOKEN lesson, the bare-c2804 weight measured honestly))
+ok: c2803_mention_census_pre (total=87 per-line={9350: 2, 9352: 2, 9356: 6, 9362: 1, 9364: 4, 9367: 1, 9368: 5, 9369: 4, 9374: 4, 9376: 11, 9378: 15, 9380: 14, 9381: 3, 9382: 3, 9385: 7, 9386: 3, 9388: 2} (the c2804-guard-probe state 40 on lines 9350..9376 + 47 births inside the c2804 block itself, measured per-line at this cycle's census))
+ok: c2802_mention_census_pre (got=99 (total-class guard; per-line dicts in the census log))
+ok: c2801_mention_census_pre (got=86 (total-class guard; per-line dicts in the census log))
+ok: c2800_mention_census_pre (got=109 (total-class guard; per-line dicts in the census log))
+ok: c2799_mention_census_pre (got=91 (total-class guard; per-line dicts in the census log))
+ok: c2798_mention_census_pre (got=89 (total-class guard; per-line dicts in the census log))
+ok: c2797_mention_census_pre (got=83 (total-class guard; per-line dicts in the census log))
+ok: c2796_mention_census_pre (got=93 (total-class guard; per-line dicts in the census log))
+ok: c2795_mention_census_pre (got=114 (total-class guard; per-line dicts in the census log))
+ok: c2794_mention_census_pre (got=110 (total-class guard; per-line dicts in the census log))
+ok: c2793_mention_census_pre (got=118 (total-class guard; per-line dicts in the census log))
+ok: c2792_mention_census_pre (got=123 (total-class guard; per-line dicts in the census log))
+ok: c2791_mention_census_pre (got=111 (total-class guard; per-line dicts in the census log))
+ok: c2790_mention_census_pre (got=122 (total-class guard; per-line dicts in the census log))
+ok: c2789_mention_census_pre (got=114 (total-class guard; per-line dicts in the census log))
+ok: c2788_mention_census_pre (got=125 (total-class guard; per-line dicts in the census log))
+ok: c2787_mention_census_pre (got=126 (total-class guard; per-line dicts in the census log))
+ok: c2786_mention_census_pre (got=146 (total-class guard; per-line dicts in the census log))
+ok: c2785_mention_census_pre (got=130 (total-class guard; per-line dicts in the census log))
+ok: c2784_mention_census_pre (got=128 (total-class guard; per-line dicts in the census log))
+ok: c2783_mention_census_pre (got=129 (total-class guard; per-line dicts in the census log))
+ok: c2782_mention_census_pre (got=128 (total-class guard; per-line dicts in the census log))
+ok: c2781_mention_census_pre (got=133 (total-class guard; per-line dicts in the census log))
+ok: c2780_mention_census_pre (got=138 (total-class guard; per-line dicts in the census log))
+ok: c2779_mention_census_pre (got=138 (total-class guard; per-line dicts in the census log))
+ok: c2778_mention_census_pre (got=182 (total-class guard; per-line dicts in the census log))
+ok: c2777_mention_census_pre (got=154 (total-class guard; per-line dicts in the census log))
+ok: c2776_mention_census_pre (got=159 (total-class guard; per-line dicts in the census log))
+ok: c2775_mention_census_pre (got=168 (total-class guard; per-line dicts in the census log))
+ok: c2774_mention_census_pre (got=173 (total-class guard; per-line dicts in the census log))
+ok: c2773_mention_census_pre (got=177 (total-class guard; per-line dicts in the census log))
+ok: c2772_mention_census_pre (got=196 (total-class guard; per-line dicts in the census log))
+ok: c2771_mention_census_pre (got=186 (total-class guard; per-line dicts in the census log))
+ok: c2770_mention_census_pre (got=232 (total-class guard; per-line dicts in the census log))
+ok: c2769_mention_census_pre (got=175 (total-class guard; per-line dicts in the census log))
+ok: c2768_mention_census_pre (got=178 (total-class guard; per-line dicts in the census log))
+ok: c2767_mention_census_pre (got=235 (total-class guard; per-line dicts in the census log))
+ok: c2766_mention_census_pre (got=209 (total-class guard; per-line dicts in the census log))
+ok: c2765_mention_census_pre (got=169 (total-class guard; per-line dicts in the census log))
+ok: c2764_mention_census_pre (got=171 (total-class guard; per-line dicts in the census log))
+ok: c2763_mention_census_pre (got=179 (total-class guard; per-line dicts in the census log))
+ok: c2762_mention_census_pre (got=215 (total-class guard; per-line dicts in the census log))
+ok: c2761_mention_census_pre (got=229 (total-class guard; per-line dicts in the census log))
+ok: c2760_mention_census_pre (got=174 (total-class guard; per-line dicts in the census log))
+ok: c2759_mention_census_pre (got=174 (total-class guard; per-line dicts in the census log))
+ok: c2758_mention_census_pre (got=176 (total-class guard; per-line dicts in the census log))
+ok: c2757_mention_census_pre (got=179 (total-class guard; per-line dicts in the census log))
+ok: c2756_mention_census_pre (got=184 (total-class guard; per-line dicts in the census log))
+ok: c2755_mention_census_pre (got=191 (total-class guard; per-line dicts in the census log))
+ok: c2754_mention_census_pre (got=194 (total-class guard; per-line dicts in the census log))
+ok: c2753_mention_census_pre (got=205 (total-class guard; per-line dicts in the census log))
+ok: c2752_mention_census_pre (got=211 (total-class guard; per-line dicts in the census log))
+ok: c2751_mention_census_pre (got=197 (total-class guard; per-line dicts in the census log))
+ok: c2750_mention_census_pre (got=201 (total-class guard; per-line dicts in the census log))
+ok: c2749_mention_census_pre (got=203 (total-class guard; per-line dicts in the census log))
+ok: c2748_mention_census_pre (got=193 (total-class guard; per-line dicts in the census log))
+ok: c2747_mention_census_pre (got=196 (total-class guard; per-line dicts in the census log))
+ok: c2746_mention_census_pre (got=201 (total-class guard; per-line dicts in the census log))
+ok: basedagents_absent (test -d exit-1 class)
+dev_log_post_scan_entries=182 (177 total at the c2804 guard probe: 175 accounted + 2 foreign/unattributed; + 1 through the c2804 official capture = 178, + 1 this cycle's echo (latency-match 1677ms class, re-derivable) = 179 accounted-path cumulative, + foreign residual — dev.log is timestamp-less: the official/foreign split is by latency-match, honest, no over-claim; the residual foreign/unattributed is arithmetic-necessity class)
+ok: git_parent_layer_reaches_c2804_commit (walk: depth 0: a6fac67 subj='29377cb0-5656-4254-8dc4-c1f8facedde0-cron' (foreign class); official c2804 commit found at depth 1 (cbdb675))
+ok: git_head_foreign_class (HEAD=a6fac67 subj='29377cb0-5656-4254-8dc4-c1f8facedde0-cron' (benign-add foreign-cron class atop the c2804 commit — the d990e91/5712edd/dc1c551/92ba2e4/5a117ea/7b9e5f3/519471c/b28848d/5939089/19ff74c/660688b/7386e88/4538311/02d651d/dd48816/0539b68/eb9de41/9b5ea95/f9ecf31/2b2bd7b/336d5f2/e54aab2/d22e2bb/134a6b8/51f1161/f076455/b9b0ce0/128bbec/67ba021/966ab1f/0b4f512/ffa527c/c048029/3b69581/18522dc/ea92218/4477b73/4207111/615fc1c/7efc24d/65f4c4e/b27a69f/f0d806e/87e21ad/e6da641/325729a/7de8446/a6fac67 precedent))
+ok: git_walk_depth0_zero_ledger_touch (HEAD touches only foreign-add files; worklog touched=False)
+ok: git_head_zero_ledger_touch (HEAD=a6fac67 touches foreign-add files only; worklog touched=False)
+head_commit_stat_tail:  17 files changed, 1223 insertions(+)
+recent_commits:
+  a6fac67 29377cb0-5656-4254-8dc4-c1f8facedde0-cron
+  cbdb675 c2804: DRIFT-#49 PASS-53 RECORDED - movement repeat-class, five-tuple (18,0,0,18,0) @ 446B REPEATS the pass-52 o
+  7de8446 708d3dc1-049f-468a-8efa-60328c9c618d-cron
+working_tree_entries=6
+c2804_instrument_set_object_presence:
+  ok census_c2804.py bytes=4886
+  ok arrival_guard_c2804.py bytes=15306
+  ok rebadge_cycle2804.py bytes=16300
+  ok capture_cycle2804.sh bytes=1248
+  ok measure_c2804_tokens.py bytes=2703
+  ok recursive_diff_2804.py bytes=2609
+  ok validate_cycle2804.py bytes=12005
+  ok entry_cycle2804.txt bytes=23134
+  ok append_cycle2804.py bytes=22345
+  ok scan_cycle2804_raw.json bytes=446
+  ok scan_cycle2804.json bytes=574
+ok: instrument_set_object_present (11/11 c2804 files on disk)
+ok: v104_source_intact (bytes=12005 (the v104 pass-53 class carries the baseline observation (18,0,0,18,0) AND the locked root (20,0,2,18,0) — expectations matched to the class actual carries per the c2753 attempt-1 guard-slip lesson; the pass-54 gate name drift49_pass54_match is what the v105 rebadge introduces, so its absence is the correct pre-rebadge state; the SIZE_BAND lag-1 carry 'pass-52 band' is present AND the evidence-paragraph lag-1 heading 'pass-52 evidence' is present — BOTH instrument surfaces, the v105 P3/P8 old-string expectations))
+ok: v104_commit_object_intact (object_bytes=12005 == disk 12005 (the cbdb675 c2804 commit))
+guard_count=76 (programmatic)
+GUARD_RESULT=GREEN
