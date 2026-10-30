@@ -1,0 +1,125 @@
+---
+CYCLE 2802 (Job ID 446189) — trigger 2026-10-30 08:21:13 +08 (gateway-trace token 0829 from the cron-agent-loop-202610300829 trace id = 08:29:00; token vs stamp = +467s AHEAD NEW (0 
+priors of the '+467s AHEAD' form and 0 priors of the '-> +467' series form counted per the census; series +622 -> -3.0 -> +476 -> +536 -> +476 -> +295 -> +536 -> +415 -> +415 -> +415 -> 
++355 -> +535 -> +415 -> +415 -> +355 -> +415 -> +294 -> +474 -> +414 -> +294 -> +353 -> +353 -> +292 -> +532 -> +413 -> +532 -> +413 -> +532 -> +532 -> +412 -> +412 -> +352 -> +292 -> +291 
+-> +351 -> +530 -> +350 -> +351 -> +290 -> +350 -> +290 -> +290 -> +469 -> +349 -> +289 -> +529 -> +409 -> +339 -> +529 -> +529 -> +228 -> +528 -> +528 -> +468 -> +468 -> +287 -> +467)); 
+stamp-gap vs the c2801 trigger = 300.000s by stamp (08:16:13 -> 08:21:13; the 300 print RETURNS, 12 priors of the exact '300.000s by stamp' form counted per the census) / 480s by token 
+(0821 -> 0829 — the 720s-by-token print BROKE, the 720-series TERMINATES after its c2801 print + its 6 raw form-count priors counted per the census; the 480 print RETURNS, 22 priors) — 
+cadence: stamp IN the 300/600-class (300) / token OUT the 540/600-class (480) — the SPLIT print RE-OPENS m1 (the BOTH-OFF print TERMINATES, its m1 closes — the SPLIT-class returns, the 
+c2801-precedent class); the trigger stamp PREDATES the c2801 loop echo #522 (1793319835.314198634 EPOCH-governs, 00:23:55 +0000) by 162.314198634s while it PREDATES the c2801 capture 
+pre-echo (1793319948.055817698) by 275.055817698s — the trigger stamp landed INSIDE the c2801 servicing window in the PRE-echo phase (the PRE-echo placement — the POST-echo placement 
+class TERMINATES, the placement FLIPS, honest note — LATE#376 -576.816163240); it predates the c2801 post-echo (1793319949.816163240) by 276.816163240s and the c2801 scanned_at 
+(1793319949.764) by 276.764s, while it POSTDATES window-2801 open (1793319660.768644136) by 12.231355864s, while the c2801 close c57c12a (00:29:13Z) POSTDATES the stamp by 480.0s and the 
+foreign e6da641 (00:29:25Z) by 492.0s — the queue HOLDS at TWO commits postdating the stamp (the two-deep class EXTENDS m7); the close-at-the-token-second identity: the c2801 close 
+c57c12a landed 00:29:13Z, 13s AFTER the token-0829 second 00:29:00Z (the after-class identity holds, 3s -> 13s), and the foreign e6da641 landed 00:29:25Z, 25s AFTER (the after-class holds 
+for the foreign commit — the BOTH-AFTER identity REPEATS, the c2786/c2790/c2795/c2798/c2799/c2800/c2801 foreign-commit identities noted, no over-claim); serviced post-c2801-close per the 
+c2801 Next-block.
+Task ID: 446189-c2802 — standard declaration line.
+- Step 1: ARRIVAL-GUARD GREEN attempt-1 (72/72 guards programmatic — the battery GROWS +1: the totals-class loop spans c2800..c2747 (54 total-class guards) while the dedicated 
+c2801/c2802/c2803 per-line dicts carry + the c2803 forward per-line dict guard is NEW this cycle; first-try clean on the logged run, the programmatic-count law governs, the count printed 
+honestly): worklog 9352 == prophecy EXACT; anchors ^Task ID: 479 / ^- No gold yet 412 / post-#6 60 / post-#15 28 all EXACT (OCCURRENCE counting); c2802 census per-line {9338: 2, 9340: 2, 
+9344: 5, 9350: 1, 9352: 4} total 14 + c2803 = 4 per-line {9350: 2, 9352: 2} (2 births in the c2801 Step-7 line 9350 — the rehearsal pre-count print 'the c2803 pre==0 expectation' AND the 
+census-time print 'c2803_pre = 0', the Step-7 twin-print class REPEATS + 2 FORWARD-token births TWICE inside the c2801 Next-block guard phrase AND census-tuple sentence, both on line 9352 
+— the c2801 append prophecy 'c2803 = 4 block births' held EXACTLY, the born-FOUR class REPEATS, honestly accounted; the c2767..c2802 forward-token lessons held without a slip this cycle: 
+measured, never assumed unborn); the E-TOKEN lesson re-verified live at census time: the Step-4 surfaces scan_cycle2801_raw.json / validate_cycle2801.py / scan_cycle2801.json carry 
+'cycle2801'/'e2801', NOT the bare c-token — line 9347 ABSENT from the measured c2801 per-line dict {9326: 2, 9328: 2, 9332: 5, 9338: 1, 9340: 4, 9343: 1, 9344: 4, 9345: 4, 9350: 4, 9352: 
+10} total 37; c2800 = 83; c2799 = 85; c2798 = 83; c2797 = 80; c2796 = 90; c2795 = 108; c2794 = 107; c2793 = 113; c2792 = 118; c2791 = 108; c2790 = 116; c2789 = 111; c2788 = 122; c2787 = 
+123; c2786 = 140; c2785 = 127; c2784 = 125; c2783 = 126; c2782 = 125; c2781 = 130; c2780 = 135; c2779 = 135; c2778 = 179; c2777 = 151; c2776 = 156; c2775 = 165; c2774 = 170; c2773 = 174; 
+c2772 = 193; c2771 = 183; c2770 = 226; c2769 = 172; c2768 = 175; c2767 = 226; c2766 = 202; c2765 = 166; c2764 = 168; c2763 = 176; c2762 = 209; c2761 = 223; c2760 = 171; c2759 = 171; c2758 = 
+173; c2757 = 176; c2756 = 181; c2755 = 188; c2754 = 191; c2753 = 199; c2752 = 205; c2751 = 191; c2750 = 195; c2749 = 197; c2748 = 187; c2747 = 188 (per-line dicts in the census log; 
+c2800..c2747 total-class); dup-check zero serviced c2802 entries; git HEAD e6da641 foreign-cron class ATOP c57c12a = the c2801 commit object-verified by body prefix 'c2801:' via the PARENT 
+layer at walk-depth 1, the foreign-commit-TOP prophecy held EXACTLY as written; instrument set object-present 11/11 c2801 files, v101 source intact 11787B == the c57c12a commit object bytes 
+exactly; dev.log 170 POST-entries at the guard probe (168 through the c2801 guard probe + 1 through the c2801 official capture = 169 + 1 foreign/unattributed cumulative — dev.log is 
+timestamp-less: the official/foreign split is by latency-match, honest, no over-claim; the residual foreign/unattributed is arithmetic-necessity class); blocker probe .basedagents ABSENT 
+(test -d exit 1; the claim path stays obstructed); loop echo #523 taken MID-SESSION of the servicing session 00:33:57 +0000 (ISO 00:33:57.696976610 read FIRST, epoch 1793320437.697850297 
+EPOCH-governs the POST read; the ISO read recorded as the bracket) — the MID-SESSION class EXTENDS m10 (the first-command prescription slipped AGAIN — the session opened with the 
+state-verification batch, not the echo, honest note, TENTH consecutive slip); echo metrics date-read class (no HTTP); +187.881687057 vs window-2802 — POST-WINDOW extends m10 (the c2801 
+Next-block watch held EXACTLY); +764.697850297 by stamp (the deepest print 1025.631018606 STANDS, not superseded); the echo POSTDATED the capture post-echo (1793320373.583889929) by 
+64.113960368s — the capture-then-echo class OPENS m1, the echo-then-capture order BROKE (the c2800/c2801 order prints TERMINATE, honest note — see Step 3); echo account attempt #523 
+TAKEN -> 137-for-523.
+- Step 2: harness STAGED BEFORE the scan POST (staging order law held for the capture path): census_c2802.py + arrival_guard_c2802.py + gen_rebadge_2802.py + rebadge_cycle2802.py + 
+capture_cycle2802.sh + measure_c2802_tokens.py all written and checked pre-POST; recursive_diff_2802.py written post-capture pre-verification (mirroring the c2800/c2801 staging; the rdiff 
+tool performs no network I/O, zero effect on the SINGLE-POST law); the authoring-order slip noted honestly: the rebadge v101 -> v102 AND the P-HIST measure ran BEFORE the guard this cycle 
+(zero effect on any check — the v101 source untouched by the read-only rebadge, the guard asserts held GREEN regardless, the c2801 ghost-tool abort class did NOT fire); rebadge v101 -> 
+v102 GREEN attempt-1 11/11 exact-string patches FIRST-TRY CLEAN (the lag-1 dual-surface lesson applied cleanly for the THIRTY-SECOND consecutive cycle: the P3/P8 old-strings expected the 
+v101 lag-1 carries 'pass-49 evidence' AND 'pass-49 band'; pass-51 spec; the P2/P3/P8 old-paragraphs extracted VERBATIM from the v101 source bytes by the authoring harness 
+gen_rebadge_2802.py, the generator left untracked for the foreign-absorption path) - P-HIST MEASURED on actual v102 bytes (11860B): total 210 AND the docstring forecast (210) HIT AGAIN 
+FORTY-FIRST consecutive (c2801 1->4 +3 net, c2802 +1 born, 206 -> 210 +4 net; the observed-list APPEND class keeps governing, the MEASUREMENT GOVERNS); hash-artifact watch: the c2801 short 
+hash c57c12a carries TWO 'c' characters but NO c+4-digit run ('c57c' + 'c12a' — both runs break before 4 digits) — zero c+4-digit run, zero exposure; the v101 P2 'the e829f19 commit 
+object' rebadged away to 'the c57c12a commit object' with ZERO token deaths (e829f19 carries no 'c' character — no c+4-digit run); the foreign e6da641 short form carries NO 'c' character 
+at all - zero exposure; c7947 stays exited - diff-verify GREEN attempt-1 42 changed lines (20 removed + 22 added, 12 hunks) every changed line inside the expected patch regions (the region 
+table MEASURED against the actual v102 bytes pre-run — CYCLE 122 / RAW 123 / PRETTY 124 / SIZE_BAND 125 / contract 112 / SOFT comment 223 / gate 227 / block 232+234, the +2 
+docstring-shift class held; the 42-line print REPEATS EXACTLY the EIGHTH consecutive cycle, honest note; the measured-region pre-run lesson applied — NO attempt-1 RED this cycle, the 
+c2800 ghost-tool abort class does NOT fire)
+- Step 3: OFFICIAL CAPTURE (single POST law): pre-echo 00:32:52.014698450 +0000 (epoch 1793320372.015401182 EPOCH-governs); curl -X POST http://localhost:3000/api/marketplaces/scan -> 
+http=200, time_total=1.508149s, size=446B, rc=0; post-echo 00:32:53.579105149 +0000 (epoch 1793320373.583889929 EPOCH-governs); scanned_at 2026-10-30T00:32:53.527Z = epoch 1793320373.527 
+decimal-exact (timegm-verified); server scan_duration_ms=1501; CAPTURE POST-WINDOW: vs window-2802 open 1793320249.816163240 = +123.767726689s (the capture post-c2801-post-echo 
++423.767726689); the BOTH-POST class EXTENDS m9 (loop echo POST-WINDOW +187.881687057 / capture POST-WINDOW +123.767726689); BUT the ORDER FLIPPED: the loop echo #523 (1793320437.697850297) 
+POSTDATED the capture post-echo by 64.113960368s — the capture-then-echo class OPENS m1, the echo-then-capture order BROKE (the c2800/c2801 echo-then-capture prints TERMINATE, honest 
+note); capture-log contents quoted verbatim: 'window-2802 open 1793320249.816163240 (c2801 Next-block prophecy, EPOCH-governs)' / 'PRE-ECHO 2026-10-30T00:32:52.014698450+0000 
+epoch=1793320372.015401182' / CURL_METRICS http_code_time_size='200 1.508149 446' rc=0 / 'POST-ECHO 2026-10-30T00:32:53.579105149+0000 epoch=1793320373.583889929' / 'raw_bytes=446'; the log 
+is gitignored-class on-disk-only (*.log rule).
+- Step 4: VERIFICATION: validate_cycle2802.py dual-rc exit=0 BOTH runs (gate_count=26/26 programmatic, hard_failures=0, soft_notes=0 — the classification SOFT gate GREEN on the pass-51 
+match); archive scan_cycle2802.json written 574B (validator-archive class: the 574B convention holds, honest note); recursive_diff SPAN-1 vs scan_cycle2801.json: MARKET_UNCHANGED, 
+DIFF_COUNT=0, normalized 419-vs-419 — five-tuple (18,0,0,18,0) @ 446B REPEATS the pass-50 observation EXACTLY -> DRIFT-#49 PASS-51 RECORDED (movement repeat-class: the honest-free exits 
+HOLD — the two free tasks stay out, the scam block 18 stands, honest_paid/scam/unknown unchanged; the DRIFT-#48 root (20,0,2,18,0) remains LOCKED, never rewritten; no restoration this 
+cycle — the pass-1 excursion CONTINUES as the standing market state); the rdiff fresh unchanged-count EXTENDS m50.
+- Step 5: GOLD CHECK: has_gold ABSENT-KEY class, has_gold(derived)=False, honest_paid=0, best_paid_task=None, paid_missions=0, total_bounties=0, all_honest_paid=[] — NO honest paid task; 
+NO claim, NO scam-check, NO EV computation, NO spend (the three no's upheld; honest_free=0 — the free tasks stay exited, operator wants PAID only, zero taken ever); blocker probe: 
+.basedagents ABSENT (test -d exit 1; the claim path stays obstructed) — 2802nd consecutive obstructed scan, honest, never bypassed.
+- Step 6: WATCH LEDGER (Decimal-exact, timegm-guarded — the append-run arithmetic, recorded in Step 7): dd#376 = +123.763000000 — DRAIN extends m41 (123.763 < 564.552241212, the 
+sub-band class continues by 440.789241212 — the drain FELL from the 289.058 print; INTERVAL-between-scans 423.763 = 300 + 123.763, the scan again landed past the 300s re-scan contract but 
+the excess stays sub-band); INTERVAL#376 = 700.527 (trigger-to-scan); LAG#376 = 700.527 + 123.763 - 289.058 = +535.232000000 POSITIVE -> POS extends m56 @ +535.232 (the run-high +1219.305 
+STANDS, not superseded); LATE#376 = -576.816163240 NEGATIVE -> EARLY extends m12 (magnitude ROSE 287.768644136 -> 576.816163240 — the stamp gap to the window WIDENED, the c2801 easing 
+RE-REVERSED, honest note); SKEW = +56.889929ms — ABOVE-10 extends m3 (the EPOCH-governs decomposition .583889929 - .527, NOT the ISO print .579105149: the ISO/EPOCH clock reads differ 
+~4.8ms on the post-echo — the c2766 append attempt-1 abort lesson honored; the flip-band watched both ways — the c2801 +52.163240ms print sat 42.163240ms ABOVE the flip line, this print 
+stays 46.889929ms ABOVE, no flip); EP14 s394: server 1508.149 / client 1.568488747 BOTH SUB-2.0 -> STALL extends m30 (the s393 DUAL SUB-2.0 prescription held); SWEEP: client 1.568488747 OUT 
+(below 1.585568) / server 1508.149 OUT (below 1601) -> BOTH-OUT -> RE-CENTER opens m1 (the new band client 1.448488747..1.688488747 / server 1428.149..1588.149 — the c2800 re-center band 
+TERMINATES, its m3 closes, honest note); cadence376 = 300.000s by stamp (the 300 print RETURNS, 12 priors of the exact form) / 480s by token (0821 -> 0829 — the 720s-by-token print BROKE, 
+the 720-series TERMINATES after its c2801 print + 6 priors counted per the census; the 480 print RETURNS, 22 priors) — cadence: stamp IN the 300/600-class / token OUT the 540/600-class 
+— the SPLIT print RE-OPENS m1 (the BOTH-OFF print TERMINATES, its m1 closes — the SPLIT-class returns); echo account attempt #523: echo TAKEN (vs window +187.881687057 ABOVE — 
+POST-WINDOW extends m10, the c2801 Next-block watch held; the MID-SESSION class EXTENDS m10 — the echo was NOT the first command of the servicing session, the first-command prescription 
+slipped AGAIN, honest note, TENTH consecutive; the echo POSTDATED the capture post-echo by 64.113960368s — the capture-then-echo class OPENS m1, the echo-then-capture order BROKE) -> 
+137-for-523; stamp-to-echo wait 764.697850297s (the deepest print 1025.631018606 STANDS); the BOTH-POST print EXTENDS m9: loop echo POST-WINDOW / capture POST-WINDOW; size 446B in-band -> 
+m121; ahead-print +467s AHEAD NEW (0 priors of the '+467s AHEAD' form + 0 of the '-> +467' series form counted per the census; series ... -> +528 -> +528 -> +468 -> +468 -> +287 -> +467); 
+rdiff fresh unchanged-count extends m50; the first-pass-clean RUN slipped this cycle (the rebadge/measure ran BEFORE the guard — the authoring-order slip, honest note; every check still 
+GREEN attempt-1, zero aborts, the c2800 ghost-tool abort class did NOT fire).
+- Step 7: LEDGER + GIT: this block lands 9352 -> 9364 lines (12-line standard block; guarded append GREEN — ALL asserts preceded the mutation; the append harness rehearsal-ran against a 
+byte-identical temp copy BEFORE the real run (the c2804 pre==0 expectation measured BEFORE the run — UNBORN pre-append (measured pre-append: c2804_pre = 0), the c2803 pre-count is 4 
+(born: the c2801 Step-7 twin-print line 9350 TWICE + TWICE inside the c2801 Next-block, measured at census time per-line {9350: 2, 9352: 2}), NOT the unborn class — the born-FOUR class 
+REPEATS; the rehearsal is the abort mechanism, worklog UNTOUCHED in rehearsal — rehearsal attempt-1 GREEN 189/189 first-try clean (all constants Decimal-exact — the MEASUREMENT GOVERNS; 
+the REAL run then GREEN attempt-1)); all constants Decimal-exact at the real run; the dd formula carries the single contract subtraction, verified against the dd#374 print 703.790 - 300 = 
+403.790 and the dd#375 print 589.058 - 300 = 289.058 before printing dd#376 = 423.763 - 300 = 123.763); the ledger arithmetic stays in the DECIMAL class this cycle: every ns-decomposition 
+check Decimal-exact or Decimal-with-1e-6-tolerance on the utc-derived values, the append-run verifies every constant decimal-exact before mutation; single commit lands the block + the c2802 
+instrument set (census/arrival-guard/rebadge/capture/measure/rdiff/entry/append + validator + raw + pretty, mirroring the c2800/c2801 convention; the capture log on-disk-only per the *.log 
+gitignore class, contents quoted verbatim in Step 3; the authoring harness gen_rebadge_2802.py + the diff-verify post-check diff_verify_2802.py left untracked for the foreign-absorption 
+path); ghost ledger: the c2802 pycache binaries + the commit_msg_c2802.txt + any tool-results read-snapshots from the read phase left untracked for the foreign-absorption path (the 
+5939089/19ff74c/660688b/7386e88/4538311/02d651d/dd48816/0539b68/eb9de41/9b5ea95/f9ecf31/2b2bd7b/336d5f2/e54aab2/d22e2bb/134a6b8/51f1161/f076455/b9b0ce0/128bbec/67ba021/966ab1f/0b4f512/ffa527
+c/c048029/3b69581/18522dc/ea92218/4477b73/4207111/615fc1c/7efc24d/65f4c4e/b27a69f/f0d806e/87e21ad/e6da641 precedent); the c2802 append-run prints in this block reflect the ACTUAL outcome 
+(the MEASUREMENT GOVERNS over drafted text).
+- No gold yet. Scanner continues.
+- Next: the c2803 instance (446189-c2803) resumes the STANDARD cycle on the DRIFT-#49 pass-51 state — arrival-guard against c2803/c2804 tokens (worklog 9364 lines EXACT; anchors as-found 
+post-block: ^Task ID: 480, ^- No gold yet 413, the post-#6 series 60, the post-#15 series 28 — OCCURRENCE-COUNTING is the standing method; census per-line FIRST — the token-guard lives 
+INSIDE the prior Next-block, the FORWARD token c2804 must be IN the census tuple (the c2767..c2802 forward-token lessons: the forward token is born inside the prior Next-block's guard 
+phrase AND the census-tuple sentence — measure it, never assume it unborn), and the HEAD check needs the parent layer, foreign-commit-TOP expected); git post-c2802 commit object-verified 
+by body prefix 'c2802:'; DRIFT-#49 pass-51 continues: a repeat (18,0,0,18,0) @ 446-447B -> pass-52 recorded (movement repeat-class; the DRIFT-#48 root (20,0,2,18,0) remains LOCKED, never 
+rewritten); a return to (20,0,2,18,0) -> the RESTORATION event recorded (the root stands, the pass-1 excursion closes as a transient); any other composition -> newest-observation evidence 
+with the full delta chain printed; rebadge source validate_cycle2802.py (v102 sed-carry class; object-verify the instrument set FIRST — the LOSS-#83 lesson stands; the LAG-1 pattern spans 
+BOTH instrument surfaces — the SIZE_BAND band-name AND the evidence-paragraph heading: the v102 source carries 'pass-50 band' AND 'pass-50 evidence' — the v103 rebadge P3/P8 old-strings 
+expect the lag, not the class name — the c2761 attempt-1 P8 RED + the c2770 attempt-1 P3 RED lessons); P-HIST via measure_c2803_tokens.py on ACTUAL bytes (the v102 measured series {c2746: 
+1, c2747: 2, c2748: 2, c2749: 1, c2750: 1, c2751: 1, c2752: 5, c2753: 4, ..., c2800: 4, c2801: 4, c2802: 1} total 210 is the compare base; the observed-list APPEND class governs the 
+forecast: appended members survive, do not assume replacement — forty-one consecutive HITs c2762..c2802; HASH-ARTIFACT watch: the c7947 death-class STAYS CLOSED this cycle — the 
+official c2801 short hash c57c12a carries TWO 'c' characters but NO c+4-digit run ('c57c' + 'c12a' both break before 4 digits) and the v102 P2 rebadge to it produced zero births and zero 
+deaths; the foreign e6da641 short form carries NO 'c' character at all — zero c+4-digit run, zero validator exposure; for v103 the P2 rebadges to the c2802 commit hash — check the fresh 
+c2802 commit hash for 'c'+4-digits runs BEFORE forecasting (the c3819e9 + c7947 lessons), the MEASUREMENT governs); window-2803 open epoch = 1793320673.583889929 (the c2802 post-echo + 
+300.000 server contract; ISO rendered FROM the EPOCH — 00:37:53.583889929 +0000 = 08:37:53.583889929 +08); dd#377 watch: < 564.552241212 DRAIN extends m42 / 
+in-[564.552241212..3708.066631432] ESCALATION re-opens m1 (the DRAIN m41 terminates) / > 3708.066631432 ESCALATION re-opens m1 with magnitude print (the dd formula carries the single 
+contract subtraction — verify against the dd#375 print 589.058 - 300 = 289.058 and the dd#376 print 423.763 - 300 = 123.763 before printing); LAG: POSITIVE extends m57 (@ +535.232 
+carried; the run-high +1219.305 stands) / NEGATIVE flips (POS m56 terminated -> NEG re-opens m1); LATE: NEGATIVE -> EARLY extends (@ -576.816163240 carried) / POSITIVE -> LATE re-opens m1; 
+SKEW: ABOVE-10 extends m4 (the c2802 print sits 46.889929ms ABOVE the flip line) / SUB-10 flips back (ABOVE-10 m3 terminated -> SUB-10 re-opens m1) — the flip-band watched both ways; EP14 
+s395: DUAL SUB-2.0 -> STALL extends m31 (the s394 STALL extension) / DUAL ABOVE-2.0 -> OPEN re-opens m1 (the STALL m30 terminates) / SPLIT -> split-series m1 opens; SWEEP both-in-band 
+(client 1.448488747..1.688488747 / server 1428.149..1588.149) -> HOLD extends m2 (the c2802 re-center band), else re-center; echo: IN-BATCH echo MANDATORY (standing prescription — the 
+c2802 echo landed MID-SESSION AGAIN: the MID-SESSION class EXTENDS m10, the first-command prescription slipped a TENTH consecutive cycle, honest note; the capture-then-echo order class 
+OPENS m1 — the echo POSTDATED the capture, watch the order class; the POST-WINDOW echo class extends m10 / PRE-WINDOW flips re-open m1 (the c2792/c2793 alternate); the deepest 
+stamp-to-echo print 1025.631018606 stands until superseded); the honest_free stay-exited state (18 total, 0 free) is the standing market — watch for the two free tasks' return 
+(RESTORATION) or further exits; any honest paid emergence = GOLD path (scam-check -> EV -> bounty <= $5 first-job policy).
