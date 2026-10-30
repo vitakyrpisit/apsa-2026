@@ -1,0 +1,36 @@
+clean_body_bytes=446
+ok: json_parse (446B)
+ok: scanned_at_str ('2026-10-30T00:56:17.434Z')
+ok: scan_duration_ms_int (1921)
+ok: basedagents_obj (dict)
+ok: taskbounty_obj (dict)
+ok: ba_key:total_tasks (18)
+ok: ba_key:honest_paid (0)
+ok: ba_key:honest_free (0)
+ok: ba_key:scam_pattern (18)
+ok: ba_key:unknown (0)
+ok: ba_key:best_paid_task (None)
+ok: ba_key:all_honest_paid ([])
+ok: tb_key:api_key_configured (False)
+ok: tb_key:total_bounties (0)
+ok: tb_key:paid_missions (0)
+ok: tb_key:best_bounty (None)
+ok: tb_key:all_bounties ([])
+ok: auto_claim_pending_false (False)
+ok: next_scan_int (300)
+ok: clawlancer_absent
+scanned_at=2026-10-30T00:56:17.434Z
+scan_duration_ms=1921
+BA composition: total=18 honest_paid=0 honest_free=0 scam=18 unknown=0
+ok: hp_len_consistent (len=0 vs honest_paid=0)
+ok: best_paid_task_null_or_obj (None)
+ok: taskbounty_no_key (False)
+ok: has_gold_key_absent (<absent-key class>)
+GOLD_CHECK: has_gold(derived)=False honest_paid=0 best_paid_task=None paid_missions=0 total_bounties=0
+ok: size_band_446_447 (446B vs band (446, 447))
+ok: drift49_pass53_match ((18, 0, 0, 18, 0) vs (18,0,0,18,0))
+CLASSIFICATION: DRIFT-#49 pass-53 (movement repeat-class recorded; the DRIFT-#48 root (20,0,2,18,0) remains LOCKED, never rewritten)
+archive_written=/home/z/my-project/scripts/scan_cycle2804.json
+gate_count=26 hard_failures=0 soft_notes=0
+ALL_STRUCTURAL_ASSERTIONS_PASSED
+classification_c2804=DRIFT-#49 pass-53 (movement repeat-class recorded; the DRIFT-#48 root (20,0,2,18,0) remains LOCKED, never rewritten)
