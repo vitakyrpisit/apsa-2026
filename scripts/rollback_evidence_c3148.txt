@@ -1,0 +1,49 @@
+ROLLBACK INCIDENT EVIDENCE — captured 2026-10-31, cycle c3148 (trigger 17:51:53 +08)
+=====================================================================================
+AS-FOUND STATE (pre-scan, read-only, before any mutation):
+- worklog.md: 10901 lines == the c3040 close (10900 lines) + 1 stray TRAILING BLANK line;
+  diff of lines 1-10900 vs `git show f7b55b9:worklog.md`: BASE_IDENTICAL.
+- anchors as-found: ^Task ID: 608 / ^- No gold yet: 541.
+- git HEAD: f7b55b9 (c3040 close, committed 2026-10-31 00:52:01 +0000 == 08:52:01 +08);
+  reflog newest entry == that commit; no trace of c3041-c3147 anywhere in the repo.
+- lost-object check: 27d774b (c3147), a810865 (c3146), fa01485 (c3145), 27a4a82 (c3144),
+  01c9321 (c3143) — ALL "fatal: Not a valid object name", pre- AND post-fetch.
+- dirty tree: 1401 modified tracked files, 0 untracked at as-found; non-.pyc modifications
+  limited to old-era artifacts (append_c2805_real.out, scripts/append_c2795_p1.py,
+  scripts/append_c2795_p2.py, scripts/append_c2804_real.out, scripts/append_c2804_rehearsal.out,
+  scripts/append_c2804_rehearsal2.out, scripts/append_c2805_rehearsal.out,
+  scripts/append_cycle2747.py, ...; remainder = tracked .pyc churn). NO c3140+ files survived
+  on disk (scripts/ retained only scan_cycle314.json from the Oct 11 era).
+- scanner service: health probe DOWN at ~09:52 UTC (sandbox recycle killed it);
+  environment supervisor auto-starts 'bun run dev' (next dev -p 3000, PIDs 1091/1094/1095,
+  booted 09:51); health 200 at 09:56:22.591 UTC. A manual standalone-server attempt
+  (bun .next/standalone/server.js) failed harmlessly: no standalone build in this tree.
+REMOTE (git-side recovery attempt):
+- origin = github.com/vitakyrpisit/apsa-2026.git (fetch exit 0).
+- remote main HEAD 17f9ebe (app commit 'fix: remove viem dependency from sentinel-shield');
+  scan-commit count on the remote lineage: 0 — the ledger chain was NEVER pushed.
+- merge-base(main, origin/main) == 17f9ebe == remote HEAD -> remote fully contained in local
+  main; local main == remote + the 3147-cycle scan chain.
+- 27d774b invalid post-fetch -> commits c3041-c3147 are NOT on the remote; git-side
+  recovery IMPOSSIBLE.
+RECOVERY PROVENANCE (this session's transcript — the only store outside the sandbox):
+- entry_cycle3144.txt: recovered byte-exact (Read in-session during cycle c3145).
+- entry_cycle3145/3146/3147.txt: recovered byte-exact (authored in-session via Write).
+- scan_cycle3144.json: recovered byte-exact (raw curl -o body Read in-session, 446 bytes,
+  no trailing newline).
+- scan_cycle3145.json: recovered byte-exact (session-reconstructed during c3145; diff-verified
+  then against the c3144 raw body modulo timestamp/duration only).
+- scan_cycle3146.json / scan_cycle3147.json: RECONSTRUCTED from those cycles' in-session
+  json.tool displays (scanned_at 09:42:30.194Z / 1702ms and 09:47:06.137Z / 1652ms), byte-format
+  identical to the surviving raw bodies; NOT byte-verified against the lost originals.
+- worklog blocks c3140-c3143: NOT RECOVERABLE (entries never Read in-session; files lost with
+  the snapshot) -> permanent gap, acknowledged in the c3148 block.
+- worklog cycles c3041-c3139: nothing to recover (scan-only cycles, no ledger blocks existed;
+  anchor arithmetic reconciles exactly: pre-rollback 616/549 minus the 4 lost c3140-c3143
+  anchors == the rebuilt 612/545).
+TIMING MILESTONES (UTC, measured):
+- trigger 09:51:53.000 | token clock 09:52:00.177 (+7.177s) | health-DOWN probe ~09:52
+  | health-OK 09:56:22.591 | capture curl 09:56:33.125 -> 09:56:34.857 (wall 1.724s,
+  scanned_at 09:56:34.853Z, server scan_duration_ms=1715).
+The c3148 incident block in worklog.md is the authoritative narrative; this file is the
+raw-evidence companion.
